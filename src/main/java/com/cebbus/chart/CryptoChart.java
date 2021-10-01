@@ -1,5 +1,6 @@
 package com.cebbus.chart;
 
+import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.plot.Marker;
 import org.jfree.chart.plot.ValueMarker;
@@ -15,13 +16,17 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.ZonedDateTime;
 
-public class CryptoChart {
+public abstract class CryptoChart {
 
     final BarSeries series;
 
-    public CryptoChart(BarSeries series) {
+    CryptoChart(BarSeries series) {
         this.series = series;
     }
+
+    abstract JFreeChart create();
+
+    abstract void refresh();
 
     public RegularTimePeriod convertToPeriod(ZonedDateTime dateTime) {
         return new Millisecond(Timestamp.valueOf(dateTime.toLocalDateTime()));
@@ -33,27 +38,29 @@ public class CryptoChart {
     }
 
     public void addSignals(XYPlot plot, TradingRecord tradingRecord) {
-        for (Position position : tradingRecord.getPositions()) {
-            // Buy signal
-            int entryIndex = position.getEntry().getIndex();
-            ZonedDateTime entryDate = this.series.getBar(entryIndex).getEndTime();
-            double buySignalBarTime = convertToPeriod(entryDate).getFirstMillisecond();
+        tradingRecord.getPositions().forEach(p -> addSignal(plot, p));
+    }
 
-            Marker buyMarker = new ValueMarker(buySignalBarTime);
-            buyMarker.setPaint(Color.GREEN);
-            buyMarker.setLabel("B");
-            plot.addDomainMarker(buyMarker);
+    public void addSignal(XYPlot plot, Position position) {
+        // Buy signal
+        int entryIndex = position.getEntry().getIndex();
+        ZonedDateTime entryDate = this.series.getBar(entryIndex).getEndTime();
+        double buySignalBarTime = convertToPeriod(entryDate).getFirstMillisecond();
 
-            // Sell signal
-            int exitIndex = position.getExit().getIndex();
-            ZonedDateTime exitDate = this.series.getBar(exitIndex).getEndTime();
-            double sellSignalBarTime = convertToPeriod(exitDate).getFirstMillisecond();
+        Marker buyMarker = new ValueMarker(buySignalBarTime);
+        buyMarker.setPaint(Color.GREEN);
+        buyMarker.setLabel("B");
+        plot.addDomainMarker(buyMarker);
 
-            Marker sellMarker = new ValueMarker(sellSignalBarTime);
-            sellMarker.setPaint(Color.RED);
-            sellMarker.setLabel("S");
-            plot.addDomainMarker(sellMarker);
-        }
+        // Sell signal
+        int exitIndex = position.getExit().getIndex();
+        ZonedDateTime exitDate = this.series.getBar(exitIndex).getEndTime();
+        double sellSignalBarTime = convertToPeriod(exitDate).getFirstMillisecond();
+
+        Marker sellMarker = new ValueMarker(sellSignalBarTime);
+        sellMarker.setPaint(Color.RED);
+        sellMarker.setLabel("S");
+        plot.addDomainMarker(sellMarker);
     }
 
     public int getStartIndex() {

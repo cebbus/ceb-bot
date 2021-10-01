@@ -42,11 +42,15 @@ public class CebBot {
         CryptoChartPanel chartPanel = new CryptoChartPanel(theOracle);
         chartPanel.show();
 
-        //startStream(loader, theOracle);
-        startDummyStream(loader, theOracle);
+        //startStream(loader, theOracle, chartPanel);
+        startDummyStream(loader, theOracle, chartPanel);
     }
 
-    private static void startDummyStream(DataLoader loader, TheOracle theOracle) throws InterruptedException {
+    private static void startDummyStream(
+            DataLoader loader,
+            TheOracle theOracle,
+            CryptoChartPanel chartPanel) throws InterruptedException {
+
         BarSeries series = theOracle.getSeries();
         Strategy strategy = theOracle.prophesy();
         TradingRecord tradingRecord = theOracle.getTradingRecord();
@@ -77,6 +81,8 @@ public class CebBot {
                     log.info("Exited on " + exit.getIndex() + " (price=" + exit.getNetPrice().doubleValue() + ", amount=" + exit.getAmount().doubleValue() + ")");
                 }
             }
+
+            chartPanel.refreshCharts();
         }
 
         log.info("CPI Size: " + indicator.getBarSeries().getBarCount());
@@ -101,7 +107,7 @@ public class CebBot {
         return barList;
     }
 
-    private static void startStream(DataLoader loader, TheOracle theOracle) {
+    private static void startStream(DataLoader loader, TheOracle theOracle, CryptoChartPanel chartPanel) {
         BarSeries series = theOracle.getSeries();
         Strategy strategy = theOracle.prophesy();
         TradingRecord tradingRecord = theOracle.getTradingRecord();
@@ -125,6 +131,8 @@ public class CebBot {
                     log.info("Exited on " + exit.getIndex() + prepareTradeLog(exit));
                 }
             }
+
+            chartPanel.refreshCharts();
         });
     }
 

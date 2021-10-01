@@ -15,15 +15,20 @@ import org.ta4j.core.BarSeries;
 
 public class CandlestickChart extends CryptoChart {
 
+    private JFreeChart chart;
+
+    private final OHLCSeries ohlcSeries = new OHLCSeries("");
+
     public CandlestickChart(BarSeries series) {
         super(series);
     }
 
+    @Override
     public JFreeChart create() {
         OHLCDataset dataset = createChartData();
-        JFreeChart chart = ChartFactory.createCandlestickChart(null, null, null, dataset, false);
+        this.chart = ChartFactory.createCandlestickChart(null, null, null, dataset, false);
 
-        XYPlot xyPlot = chart.getXYPlot();
+        XYPlot xyPlot = this.chart.getXYPlot();
         setDateAxisFormat(xyPlot);
 
         NumberAxis numberAxis = (NumberAxis) xyPlot.getRangeAxis();
@@ -33,21 +38,31 @@ public class CandlestickChart extends CryptoChart {
         renderer.setAutoWidthMethod(1);
         xyPlot.setRenderer(renderer);
 
-        return chart;
+        return this.chart;
+    }
+
+    @Override
+    void refresh() {
+        if (this.chart == null) {
+            return;
+        }
+
+        int endIndex = this.series.getEndIndex();
+        Bar bar = this.series.getBar(endIndex);
+
+        this.ohlcSeries.add(createItem(bar));
     }
 
     private OHLCDataset createChartData() {
-        OHLCSeries ohlcSeries = new OHLCSeries("");
-
         int startIndex = getStartIndex();
         int endIndex = this.series.getEndIndex();
         for (int i = startIndex; i < endIndex; i++) {
             Bar bar = this.series.getBar(i);
-            ohlcSeries.add(createItem(bar));
+            this.ohlcSeries.add(createItem(bar));
         }
 
         OHLCSeriesCollection dataset = new OHLCSeriesCollection();
-        dataset.addSeries(ohlcSeries);
+        dataset.addSeries(this.ohlcSeries);
 
         return dataset;
     }

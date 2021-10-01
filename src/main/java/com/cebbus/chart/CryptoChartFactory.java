@@ -1,6 +1,5 @@
 package com.cebbus.chart;
 
-import org.jfree.chart.JFreeChart;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.TradingRecord;
 import org.ta4j.core.indicators.CachedIndicator;
@@ -12,18 +11,22 @@ public class CryptoChartFactory {
 
     private final BarSeries series;
     private final TradingRecord tradingRecord;
+    private final TradingRecord backtestRecord;
 
-    public CryptoChartFactory(BarSeries series, TradingRecord tradingRecord) {
+    public CryptoChartFactory(
+            BarSeries series,
+            TradingRecord tradingRecord,
+            TradingRecord backtestRecord) {
         this.series = series;
         this.tradingRecord = tradingRecord;
+        this.backtestRecord = backtestRecord;
     }
 
-    public JFreeChart newLineChart(Map<String, CachedIndicator<Num>> indicatorMap) {
-        LineChart lineChart = new LineChart(this.series, indicatorMap, this.tradingRecord);
-        return lineChart.create();
+    public CryptoChart newLineChart(Map<String, CachedIndicator<Num>> indicatorMap) {
+        return new LineChart(this.series, indicatorMap, this.tradingRecord, this.backtestRecord);
     }
 
-    public JFreeChart newCandlestickChart() {
-        return new CandlestickChart(this.series).create();
+    public CryptoChart newCandlestickChart() {
+        return new CandlestickChart(this.series);
     }
 }
