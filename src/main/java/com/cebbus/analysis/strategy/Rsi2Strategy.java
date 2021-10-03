@@ -17,12 +17,12 @@ import org.ta4j.core.rules.UnderIndicatorRule;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class RSI2Strategy implements CebStrategy {
+public class Rsi2Strategy implements CebStrategy {
 
     private final BarSeries series;
     private final Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
 
-    public RSI2Strategy(BarSeries series) {
+    public Rsi2Strategy(BarSeries series) {
         this.series = series;
     }
 

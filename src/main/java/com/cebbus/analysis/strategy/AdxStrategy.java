@@ -19,12 +19,12 @@ import org.ta4j.core.rules.UnderIndicatorRule;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class ADXStrategy implements CebStrategy {
+public class AdxStrategy implements CebStrategy {
 
     private final BarSeries series;
     private final Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
 
-    public ADXStrategy(BarSeries series) {
+    public AdxStrategy(BarSeries series) {
         this.series = series;
     }
 

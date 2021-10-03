@@ -1,7 +1,6 @@
 package com.cebbus.analysis;
 
-import com.cebbus.analysis.strategy.CebStrategy;
-import com.cebbus.analysis.strategy.DummyStrategy;
+import com.cebbus.analysis.strategy.*;
 import lombok.extern.slf4j.Slf4j;
 import org.ta4j.core.*;
 import org.ta4j.core.indicators.CachedIndicator;
@@ -18,11 +17,11 @@ public class TheOracle {
 
     public TheOracle(BarSeries series) {
         this.series = series;
-        //this.strategy = new RSI2Strategy(series);
-        //this.strategy = new ADXStrategy(series);
+        this.strategy = new Rsi2Strategy(series);
+        //this.strategy = new AdxStrategy(series);
         //this.strategy = new GlobalExtremaStrategy(series);
         //this.strategy = new MovingMomentumStrategy(series);
-        this.strategy = new DummyStrategy(series);
+        //this.strategy = new DummyStrategy(series);
     }
 
     public Strategy prophesy() {
