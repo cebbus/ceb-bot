@@ -51,7 +51,7 @@ public class GlobalExtremaStrategy implements CebStrategy {
                 "Down Week", downWeek)
         );
 
-        return new BaseStrategy(entryRule, exitRule);
+        return new BaseStrategy("Global Extrema", entryRule, exitRule);
     }
 
     @Override

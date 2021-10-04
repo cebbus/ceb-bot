@@ -56,7 +56,7 @@ public class Rsi2Strategy implements CebStrategy {
 
         this.indicators.put("RSI", Map.of("RSI", rsi));
 
-        return new BaseStrategy(entryRule, exitRule);
+        return new BaseStrategy("RSI", entryRule, exitRule);
     }
 
     @Override

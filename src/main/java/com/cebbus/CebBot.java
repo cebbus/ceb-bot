@@ -23,10 +23,11 @@ public class CebBot {
         BarSeries series = new BaseBarSeriesBuilder()
                 .withName(SYMBOL.toUpperCase())
                 .withBars(loader.convertToBarList())
-                .withMaxBarCount(100)
+                .withMaxBarCount(PropertyReader.getCacheSize())
                 .build();
 
         TheOracle theOracle = new TheOracle(series);
+        theOracle.chooseBest();
 
         CryptoChartPanel chartPanel = new CryptoChartPanel(theOracle);
         chartPanel.show();

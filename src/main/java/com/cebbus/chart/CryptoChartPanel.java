@@ -157,7 +157,6 @@ public class CryptoChartPanel {
     private JLabel createTitleLabel(String text) {
         JLabel label = new JLabel(text);
         label.setPreferredSize(new Dimension(WEST_WIDTH, 25));
-        label.setBackground(Color.LIGHT_GRAY);
         label.setForeground(Color.RED);
         label.setIcon(BasicIconFactory.getMenuArrowIcon());
 

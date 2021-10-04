@@ -34,13 +34,13 @@ public class DataLoader {
 
         List<Candlestick> bars = client.getCandlestickBars(this.symbol.toUpperCase(), this.interval);
         bars.forEach(candlestick -> CACHE.put(candlestick.getCloseTime(), candlestick));
-
-        log.info(String.format("Historical data loaded! Symbol: %s", this.symbol));
     }
 
     public void startStream(BinanceApiCallback<Candlestick> callback) {
         try (BinanceApiWebSocketClient client = ClientFactory.webSocketClient()) {
             client.onCandlestickEvent(this.symbol.toLowerCase(), this.interval, response -> {
+                //log.info(response.toString());
+
                 if (Boolean.TRUE.equals(response.getBarFinal())) {
                     Long closeTime = response.getCloseTime();
                     Candlestick candlestick = CandlestickMapper.valueOf(response);

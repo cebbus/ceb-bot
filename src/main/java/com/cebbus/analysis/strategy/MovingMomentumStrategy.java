@@ -58,7 +58,7 @@ public class MovingMomentumStrategy implements CebStrategy {
                 "EMA MACD", emaMacd)
         );
 
-        return new BaseStrategy(entryRule, exitRule);
+        return new BaseStrategy("Moving Momentum", entryRule, exitRule);
     }
 
     @Override
