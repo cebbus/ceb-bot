@@ -39,8 +39,6 @@ public class DataLoader {
     public void startStream(BinanceApiCallback<Candlestick> callback) {
         try (BinanceApiWebSocketClient client = ClientFactory.webSocketClient()) {
             client.onCandlestickEvent(this.symbol.toLowerCase(), this.interval, response -> {
-                //log.info(response.toString());
-
                 if (Boolean.TRUE.equals(response.getBarFinal())) {
                     Long closeTime = response.getCloseTime();
                     Candlestick candlestick = CandlestickMapper.valueOf(response);

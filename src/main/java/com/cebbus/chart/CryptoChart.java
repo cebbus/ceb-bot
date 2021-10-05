@@ -1,7 +1,6 @@
 package com.cebbus.chart;
 
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.plot.Marker;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
@@ -13,7 +12,6 @@ import org.ta4j.core.TradingRecord;
 
 import java.awt.*;
 import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.time.ZonedDateTime;
 
 public abstract class CryptoChart {
@@ -32,11 +30,6 @@ public abstract class CryptoChart {
         return new Millisecond(Timestamp.valueOf(dateTime.toLocalDateTime()));
     }
 
-    public void setDateAxisFormat(XYPlot plot) {
-        DateAxis axis = (DateAxis) plot.getDomainAxis();
-        axis.setDateFormatOverride(new SimpleDateFormat("dd.MM"));
-    }
-
     public void addSignals(XYPlot plot, TradingRecord tradingRecord) {
         tradingRecord.getPositions().forEach(p -> addSignal(plot, p));
     }
@@ -49,7 +42,7 @@ public abstract class CryptoChart {
 
         Marker buyMarker = new ValueMarker(buySignalBarTime);
         buyMarker.setPaint(Color.GREEN);
-        buyMarker.setLabel("B");
+        buyMarker.setLabel("B - " + entryIndex);
         plot.addDomainMarker(buyMarker);
 
         // Sell signal
@@ -59,7 +52,7 @@ public abstract class CryptoChart {
 
         Marker sellMarker = new ValueMarker(sellSignalBarTime);
         sellMarker.setPaint(Color.RED);
-        sellMarker.setLabel("S");
+        sellMarker.setLabel("S - " + entryIndex);
         plot.addDomainMarker(sellMarker);
     }
 

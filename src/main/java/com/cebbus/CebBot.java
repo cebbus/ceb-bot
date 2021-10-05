@@ -42,8 +42,10 @@ public class CebBot {
 
         loader.startStream(response -> {
             Bar newBar = BarMapper.valueOf(response);
+            Bar lastBar = series.getLastBar();
 
-            series.addBar(newBar);
+            boolean replace = newBar.getEndTime().equals(lastBar.getEndTime());
+            series.addBar(newBar, replace);
 
             int endIndex = series.getEndIndex();
             if (strategy.shouldEnter(endIndex)) {

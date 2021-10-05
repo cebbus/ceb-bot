@@ -20,7 +20,7 @@ public class TheOracle {
 
     public TheOracle(BarSeries series) {
         this.series = series;
-        this.strategy = new ObvStrategy(series);
+        this.strategy = new ScalpingStrategy(series);
     }
 
     public Strategy prophesy() {
@@ -40,6 +40,7 @@ public class TheOracle {
         strategies.add(calculateProfit(rc, new GlobalExtremaStrategy(this.series)));
         strategies.add(calculateProfit(rc, new MovingMomentumStrategy(this.series)));
         strategies.add(calculateProfit(rc, new ObvStrategy(this.series)));
+        strategies.add(calculateProfit(rc, new ScalpingStrategy(this.series)));
 
         BarSeriesManager seriesManager = new BarSeriesManager(this.series);
         Strategy bestStrategy = rc.chooseBest(seriesManager, strategies);

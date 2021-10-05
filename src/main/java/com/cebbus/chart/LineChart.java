@@ -49,7 +49,6 @@ public class LineChart extends CryptoChart {
                 null, axis, true, true, false);
 
         XYPlot xyPlot = this.chart.getXYPlot();
-        setDateAxisFormat(xyPlot);
         addSignals(xyPlot, this.backtestRecord);
 
         return this.chart;

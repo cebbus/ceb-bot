@@ -29,7 +29,6 @@ public class CandlestickChart extends CryptoChart {
         this.chart = ChartFactory.createCandlestickChart(null, null, null, dataset, false);
 
         XYPlot xyPlot = this.chart.getXYPlot();
-        setDateAxisFormat(xyPlot);
 
         NumberAxis numberAxis = (NumberAxis) xyPlot.getRangeAxis();
         numberAxis.setAutoRangeIncludesZero(false);
