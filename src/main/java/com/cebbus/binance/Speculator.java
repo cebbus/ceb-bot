@@ -11,28 +11,27 @@ import com.cebbus.util.LimitedHashMap;
 import lombok.extern.slf4j.Slf4j;
 import org.ta4j.core.Bar;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class DataLoader {
+public class Speculator {
 
     private static final Map<Long, Candlestick> CACHE = new LimitedHashMap<>();
 
     private final String symbol;
     private final CandlestickInterval interval;
+    private final BinanceApiRestClient restClient;
 
-    public DataLoader(String symbol, CandlestickInterval interval) {
+    public Speculator(String symbol, CandlestickInterval interval) {
         this.symbol = symbol;
         this.interval = interval;
+        this.restClient = ClientFactory.restClient();
     }
 
     public void loadHistory() {
-        BinanceApiRestClient client = ClientFactory.restClient();
-
-        List<Candlestick> bars = client.getCandlestickBars(this.symbol.toUpperCase(), this.interval);
+        List<Candlestick> bars = this.restClient.getCandlestickBars(this.symbol.toUpperCase(), this.interval);
         bars.forEach(candlestick -> CACHE.put(candlestick.getCloseTime(), candlestick));
     }
 
@@ -54,11 +53,16 @@ public class DataLoader {
         }
     }
 
+    public void enter() {
+
+    }
+
+    public void exit() {
+
+    }
+
     public List<Bar> convertToBarList() {
         return CACHE.values().stream().map(BarMapper::valueOf).collect(Collectors.toList());
     }
 
-    public Collection<Candlestick> getValues() {
-        return CACHE.values();
-    }
 }

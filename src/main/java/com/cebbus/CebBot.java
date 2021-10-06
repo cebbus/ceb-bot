@@ -3,7 +3,7 @@ package com.cebbus;
 import com.binance.api.client.domain.market.CandlestickInterval;
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.analysis.mapper.BarMapper;
-import com.cebbus.binance.DataLoader;
+import com.cebbus.binance.Speculator;
 import com.cebbus.chart.CryptoChartPanel;
 import com.cebbus.util.PropertyReader;
 import lombok.extern.slf4j.Slf4j;
@@ -17,12 +17,12 @@ public class CebBot {
     private static final CandlestickInterval INTERVAL = PropertyReader.getInterval();
 
     public static void main(String[] args) {
-        DataLoader loader = new DataLoader(SYMBOL, INTERVAL);
-        loader.loadHistory();
+        Speculator speculator = new Speculator(SYMBOL, INTERVAL);
+        speculator.loadHistory();
 
         BarSeries series = new BaseBarSeriesBuilder()
                 .withName(SYMBOL.toUpperCase())
-                .withBars(loader.convertToBarList())
+                .withBars(speculator.convertToBarList())
                 .withMaxBarCount(PropertyReader.getCacheSize())
                 .build();
 
@@ -32,15 +32,15 @@ public class CebBot {
         CryptoChartPanel chartPanel = new CryptoChartPanel(theOracle);
         chartPanel.show();
 
-        startStream(loader, theOracle, chartPanel);
+        startStream(speculator, theOracle, chartPanel);
     }
 
-    private static void startStream(DataLoader loader, TheOracle theOracle, CryptoChartPanel chartPanel) {
+    private static void startStream(Speculator speculator, TheOracle theOracle, CryptoChartPanel chartPanel) {
         BarSeries series = theOracle.getSeries();
         Strategy strategy = theOracle.prophesy();
         TradingRecord tradingRecord = theOracle.getTradingRecord();
 
-        loader.startStream(response -> {
+        speculator.startStream(response -> {
             Bar newBar = BarMapper.valueOf(response);
             Bar lastBar = series.getLastBar();
 
@@ -48,22 +48,38 @@ public class CebBot {
             series.addBar(newBar, replace);
 
             int endIndex = series.getEndIndex();
-            if (strategy.shouldEnter(endIndex)) {
-                boolean entered = tradingRecord.enter(endIndex, newBar.getClosePrice(), DecimalNum.valueOf(10));
-                if (entered) {
-                    Trade entry = tradingRecord.getLastEntry();
-                    log.info("Entered on " + entry.getIndex() + prepareTradeLog(entry));
-                }
-            } else if (strategy.shouldExit(endIndex)) {
-                boolean exited = tradingRecord.exit(endIndex, newBar.getClosePrice(), DecimalNum.valueOf(10));
-                if (exited) {
-                    Trade exit = tradingRecord.getLastExit();
-                    log.info("Exited on " + exit.getIndex() + prepareTradeLog(exit));
-                }
+            if (enter(strategy, tradingRecord, newBar, endIndex)) {
+                speculator.enter();
+
+                Trade entry = tradingRecord.getLastEntry();
+                log.info("Entered on " + entry.getIndex() + prepareTradeLog(entry));
+            } else if (exit(strategy, tradingRecord, newBar, endIndex)) {
+                speculator.exit();
+
+                Trade exit = tradingRecord.getLastExit();
+                log.info("Exited on " + exit.getIndex() + prepareTradeLog(exit));
             }
 
             chartPanel.refresh();
         });
+    }
+
+    private static boolean enter(Strategy strategy, TradingRecord tradingRecord, Bar newBar, int endIndex) {
+        if (strategy.shouldEnter(endIndex)) {
+            //TODO check account
+            return tradingRecord.enter(endIndex, newBar.getClosePrice(), DecimalNum.valueOf(10));
+        }
+
+        return false;
+    }
+
+    private static boolean exit(Strategy strategy, TradingRecord tradingRecord, Bar newBar, int endIndex) {
+        if (strategy.shouldExit(endIndex)) {
+            //TODO check account
+            return tradingRecord.exit(endIndex, newBar.getClosePrice(), DecimalNum.valueOf(10));
+        }
+
+        return false;
     }
 
     private static String prepareTradeLog(Trade entry) {
