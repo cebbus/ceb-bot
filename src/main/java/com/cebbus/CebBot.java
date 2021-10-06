@@ -16,7 +16,7 @@ public class CebBot {
     private static final String SYMBOL = PropertyReader.getSymbol();
     private static final CandlestickInterval INTERVAL = PropertyReader.getInterval();
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) {
         DataLoader loader = new DataLoader(SYMBOL, INTERVAL);
         loader.loadHistory();
 

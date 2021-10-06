@@ -11,12 +11,13 @@ import org.ta4j.core.indicators.volume.OnBalanceVolumeIndicator;
 import org.ta4j.core.num.Num;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
-import org.ta4j.core.rules.OverIndicatorRule;
-import org.ta4j.core.rules.UnderIndicatorRule;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * Middle - Long term strategy
+ */
 public class ObvStrategy implements CebStrategy {
 
     private final BarSeries series;
