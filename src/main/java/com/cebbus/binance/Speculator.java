@@ -6,6 +6,7 @@ import com.binance.api.client.BinanceApiWebSocketClient;
 import com.binance.api.client.domain.account.Account;
 import com.binance.api.client.domain.account.AssetBalance;
 import com.binance.api.client.domain.account.NewOrder;
+import com.binance.api.client.domain.account.NewOrderResponse;
 import com.binance.api.client.domain.market.Candlestick;
 import com.binance.api.client.domain.market.CandlestickInterval;
 import com.binance.api.client.domain.market.TickerPrice;
@@ -33,13 +34,13 @@ public class Speculator {
     private final BinanceApiRestClient restClient;
 
     public Speculator(String symbol, CandlestickInterval interval) {
-        this.symbol = symbol;
+        this.symbol = symbol.toUpperCase();
         this.interval = interval;
         this.restClient = ClientFactory.restClient();
     }
 
     public void loadHistory() {
-        List<Candlestick> bars = this.restClient.getCandlestickBars(this.symbol.toUpperCase(), this.interval);
+        List<Candlestick> bars = this.restClient.getCandlestickBars(this.symbol, this.interval);
         bars.forEach(candlestick -> CACHE.put(candlestick.getCloseTime(), candlestick));
     }
 
@@ -53,7 +54,8 @@ public class Speculator {
                     CACHE.put(closeTime, candlestick);
                     log.info(String.format("New stick! Symbol: %s", response.getSymbol()));
 
-                    callback.onResponse(candlestick);
+                    Thread t = new Thread(() -> callback.onResponse(candlestick));
+                    t.start();
                 }
             });
         } catch (Exception e) {
@@ -61,7 +63,7 @@ public class Speculator {
         }
     }
 
-    public NewOrder enter() {
+    public NewOrderResponse enter() {
         AssetBalance balance = getBalance(CURRENCY);
         BigDecimal freeBalance = new BigDecimal(balance.getFree());
 
@@ -69,14 +71,17 @@ public class Speculator {
         BigDecimal price = new BigDecimal(tickerPrice.getPrice());
 
         BigDecimal quantity = freeBalance.divide(price, SCALE, RoundingMode.HALF_DOWN);
-        return NewOrder.marketBuy(this.symbol, quantity.toPlainString());
+
+        NewOrder buyOrder = NewOrder.marketBuy(this.symbol, quantity.toPlainString());
+        return this.restClient.newOrder(buyOrder);
     }
 
-    public NewOrder exit() {
+    public NewOrderResponse exit() {
         AssetBalance balance = getBalance(this.symbol);
         BigDecimal freeBalance = convertToBd(balance.getFree());
 
-        return NewOrder.marketSell(this.symbol, freeBalance.toPlainString());
+        NewOrder sellOrder = NewOrder.marketSell(this.symbol, freeBalance.toPlainString());
+        return this.restClient.newOrder(sellOrder);
     }
 
     public boolean checkAccountToEnter() {

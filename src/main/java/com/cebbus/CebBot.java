@@ -1,6 +1,6 @@
 package com.cebbus;
 
-import com.binance.api.client.domain.account.NewOrder;
+import com.binance.api.client.domain.account.NewOrderResponse;
 import com.binance.api.client.domain.market.CandlestickInterval;
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.analysis.mapper.BarMapper;
@@ -50,12 +50,12 @@ public class CebBot {
             int endIndex = series.getEndIndex();
             if (enterable(speculator, strategy, tradingRecord, endIndex)) {
                 log.info("should enter!");
-                NewOrder entry = speculator.enter();
-                log.info("entered! price: " + entry.getPrice() + " quantity: " + entry.getQuantity());
+                NewOrderResponse entry = speculator.enter();
+                log.info("entered! price: " + entry.getPrice() + " quantity: " + entry.getExecutedQty());
             } else if (exitable(speculator, strategy, tradingRecord, endIndex)) {
                 log.info("should exit!");
-                NewOrder exit = speculator.exit();
-                log.info("exited! price: " + exit.getPrice() + " quantity: " + exit.getQuantity());
+                NewOrderResponse exit = speculator.exit();
+                log.info("exited! price: " + exit.getPrice() + " quantity: " + exit.getExecutedQty());
             }
 
             chartPanel.refresh();
