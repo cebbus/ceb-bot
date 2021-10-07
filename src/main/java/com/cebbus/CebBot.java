@@ -1,5 +1,6 @@
 package com.cebbus;
 
+import com.binance.api.client.domain.account.NewOrder;
 import com.binance.api.client.domain.market.CandlestickInterval;
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.analysis.mapper.BarMapper;
@@ -8,7 +9,6 @@ import com.cebbus.chart.CryptoChartPanel;
 import com.cebbus.util.PropertyReader;
 import lombok.extern.slf4j.Slf4j;
 import org.ta4j.core.*;
-import org.ta4j.core.num.DecimalNum;
 
 @Slf4j
 public class CebBot {
@@ -48,42 +48,64 @@ public class CebBot {
             series.addBar(newBar, replace);
 
             int endIndex = series.getEndIndex();
-            if (enter(strategy, tradingRecord, newBar, endIndex)) {
-                speculator.enter();
-
-                Trade entry = tradingRecord.getLastEntry();
-                log.info("Entered on " + entry.getIndex() + prepareTradeLog(entry));
-            } else if (exit(strategy, tradingRecord, newBar, endIndex)) {
-                speculator.exit();
-
-                Trade exit = tradingRecord.getLastExit();
-                log.info("Exited on " + exit.getIndex() + prepareTradeLog(exit));
+            if (enterable(speculator, strategy, tradingRecord, endIndex)) {
+                log.info("should enter!");
+                NewOrder entry = speculator.enter();
+                log.info("entered! price: " + entry.getPrice() + " quantity: " + entry.getQuantity());
+            } else if (exitable(speculator, strategy, tradingRecord, endIndex)) {
+                log.info("should exit!");
+                NewOrder exit = speculator.exit();
+                log.info("exited! price: " + exit.getPrice() + " quantity: " + exit.getQuantity());
             }
 
             chartPanel.refresh();
         });
     }
 
-    private static boolean enter(Strategy strategy, TradingRecord tradingRecord, Bar newBar, int endIndex) {
+    private static boolean enterable(
+            Speculator speculator,
+            Strategy strategy,
+            TradingRecord tradingRecord,
+            int endIndex) {
+
         if (strategy.shouldEnter(endIndex)) {
-            //TODO check account
-            return tradingRecord.enter(endIndex, newBar.getClosePrice(), DecimalNum.valueOf(10));
+            if (!speculator.checkAccountToEnter()) {
+                log.info("you have no balance!");
+                return false;
+            }
+
+            if (!tradingRecord.enter(endIndex)) {
+                log.info("you are already in a position!");
+                return false;
+            }
+
+            return true;
         }
 
         return false;
     }
 
-    private static boolean exit(Strategy strategy, TradingRecord tradingRecord, Bar newBar, int endIndex) {
+    private static boolean exitable(
+            Speculator speculator,
+            Strategy strategy,
+            TradingRecord tradingRecord,
+            int endIndex) {
+
         if (strategy.shouldExit(endIndex)) {
-            //TODO check account
-            return tradingRecord.exit(endIndex, newBar.getClosePrice(), DecimalNum.valueOf(10));
+            if (!speculator.checkAccountToExit()) {
+                log.info("you have no coin!");
+                return false;
+            }
+
+            if (!tradingRecord.exit(endIndex)) {
+                log.info("you have no position!");
+                return false;
+            }
+
+            return true;
         }
 
         return false;
-    }
-
-    private static String prepareTradeLog(Trade entry) {
-        return " (price: " + entry.getNetPrice().doubleValue() + ", amount: " + entry.getAmount().doubleValue() + ")";
     }
 
 }

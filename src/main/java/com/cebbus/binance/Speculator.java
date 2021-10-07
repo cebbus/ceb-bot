@@ -3,14 +3,20 @@ package com.cebbus.binance;
 import com.binance.api.client.BinanceApiCallback;
 import com.binance.api.client.BinanceApiRestClient;
 import com.binance.api.client.BinanceApiWebSocketClient;
+import com.binance.api.client.domain.account.Account;
+import com.binance.api.client.domain.account.AssetBalance;
+import com.binance.api.client.domain.account.NewOrder;
 import com.binance.api.client.domain.market.Candlestick;
 import com.binance.api.client.domain.market.CandlestickInterval;
+import com.binance.api.client.domain.market.TickerPrice;
 import com.cebbus.analysis.mapper.BarMapper;
 import com.cebbus.binance.mapper.CandlestickMapper;
 import com.cebbus.util.LimitedHashMap;
 import lombok.extern.slf4j.Slf4j;
 import org.ta4j.core.Bar;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -18,6 +24,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class Speculator {
 
+    private static final int SCALE = 8;
+    private static final String CURRENCY = "USDT";
     private static final Map<Long, Candlestick> CACHE = new LimitedHashMap<>();
 
     private final String symbol;
@@ -53,12 +61,44 @@ public class Speculator {
         }
     }
 
-    public void enter() {
+    public NewOrder enter() {
+        AssetBalance balance = getBalance(CURRENCY);
+        BigDecimal freeBalance = new BigDecimal(balance.getFree());
 
+        TickerPrice tickerPrice = this.restClient.getPrice(this.symbol);
+        BigDecimal price = new BigDecimal(tickerPrice.getPrice());
+
+        BigDecimal quantity = freeBalance.divide(price, SCALE, RoundingMode.HALF_DOWN);
+        return NewOrder.marketBuy(this.symbol, quantity.toPlainString());
     }
 
-    public void exit() {
+    public NewOrder exit() {
+        AssetBalance balance = getBalance(this.symbol);
+        BigDecimal freeBalance = convertToBd(balance.getFree());
 
+        return NewOrder.marketSell(this.symbol, freeBalance.toPlainString());
+    }
+
+    public boolean checkAccountToEnter() {
+        return hasFreeBalance(CURRENCY);
+    }
+
+    public boolean checkAccountToExit() {
+        return hasFreeBalance(this.symbol.replace(CURRENCY, ""));
+    }
+
+    private boolean hasFreeBalance(String symbol) {
+        AssetBalance balance = getBalance(symbol);
+        return convertToBd(balance.getFree()).doubleValue() > 0;
+    }
+
+    private AssetBalance getBalance(String symbol) {
+        Account account = this.restClient.getAccount();
+        return account.getAssetBalance(symbol);
+    }
+
+    private BigDecimal convertToBd(String value) {
+        return new BigDecimal(value).setScale(SCALE, RoundingMode.HALF_DOWN);
     }
 
     public List<Bar> convertToBarList() {
