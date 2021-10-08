@@ -25,8 +25,10 @@ public class BuyerAction extends TraderAction {
 
     public boolean enterable() {
         Strategy strategy = this.theOracle.prophesy();
+        TradingRecord tradingRecord = this.theOracle.getTradingRecord();
         int endIndex = this.theOracle.getSeries().getEndIndex();
-        if (!strategy.shouldEnter(endIndex)) {
+
+        if (!strategy.shouldEnter(endIndex, tradingRecord)) {
             return false;
         }
 
@@ -35,7 +37,6 @@ public class BuyerAction extends TraderAction {
             return false;
         }
 
-        TradingRecord tradingRecord = this.theOracle.getTradingRecord();
         if (!tradingRecord.enter(endIndex)) {
             log.info("you are already in a position!");
             return false;

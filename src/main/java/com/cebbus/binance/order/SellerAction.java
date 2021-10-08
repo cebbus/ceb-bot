@@ -25,8 +25,10 @@ public class SellerAction extends TraderAction {
 
     public boolean exitable() {
         Strategy strategy = this.theOracle.prophesy();
+        TradingRecord tradingRecord = this.theOracle.getTradingRecord();
         int endIndex = this.theOracle.getSeries().getEndIndex();
-        if (!strategy.shouldExit(endIndex)) {
+
+        if (!strategy.shouldExit(endIndex, tradingRecord)) {
             return false;
         }
 
@@ -35,7 +37,6 @@ public class SellerAction extends TraderAction {
             return false;
         }
 
-        TradingRecord tradingRecord = this.theOracle.getTradingRecord();
         if (!tradingRecord.exit(endIndex)) {
             log.info("you have no position!");
             return false;

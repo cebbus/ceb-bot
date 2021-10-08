@@ -16,7 +16,7 @@ public class ForceToWinRule extends AbstractRule {
 
     @Override
     public boolean isSatisfied(int i, TradingRecord tradingRecord) {
-        if (tradingRecord.getLastEntry() == null) {
+        if (tradingRecord == null || tradingRecord.getLastEntry() == null) {
             return false;
         }
 
@@ -29,6 +29,6 @@ public class ForceToWinRule extends AbstractRule {
         }
 
         double profit = (exitValue / entryValue) - 1;
-        return profit < minProfit;
+        return profit > minProfit;
     }
 }

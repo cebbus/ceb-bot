@@ -34,11 +34,11 @@ public class ScalpingStrategy extends BaseCebStrategy {
         SMAIndicator longSma = new SMAIndicator(closePrice, 13);
 
         Rule entryRule = new OverIndicatorRule(shortSma, middleSma)
-                .and(new CrossedUpIndicatorRule(shortSma, longSma));
+                .and(new OverIndicatorRule(shortSma, longSma));
 
         Rule exitRule = new UnderIndicatorRule(shortSma, middleSma)
-                .and(new CrossedDownIndicatorRule(shortSma, longSma))
-                .and(new ForceToWinRule(closePrice, 0.1));
+                .and(new UnderIndicatorRule(shortSma, longSma))
+                .and(new ForceToWinRule(closePrice, 0.0));
 
         BaseStrategy strategy = new BaseStrategy("Scalping", entryRule, exitRule);
 
