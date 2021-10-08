@@ -3,7 +3,6 @@ package com.cebbus.analysis.strategy;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
-import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.CachedIndicator;
 import org.ta4j.core.indicators.helpers.*;
 import org.ta4j.core.num.Num;
@@ -13,17 +12,14 @@ import org.ta4j.core.rules.UnderIndicatorRule;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class GlobalExtremaStrategy implements CebStrategy {
-
-    private final BarSeries series;
-    private final Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
+public class GlobalExtremaStrategy extends BaseCebStrategy {
 
     public GlobalExtremaStrategy(BarSeries series) {
-        this.series = series;
+        super(series);
     }
 
     @Override
-    public Strategy build() {
+    public BuilderResult build() {
         ClosePriceIndicator closePrice = new ClosePriceIndicator(this.series);
 
         HighPriceIndicator highPrice = new HighPriceIndicator(this.series);
@@ -37,13 +33,16 @@ public class GlobalExtremaStrategy implements CebStrategy {
         Rule entryRule = new UnderIndicatorRule(closePrice, downWeek);
         Rule exitRule = new OverIndicatorRule(closePrice, upWeek);
 
-        this.indicators.put("CHL", Map.of(
+        BaseStrategy strategy = new BaseStrategy("Global Extrema", entryRule, exitRule);
+
+        Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
+        indicators.put("CHL", Map.of(
                 "CPI", closePrice,
                 "HPI", highPrice,
                 "LPI", lowPrice)
         );
 
-        this.indicators.put("TR", Map.of(
+        indicators.put("TR", Map.of(
                 "CPI", closePrice,
                 "Week High", weekHighPrice,
                 "Up Week", upWeek,
@@ -51,11 +50,7 @@ public class GlobalExtremaStrategy implements CebStrategy {
                 "Down Week", downWeek)
         );
 
-        return new BaseStrategy("Global Extrema", entryRule, exitRule);
+        return new BuilderResult(strategy, indicators);
     }
 
-    @Override
-    public Map<String, Map<String, CachedIndicator<Num>>> getIndicators() {
-        return indicators;
-    }
 }

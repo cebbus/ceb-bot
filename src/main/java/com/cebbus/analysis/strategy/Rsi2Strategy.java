@@ -3,7 +3,6 @@ package com.cebbus.analysis.strategy;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
-import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.CachedIndicator;
 import org.ta4j.core.indicators.RSIIndicator;
 import org.ta4j.core.indicators.SMAIndicator;
@@ -17,17 +16,14 @@ import org.ta4j.core.rules.UnderIndicatorRule;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class Rsi2Strategy implements CebStrategy {
-
-    private final BarSeries series;
-    private final Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
+public class Rsi2Strategy extends BaseCebStrategy {
 
     public Rsi2Strategy(BarSeries series) {
-        this.series = series;
+        super(series);
     }
 
     @Override
-    public Strategy build() {
+    public BuilderResult build() {
         ClosePriceIndicator closePrice = new ClosePriceIndicator(this.series);
         SMAIndicator shortSma = new SMAIndicator(closePrice, 5);
         SMAIndicator longSma = new SMAIndicator(closePrice, 200);
@@ -48,20 +44,18 @@ public class Rsi2Strategy implements CebStrategy {
                 .and(new CrossedUpIndicatorRule(rsi, 95)) // Signal 1
                 .and(new UnderIndicatorRule(shortSma, closePrice)); // Signal 2
 
-        this.indicators.put("CPI-SMA", Map.of(
+        BaseStrategy strategy = new BaseStrategy("RSI", entryRule, exitRule);
+
+        Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
+        indicators.put("CPI-SMA", Map.of(
                 "CPI", closePrice,
                 "Short SMA", shortSma,
                 "Long SMA", longSma)
         );
 
-        this.indicators.put("RSI", Map.of("RSI", rsi));
+        indicators.put("RSI", Map.of("RSI", rsi));
 
-        return new BaseStrategy("RSI", entryRule, exitRule);
-    }
-
-    @Override
-    public Map<String, Map<String, CachedIndicator<Num>>> getIndicators() {
-        return indicators;
+        return new BuilderResult(strategy, indicators);
     }
 
 }

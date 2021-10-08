@@ -7,7 +7,7 @@ import org.ta4j.core.num.Num;
 import java.util.Map;
 
 public interface CebStrategy {
-    Strategy build();
+    Strategy getStrategy();
 
     Map<String, Map<String, CachedIndicator<Num>>> getIndicators();
 }

@@ -3,12 +3,14 @@ package com.cebbus.analysis.strategy;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
-import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.CachedIndicator;
 import org.ta4j.core.indicators.SMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.num.Num;
-import org.ta4j.core.rules.*;
+import org.ta4j.core.rules.CrossedDownIndicatorRule;
+import org.ta4j.core.rules.CrossedUpIndicatorRule;
+import org.ta4j.core.rules.OverIndicatorRule;
+import org.ta4j.core.rules.UnderIndicatorRule;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -16,17 +18,14 @@ import java.util.Map;
 /**
  * Short - Middle term strategy
  */
-public class ScalpingStrategy implements CebStrategy {
-
-    private final BarSeries series;
-    private final Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
+public class ScalpingStrategy extends BaseCebStrategy {
 
     public ScalpingStrategy(BarSeries series) {
-        this.series = series;
+        super(series);
     }
 
     @Override
-    public Strategy build() {
+    public BuilderResult build() {
         ClosePriceIndicator closePrice = new ClosePriceIndicator(this.series);
 
         SMAIndicator shortSma = new SMAIndicator(closePrice, 5);
@@ -39,19 +38,18 @@ public class ScalpingStrategy implements CebStrategy {
         Rule exitRule = new UnderIndicatorRule(shortSma, middleSma)
                 .and(new CrossedDownIndicatorRule(shortSma, longSma));
 
-        this.indicators.put("SMA", Map.of(
+        BaseStrategy strategy = new BaseStrategy("Scalping", entryRule, exitRule);
+
+        Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
+        indicators.put("SMA", Map.of(
                 "Short SMA", shortSma,
                 "Middle SMA", middleSma,
                 "Long SMA", longSma)
         );
 
-        this.indicators.put("CPI", Map.of("CPI", closePrice));
+        indicators.put("CPI", Map.of("CPI", closePrice));
 
-        return new BaseStrategy("Scalping", entryRule, exitRule);
+        return new BuilderResult(strategy, indicators);
     }
 
-    @Override
-    public Map<String, Map<String, CachedIndicator<Num>>> getIndicators() {
-        return indicators;
-    }
 }

@@ -3,7 +3,6 @@ package com.cebbus.analysis.strategy;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
-import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.CachedIndicator;
 import org.ta4j.core.indicators.SMAIndicator;
 import org.ta4j.core.indicators.adx.ADXIndicator;
@@ -19,17 +18,14 @@ import org.ta4j.core.rules.UnderIndicatorRule;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class AdxStrategy implements CebStrategy {
-
-    private final BarSeries series;
-    private final Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
+public class AdxStrategy extends BaseCebStrategy {
 
     public AdxStrategy(BarSeries series) {
-        this.series = series;
+        super(series);
     }
 
     @Override
-    public Strategy build() {
+    public BuilderResult build() {
         ClosePriceIndicator closePrice = new ClosePriceIndicator(this.series);
         SMAIndicator sma = new SMAIndicator(closePrice, 50);
 
@@ -45,22 +41,20 @@ public class AdxStrategy implements CebStrategy {
                 .and(new CrossedDownIndicatorRule(plusDIIndicator, minusDIIndicator))
                 .and(new UnderIndicatorRule(closePrice, sma));
 
-        this.indicators.put("CPI-SMA", Map.of(
+        BaseStrategy strategy = new BaseStrategy("ADX", entryRule, exitRule, 14);
+
+        Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
+        indicators.put("CPI-SMA", Map.of(
                 "CPI", closePrice,
                 "SMA", sma)
         );
 
-        this.indicators.put("ADX - DI", Map.of(
+        indicators.put("ADX - DI", Map.of(
                 "ADX", adxIndicator,
                 "Plus DI", plusDIIndicator,
                 "Minus DI", minusDIIndicator)
         );
 
-        return new BaseStrategy("ADX", entryRule, exitRule, 14);
-    }
-
-    @Override
-    public Map<String, Map<String, CachedIndicator<Num>>> getIndicators() {
-        return indicators;
+        return new BuilderResult(strategy, indicators);
     }
 }

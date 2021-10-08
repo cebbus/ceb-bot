@@ -15,16 +15,12 @@ import java.util.Map;
 public class TheOracle {
 
     private final BarSeries series;
-    private final CebStrategy strategy;
+    private final CebStrategy cebStrategy;
     private final TradingRecord tradingRecord = new BaseTradingRecord();
 
     public TheOracle(BarSeries series) {
         this.series = series;
-        this.strategy = new ScalpingStrategy(series);
-    }
-
-    public Strategy prophesy() {
-        return this.strategy.build();
+        this.cebStrategy = new ScalpingStrategy(series);
     }
 
     public TradingRecord backtest() {
@@ -48,7 +44,7 @@ public class TheOracle {
     }
 
     private Strategy calculateProfit(AnalysisCriterion criterion, CebStrategy cs) {
-        Strategy s = cs.build();
+        Strategy s = cs.getStrategy();
         TradingRecord r = backtest(s);
         log.info(s.getName() + ":\t" + criterion.calculate(this.series, r));
 
@@ -68,7 +64,11 @@ public class TheOracle {
         return tradingRecord;
     }
 
+    public Strategy prophesy() {
+        return this.cebStrategy.getStrategy();
+    }
+
     public Map<String, Map<String, CachedIndicator<Num>>> getIndicators() {
-        return this.strategy.getIndicators();
+        return this.cebStrategy.getIndicators();
     }
 }

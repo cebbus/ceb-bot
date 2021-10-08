@@ -14,17 +14,14 @@ import org.ta4j.core.rules.UnderIndicatorRule;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class CciCorrectionStrategy implements CebStrategy {
-
-    private final BarSeries series;
-    private final Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
+public class CciCorrectionStrategy extends BaseCebStrategy {
 
     public CciCorrectionStrategy(BarSeries series) {
-        this.series = series;
+        super(series);
     }
 
     @Override
-    public Strategy build() {
+    public BuilderResult build() {
         ClosePriceIndicator closePrice = new ClosePriceIndicator(this.series);
 
         CCIIndicator longCci = new CCIIndicator(this.series, 200);
@@ -41,17 +38,14 @@ public class CciCorrectionStrategy implements CebStrategy {
         Strategy strategy = new BaseStrategy("CCI", entryRule, exitRule);
         strategy.setUnstablePeriod(5);
 
-        this.indicators.put("CCI", Map.of(
+        Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
+        indicators.put("CCI", Map.of(
                 "CPI", closePrice,
                 "Short CCI", shortCci,
                 "Long CCI", longCci)
         );
 
-        return strategy;
+        return new BuilderResult(strategy, indicators);
     }
 
-    @Override
-    public Map<String, Map<String, CachedIndicator<Num>>> getIndicators() {
-        return indicators;
-    }
 }

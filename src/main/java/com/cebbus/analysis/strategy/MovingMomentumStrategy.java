@@ -3,7 +3,6 @@ package com.cebbus.analysis.strategy;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
-import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.CachedIndicator;
 import org.ta4j.core.indicators.EMAIndicator;
 import org.ta4j.core.indicators.MACDIndicator;
@@ -18,17 +17,14 @@ import org.ta4j.core.rules.UnderIndicatorRule;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class MovingMomentumStrategy implements CebStrategy {
-
-    private final BarSeries series;
-    private final Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
+public class MovingMomentumStrategy extends BaseCebStrategy {
 
     public MovingMomentumStrategy(BarSeries series) {
-        this.series = series;
+        super(series);
     }
 
     @Override
-    public Strategy build() {
+    public BuilderResult build() {
         ClosePriceIndicator closePrice = new ClosePriceIndicator(this.series);
         EMAIndicator shortEma = new EMAIndicator(closePrice, 9);
         EMAIndicator longEma = new EMAIndicator(closePrice, 26);
@@ -45,24 +41,23 @@ public class MovingMomentumStrategy implements CebStrategy {
                 .and(new CrossedUpIndicatorRule(stochasticOscillK, 80))
                 .and(new UnderIndicatorRule(macd, emaMacd));
 
-        this.indicators.put("CPI-SMA", Map.of(
+        BaseStrategy strategy = new BaseStrategy("Moving Momentum", entryRule, exitRule);
+
+        Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
+        indicators.put("CPI-SMA", Map.of(
                 "CPI", closePrice,
                 "Short EMA", shortEma,
                 "Long EMA", longEma)
         );
 
-        this.indicators.put("STO", Map.of("STO", stochasticOscillK));
+        indicators.put("STO", Map.of("STO", stochasticOscillK));
 
-        this.indicators.put("MACD", Map.of(
+        indicators.put("MACD", Map.of(
                 "MACD", macd,
                 "EMA MACD", emaMacd)
         );
 
-        return new BaseStrategy("Moving Momentum", entryRule, exitRule);
+        return new BuilderResult(strategy, indicators);
     }
 
-    @Override
-    public Map<String, Map<String, CachedIndicator<Num>>> getIndicators() {
-        return indicators;
-    }
 }
