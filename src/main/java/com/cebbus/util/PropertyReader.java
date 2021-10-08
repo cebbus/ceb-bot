@@ -40,7 +40,15 @@ public class PropertyReader {
     }
 
     public static String getSymbol() {
-        return getProperty("symbol");
+        return getSymbolBase() + getSymbolQuote();
+    }
+
+    public static String getSymbolBase() {
+        return getProperty("symbol.base");
+    }
+
+    public static String getSymbolQuote() {
+        return getProperty("symbol.quote");
     }
 
     public static CandlestickInterval getInterval() {
