@@ -1,5 +1,6 @@
 package com.cebbus.analysis.strategy;
 
+import com.cebbus.analysis.rule.ForceToWinRule;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
@@ -36,7 +37,8 @@ public class ScalpingStrategy extends BaseCebStrategy {
                 .and(new CrossedUpIndicatorRule(shortSma, longSma));
 
         Rule exitRule = new UnderIndicatorRule(shortSma, middleSma)
-                .and(new CrossedDownIndicatorRule(shortSma, longSma));
+                .and(new CrossedDownIndicatorRule(shortSma, longSma))
+                .and(new ForceToWinRule(closePrice, 0.1));
 
         BaseStrategy strategy = new BaseStrategy("Scalping", entryRule, exitRule);
 
