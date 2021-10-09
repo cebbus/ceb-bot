@@ -17,10 +17,10 @@ public class BuyerAction extends TraderAction {
     }
 
     public NewOrderResponse enter() {
-        AssetBalance balance = getBalance(SYMBOL_QUOTE);
-        NewOrder buyOrder = NewOrder.marketBuy(SYMBOL, null).quoteOrderQty(balance.getFree());
+        NewOrderResponse orderResponse = buy();
+        tradeRecordOperate();
 
-        return this.restClient.newOrder(buyOrder);
+        return orderResponse;
     }
 
     public boolean enterable() {
@@ -37,12 +37,19 @@ public class BuyerAction extends TraderAction {
             return false;
         }
 
-        if (!tradingRecord.enter(endIndex)) {
+        if (!tradingRecord.getCurrentPosition().isNew()) {
             log.info("you are already in a position!");
             return false;
         }
 
         return true;
+    }
+
+    private NewOrderResponse buy() {
+        AssetBalance balance = getBalance(SYMBOL_QUOTE);
+
+        NewOrder buyOrder = NewOrder.marketBuy(SYMBOL, null).quoteOrderQty(balance.getFree());
+        return this.restClient.newOrder(buyOrder);
     }
 
 }

@@ -18,13 +18,12 @@ public class CandlestickEventListener implements BinanceApiCallback<CandlestickE
 
     @Override
     public void onResponse(CandlestickEvent response) {
-        //log.debug(response.toString());
 
         if (!Boolean.TRUE.equals(response.getBarFinal())) {
             return;
         }
 
-        log.info(String.format("New stick! Symbol: %s", response.getSymbol()));
+        log.info(String.format("new stick! symbol: %s", response.getSymbol()));
 
         try {
             for (EventOperation operation : this.operationList) {

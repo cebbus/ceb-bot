@@ -24,11 +24,11 @@ public class TradeOperation implements EventOperation {
         if (this.buyerAction.enterable()) {
             log.info("should enter!");
             NewOrderResponse entry = this.buyerAction.enter();
-            log.info("entered! price: " + entry.getPrice() + " quantity: " + entry.getExecutedQty());
+            log.info("entered! quantity: " + entry.getExecutedQty());
         } else if (this.sellerAction.exitable()) {
             log.info("should exit!");
             NewOrderResponse exit = this.sellerAction.exit();
-            log.info("exited! price: " + exit.getPrice() + " quantity: " + exit.getExecutedQty());
+            log.info("exited! quantity: " + exit.getExecutedQty());
         }
     }
 }

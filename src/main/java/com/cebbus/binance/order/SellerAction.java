@@ -17,10 +17,10 @@ public class SellerAction extends TraderAction {
     }
 
     public NewOrderResponse exit() {
-        AssetBalance balance = getBalance(SYMBOL_BASE);
-        NewOrder sellOrder = NewOrder.marketSell(SYMBOL, balance.getFree());
+        NewOrderResponse orderResponse = sell();
+        tradeRecordOperate();
 
-        return this.restClient.newOrder(sellOrder);
+        return orderResponse;
     }
 
     public boolean exitable() {
@@ -37,12 +37,19 @@ public class SellerAction extends TraderAction {
             return false;
         }
 
-        if (!tradingRecord.exit(endIndex)) {
+        if (!tradingRecord.getCurrentPosition().isOpened()) {
             log.info("you have no position!");
             return false;
         }
 
         return true;
+    }
+
+    private NewOrderResponse sell() {
+        AssetBalance balance = getBalance(SYMBOL_BASE);
+        NewOrder sellOrder = NewOrder.marketSell(SYMBOL, balance.getFree());
+
+        return this.restClient.newOrder(sellOrder);
     }
 
 }

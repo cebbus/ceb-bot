@@ -5,6 +5,8 @@ import com.binance.api.client.domain.account.Account;
 import com.binance.api.client.domain.account.AssetBalance;
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.util.PropertyReader;
+import org.ta4j.core.BarSeries;
+import org.ta4j.core.TradingRecord;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -32,6 +34,14 @@ public abstract class TraderAction {
     AssetBalance getBalance(String s) {
         Account account = this.restClient.getAccount();
         return account.getAssetBalance(s);
+    }
+
+    void tradeRecordOperate() {
+        BarSeries series = this.theOracle.getSeries();
+        int endIndex = series.getEndIndex();
+
+        TradingRecord tradingRecord = this.theOracle.getTradingRecord();
+        tradingRecord.operate(endIndex);
     }
 
 }
