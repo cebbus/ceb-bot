@@ -20,8 +20,7 @@ public class ForceToWinRule extends AbstractRule {
             return false;
         }
 
-        int entryIndex = tradingRecord.getLastEntry().getIndex();
-        double entryValue = this.closePrice.getValue(entryIndex).doubleValue();
+        double entryValue = tradingRecord.getLastEntry().getNetPrice().doubleValue();
         double exitValue = this.closePrice.getValue(i).doubleValue();
 
         if (exitValue < entryValue) {
