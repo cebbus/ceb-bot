@@ -1,12 +1,20 @@
 package com.cebbus.binance.order;
 
 import com.binance.api.client.BinanceApiRestClient;
+import com.binance.api.client.domain.OrderStatus;
 import com.binance.api.client.domain.account.Account;
 import com.binance.api.client.domain.account.AssetBalance;
+import com.binance.api.client.domain.account.NewOrderResponse;
+import com.binance.api.client.domain.account.Order;
+import com.binance.api.client.domain.account.request.AllOrdersRequest;
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.util.PropertyReader;
+import org.apache.commons.lang3.tuple.Pair;
 import org.ta4j.core.BarSeries;
+import org.ta4j.core.Trade;
 import org.ta4j.core.TradingRecord;
+import org.ta4j.core.num.DecimalNum;
+import org.ta4j.core.num.Num;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -21,14 +29,14 @@ public abstract class TraderAction {
     final TheOracle theOracle;
     final BinanceApiRestClient restClient;
 
-    public TraderAction(TheOracle theOracle, BinanceApiRestClient restClient) {
+    TraderAction(TheOracle theOracle, BinanceApiRestClient restClient) {
         this.theOracle = theOracle;
         this.restClient = restClient;
     }
 
     boolean noBalance(String s) {
         AssetBalance balance = getBalance(s);
-        return !(new BigDecimal(balance.getFree()).setScale(SCALE, RoundingMode.HALF_DOWN).doubleValue() > 0);
+        return strToBd(balance.getFree()).doubleValue() <= 0;
     }
 
     AssetBalance getBalance(String s) {
@@ -36,12 +44,41 @@ public abstract class TraderAction {
         return account.getAssetBalance(s);
     }
 
-    void tradeRecordOperate() {
+    Trade createTradeRecord(NewOrderResponse response) {
+        OrderStatus status = response.getStatus();
+        if (status != OrderStatus.FILLED && status != OrderStatus.PARTIALLY_FILLED) {
+            return null;
+        }
+
+        Order order = findOrder(response.getOrderId());
+        Pair<Num, Num> priceAmount = getPriceAmountPair(order);
+
         BarSeries series = this.theOracle.getSeries();
         int endIndex = series.getEndIndex();
 
         TradingRecord tradingRecord = this.theOracle.getTradingRecord();
-        tradingRecord.operate(endIndex);
+        tradingRecord.operate(endIndex, priceAmount.getKey(), priceAmount.getValue());
+
+        return tradingRecord.getLastTrade();
     }
 
+    private Order findOrder(Long orderId) {
+        return this.restClient.getAllOrders(new AllOrdersRequest(SYMBOL)).stream()
+                .filter(o -> o.getOrderId().equals(orderId))
+                .findFirst()
+                .orElseThrow();
+    }
+
+    private Pair<Num, Num> getPriceAmountPair(Order order) {
+        BigDecimal amount = strToBd(order.getExecutedQty());
+
+        BigDecimal quote = strToBd(order.getCummulativeQuoteQty());
+        BigDecimal price = quote.divide(amount, SCALE, RoundingMode.HALF_DOWN);
+
+        return Pair.of(DecimalNum.valueOf(price), DecimalNum.valueOf(amount));
+    }
+
+    private BigDecimal strToBd(String value) {
+        return new BigDecimal(value).setScale(SCALE, RoundingMode.HALF_DOWN);
+    }
 }

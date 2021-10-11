@@ -7,6 +7,7 @@ import com.binance.api.client.domain.account.NewOrderResponse;
 import com.cebbus.analysis.TheOracle;
 import lombok.extern.slf4j.Slf4j;
 import org.ta4j.core.Strategy;
+import org.ta4j.core.Trade;
 import org.ta4j.core.TradingRecord;
 
 @Slf4j
@@ -16,11 +17,9 @@ public class BuyerAction extends TraderAction {
         super(theOracle, restClient);
     }
 
-    public NewOrderResponse enter() {
+    public Trade enter() {
         NewOrderResponse orderResponse = buy();
-        tradeRecordOperate();
-
-        return orderResponse;
+        return createTradeRecord(orderResponse);
     }
 
     public boolean enterable() {

@@ -1,12 +1,12 @@
 package com.cebbus.binance.listener.operation;
 
 import com.binance.api.client.BinanceApiRestClient;
-import com.binance.api.client.domain.account.NewOrderResponse;
 import com.binance.api.client.domain.event.CandlestickEvent;
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.binance.order.BuyerAction;
 import com.cebbus.binance.order.SellerAction;
 import lombok.extern.slf4j.Slf4j;
+import org.ta4j.core.Trade;
 
 @Slf4j
 public class TradeOperation implements EventOperation {
@@ -21,14 +21,18 @@ public class TradeOperation implements EventOperation {
 
     @Override
     public void operate(CandlestickEvent response) {
+        Trade trade = null;
         if (this.buyerAction.enterable()) {
             log.info("should enter!");
-            NewOrderResponse entry = this.buyerAction.enter();
-            log.info("entered! quantity: " + entry.getExecutedQty());
+            trade = this.buyerAction.enter();
         } else if (this.sellerAction.exitable()) {
             log.info("should exit!");
-            NewOrderResponse exit = this.sellerAction.exit();
-            log.info("exited! quantity: " + exit.getExecutedQty());
+            trade = this.sellerAction.exit();
+        }
+
+        if (trade != null) {
+            log.info("{} amount: {} price: {}", trade.getType().name().toLowerCase(),
+                    trade.getAmount(), trade.getNetPrice());
         }
     }
 }
