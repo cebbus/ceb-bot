@@ -44,7 +44,7 @@ public abstract class CryptoChart {
 
         Marker marker = new ValueMarker(barTime);
         marker.setPaint(trade.isBuy() ? Color.GREEN : Color.RED);
-        marker.setLabel(trade.isBuy() ? "B - " : "S - " + index);
+        marker.setLabel((trade.isBuy() ? "B - " : "S - ") + index);
         plot.addDomainMarker(marker);
     }
 
