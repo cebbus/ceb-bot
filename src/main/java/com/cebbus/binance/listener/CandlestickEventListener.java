@@ -3,6 +3,7 @@ package com.cebbus.binance.listener;
 import com.binance.api.client.BinanceApiCallback;
 import com.binance.api.client.domain.event.CandlestickEvent;
 import com.cebbus.binance.listener.operation.EventOperation;
+import com.cebbus.exception.OrderNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -29,6 +30,8 @@ public class CandlestickEventListener implements BinanceApiCallback<CandlestickE
             for (EventOperation operation : this.operationList) {
                 operation.operate(response);
             }
+        } catch (OrderNotFoundException e) {
+            System.exit(-1);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }

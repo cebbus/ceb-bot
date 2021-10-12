@@ -8,7 +8,9 @@ import com.binance.api.client.domain.account.NewOrderResponse;
 import com.binance.api.client.domain.account.Order;
 import com.binance.api.client.domain.account.request.AllOrdersRequest;
 import com.cebbus.analysis.TheOracle;
+import com.cebbus.exception.OrderNotFoundException;
 import com.cebbus.util.PropertyReader;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.Trade;
@@ -19,7 +21,10 @@ import org.ta4j.core.num.Num;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
+@Slf4j
 public abstract class TraderAction {
 
     static final int SCALE = 8;
@@ -29,6 +34,7 @@ public abstract class TraderAction {
 
     final TheOracle theOracle;
     final BinanceApiRestClient restClient;
+    final AtomicInteger counter = new AtomicInteger(0);
 
     TraderAction(TheOracle theOracle, BinanceApiRestClient restClient) {
         this.theOracle = theOracle;
@@ -51,7 +57,6 @@ public abstract class TraderAction {
             return null;
         }
 
-        System.out.println("client order id: " + response.getClientOrderId());
         Order order = findOrder(response.getOrderId());
         Pair<Num, Num> priceAmount = getPriceAmountPair(order);
 
@@ -64,22 +69,29 @@ public abstract class TraderAction {
         return tradingRecord.getLastTrade();
     }
 
+    //order not returns immediately, that's why wait a second before the retry
     private Order findOrder(Long orderId) {
-        System.out.println(orderId);
-        System.out.println("---trades---");
-        List<com.binance.api.client.domain.account.Trade> trades = this.restClient.getMyTrades(SYMBOL);
-        for (com.binance.api.client.domain.account.Trade trade : trades) {
-            System.out.println(trade.toString());
-        }
-
-        System.out.println("---orders---");
         List<Order> orders = this.restClient.getAllOrders(new AllOrdersRequest(SYMBOL));
-        orders.forEach(o -> System.out.println(o.toString()));
+        Optional<Order> order = orders.stream().filter(o -> o.getOrderId().equals(orderId)).findFirst();
 
-        return orders.stream()
-                .filter(o -> o.getOrderId().equals(orderId))
-                .findFirst()
-                .orElseThrow();
+        if (order.isPresent()) {
+            counter.set(0);
+            return order.get();
+        } else if (counter.incrementAndGet() > 5) {
+            log.error("Order not found! Order Id: {}}", orderId);
+            throw new OrderNotFoundException();
+        } else {
+            log.warn("Order not found! Order Id: {} Attempt: {}", orderId, counter.get());
+
+            try {
+                Thread.sleep(1000L);
+            } catch (InterruptedException e) {
+                log.error(e.getMessage(), e);
+                Thread.currentThread().interrupt();
+            }
+
+            return findOrder(orderId);
+        }
     }
 
     private Pair<Num, Num> getPriceAmountPair(Order order) {
