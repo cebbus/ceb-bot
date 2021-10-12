@@ -18,6 +18,7 @@ import org.ta4j.core.num.Num;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.List;
 
 public abstract class TraderAction {
 
@@ -50,6 +51,7 @@ public abstract class TraderAction {
             return null;
         }
 
+        System.out.println("client order id: " + response.getClientOrderId());
         Order order = findOrder(response.getOrderId());
         Pair<Num, Num> priceAmount = getPriceAmountPair(order);
 
@@ -63,7 +65,18 @@ public abstract class TraderAction {
     }
 
     private Order findOrder(Long orderId) {
-        return this.restClient.getAllOrders(new AllOrdersRequest(SYMBOL)).stream()
+        System.out.println(orderId);
+        System.out.println("---trades---");
+        List<com.binance.api.client.domain.account.Trade> trades = this.restClient.getMyTrades(SYMBOL);
+        for (com.binance.api.client.domain.account.Trade trade : trades) {
+            System.out.println(trade.toString());
+        }
+
+        System.out.println("---orders---");
+        List<Order> orders = this.restClient.getAllOrders(new AllOrdersRequest(SYMBOL));
+        orders.forEach(o -> System.out.println(o.toString()));
+
+        return orders.stream()
                 .filter(o -> o.getOrderId().equals(orderId))
                 .findFirst()
                 .orElseThrow();

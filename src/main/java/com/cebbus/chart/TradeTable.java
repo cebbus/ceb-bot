@@ -37,11 +37,9 @@ public class TradeTable {
         this.model.addColumn("Total");
 
         List<Position> positions = this.backtestRecord.getPositions();
-        positions.sort((p1, p2) -> Integer.compare(p2.getEntry().getIndex(), p1.getEntry().getIndex()));
-
         for (Position position : positions) {
-            this.model.addRow(tradeToRow(position.getExit()));
             this.model.addRow(tradeToRow(position.getEntry()));
+            this.model.addRow(tradeToRow(position.getExit()));
         }
 
         JTable table = new JTable(this.model);
