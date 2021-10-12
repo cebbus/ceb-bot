@@ -8,7 +8,7 @@ import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
-import org.ta4j.core.Position;
+import org.ta4j.core.Trade;
 import org.ta4j.core.TradingRecord;
 import org.ta4j.core.indicators.CachedIndicator;
 import org.ta4j.core.num.Num;
@@ -19,7 +19,7 @@ import java.util.Map;
 public class LineChart extends CryptoChart {
 
     private JFreeChart chart;
-    private int lastPositionCount;
+    private Trade lastTradeBuffer;
 
     private final TradingRecord tradingRecord;
     private final TradingRecord backtestRecord;
@@ -70,12 +70,12 @@ public class LineChart extends CryptoChart {
             this.timeSeriesMap.get(name).add(period, value);
         });
 
-        if (this.tradingRecord.getPositionCount() > this.lastPositionCount) {
+        Trade lastTrade = this.tradingRecord.getLastTrade();
+        if (lastTrade != null && !lastTrade.equals(this.lastTradeBuffer)) {
             XYPlot xyPlot = this.chart.getXYPlot();
-            Position lastPosition = this.tradingRecord.getLastPosition();
+            addSignal(xyPlot, lastTrade);
 
-            addSignal(xyPlot, lastPosition);
-            this.lastPositionCount = this.tradingRecord.getPositionCount();
+            this.lastTradeBuffer = lastTrade;
         }
     }
 

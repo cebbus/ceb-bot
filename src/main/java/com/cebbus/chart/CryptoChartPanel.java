@@ -25,7 +25,6 @@ import java.util.*;
 public class CryptoChartPanel {
 
     private static final int PANEL_WIDTH = 1400;
-    private static final int WEST_WIDTH = 250;
     private static final int CENTER_WIDTH = 1100;
     private static final int PANEL_HEIGHT = 800;
     private static final int CHART_HEIGHT = 400;
@@ -36,6 +35,7 @@ public class CryptoChartPanel {
     private final TradingRecord tradingRecord;
     private final TradingRecord backtestRecord;
     private final Map<String, Map<String, CachedIndicator<Num>>> indicators;
+    private final List<TradeTable> tableList = new ArrayList<>();
     private final List<CryptoChart> chartList = new ArrayList<>();
     private final Map<String, JLabel> infoLabelMap = new LinkedHashMap<>();
 
@@ -52,7 +52,8 @@ public class CryptoChartPanel {
         this.indicators = theOracle.getIndicators();
 
         addCurrInfo();
-        addTradeInfo();
+        addTradePerformance();
+        addTradeHistory();
         addChartList();
     }
 
@@ -67,11 +68,13 @@ public class CryptoChartPanel {
         this.frame.add(infoPanel, BorderLayout.NORTH);
     }
 
-    private void addTradeInfo() {
+    private void addTradePerformance() {
         JPanel infoPanel = new JPanel();
+        infoPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        infoPanel.setBorder(BorderFactory.createEmptyBorder(0, 8, 8, 8));
 
-        BoxLayout boxLayout = new BoxLayout(infoPanel, BoxLayout.Y_AXIS);
-        infoPanel.setLayout(boxLayout);
+        BoxLayout infoPanelLayout = new BoxLayout(infoPanel, BoxLayout.Y_AXIS);
+        infoPanel.setLayout(infoPanelLayout);
 
         infoPanel.add(createTitleLabel("Backtest Results"));
         Map<String, Object> backtestMap = createCriterionMap(this.backtestRecord);
@@ -82,11 +85,17 @@ public class CryptoChartPanel {
         currentMap.forEach((s, o) -> this.infoLabelMap.put(s, createInfoLabel(s, o)));
         this.infoLabelMap.forEach((s, l) -> infoPanel.add(l));
 
-        ScrollPane scrollPane = new ScrollPane(ScrollPane.SCROLLBARS_AS_NEEDED);
-        scrollPane.setPreferredSize(new Dimension(WEST_WIDTH, 250));
-        scrollPane.add(infoPanel);
+        this.frame.add(infoPanel, BorderLayout.WEST);
+    }
 
-        this.frame.add(scrollPane, BorderLayout.WEST);
+    private void addTradeHistory() {
+        TradeTable table = new TradeTable(this.series, this.tradingRecord, this.backtestRecord);
+        this.tableList.add(table);
+
+        JScrollPane tablePanel = new JScrollPane(table.create());
+        tablePanel.setPreferredSize(new Dimension(250, 200));
+
+        this.frame.add(tablePanel, BorderLayout.SOUTH);
     }
 
     private void addChartList() {
@@ -103,9 +112,7 @@ public class CryptoChartPanel {
             chartListPanel.add(panel);
         });
 
-        ScrollPane scrollPane = new ScrollPane(ScrollPane.SCROLLBARS_ALWAYS);
-        scrollPane.add(chartListPanel);
-
+        JScrollPane scrollPane = new JScrollPane(chartListPanel);
         this.frame.add(scrollPane, BorderLayout.CENTER);
     }
 
@@ -120,24 +127,24 @@ public class CryptoChartPanel {
                 .toArray(JFreeChart[]::new);
     }
 
-    private Map<String, Object> createCriterionMap(TradingRecord record) {
+    private Map<String, Object> createCriterionMap(TradingRecord tradingRecord) {
         GrossReturnCriterion returnCriterion = new GrossReturnCriterion();
-        Num totalReturn = returnCriterion.calculate(this.series, record);
+        Num totalReturn = returnCriterion.calculate(this.series, tradingRecord);
 
         NumberOfBarsCriterion numberOfBarsCriterion = new NumberOfBarsCriterion();
-        Num numOfBars = numberOfBarsCriterion.calculate(this.series, record);
+        Num numOfBars = numberOfBarsCriterion.calculate(this.series, tradingRecord);
 
         WinningPositionsRatioCriterion winningRatioCriterion = new WinningPositionsRatioCriterion();
-        Num winningRatio = winningRatioCriterion.calculate(this.series, record);
+        Num winningRatio = winningRatioCriterion.calculate(this.series, tradingRecord);
 
         BuyAndHoldReturnCriterion buyAndHoldReturnCriterion = new BuyAndHoldReturnCriterion();
-        Num buyAndHold = buyAndHoldReturnCriterion.calculate(this.series, record);
+        Num buyAndHold = buyAndHoldReturnCriterion.calculate(this.series, tradingRecord);
 
         VersusBuyAndHoldCriterion versusBuyAndHoldCriterion = new VersusBuyAndHoldCriterion(returnCriterion);
-        Num versus = versusBuyAndHoldCriterion.calculate(this.series, record);
+        Num versus = versusBuyAndHoldCriterion.calculate(this.series, tradingRecord);
 
         Map<String, Object> map = new LinkedHashMap<>();
-        map.put("Number of pos", record.getPositionCount());
+        map.put("Number of pos", tradingRecord.getPositionCount());
         map.put("Number of bars", numOfBars.intValue());
         map.put("Total Return", DECIMAL_FORMAT.format(totalReturn.doubleValue()));
         map.put("Buy-and-hold return", DECIMAL_FORMAT.format(buyAndHold.doubleValue()));
@@ -148,17 +155,14 @@ public class CryptoChartPanel {
     }
 
     private JLabel createInfoLabel(String text, Object value) {
-        JLabel label = new JLabel(text + ":    " + value);
-        label.setPreferredSize(new Dimension(WEST_WIDTH, 25));
-
-        return label;
+        return new JLabel(text + ":    " + value);
     }
 
     private JLabel createTitleLabel(String text) {
         JLabel label = new JLabel(text);
-        label.setPreferredSize(new Dimension(WEST_WIDTH, 25));
         label.setForeground(Color.RED);
         label.setIcon(BasicIconFactory.getMenuArrowIcon());
+        label.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
 
         return label;
     }
@@ -176,6 +180,7 @@ public class CryptoChartPanel {
         }
 
         this.chartList.forEach(CryptoChart::refresh);
+        this.tableList.forEach(TradeTable::refresh);
     }
 
 }

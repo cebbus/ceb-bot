@@ -31,8 +31,7 @@ public class TradeOperation implements EventOperation {
         }
 
         if (trade != null) {
-            log.info("{} amount: {} price: {}", trade.getType().name().toLowerCase(),
-                    trade.getAmount(), trade.getNetPrice());
+            log.info("{} amount: {} price: {}", trade.getType(), trade.getAmount(), trade.getNetPrice());
         }
     }
 }

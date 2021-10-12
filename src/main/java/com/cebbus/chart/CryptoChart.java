@@ -7,7 +7,7 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.time.Millisecond;
 import org.jfree.data.time.RegularTimePeriod;
 import org.ta4j.core.BarSeries;
-import org.ta4j.core.Position;
+import org.ta4j.core.Trade;
 import org.ta4j.core.TradingRecord;
 
 import java.awt.*;
@@ -26,37 +26,29 @@ public abstract class CryptoChart {
 
     abstract void refresh();
 
-    public RegularTimePeriod convertToPeriod(ZonedDateTime dateTime) {
+    RegularTimePeriod convertToPeriod(ZonedDateTime dateTime) {
         return new Millisecond(Timestamp.valueOf(dateTime.toLocalDateTime()));
     }
 
-    public void addSignals(XYPlot plot, TradingRecord tradingRecord) {
-        tradingRecord.getPositions().forEach(p -> addSignal(plot, p));
+    void addSignals(XYPlot plot, TradingRecord tradingRecord) {
+        tradingRecord.getPositions().forEach(p -> {
+            addSignal(plot, p.getEntry());
+            addSignal(plot, p.getExit());
+        });
     }
 
-    public void addSignal(XYPlot plot, Position position) {
-        // Buy signal
-        int entryIndex = position.getEntry().getIndex();
-        ZonedDateTime entryDate = this.series.getBar(entryIndex).getEndTime();
-        double buySignalBarTime = convertToPeriod(entryDate).getFirstMillisecond();
+    void addSignal(XYPlot plot, Trade trade) {
+        int index = trade.getIndex();
+        ZonedDateTime dateTime = this.series.getBar(index).getEndTime();
+        double barTime = convertToPeriod(dateTime).getFirstMillisecond();
 
-        Marker buyMarker = new ValueMarker(buySignalBarTime);
-        buyMarker.setPaint(Color.GREEN);
-        buyMarker.setLabel("B - " + entryIndex);
-        plot.addDomainMarker(buyMarker);
-
-        // Sell signal
-        int exitIndex = position.getExit().getIndex();
-        ZonedDateTime exitDate = this.series.getBar(exitIndex).getEndTime();
-        double sellSignalBarTime = convertToPeriod(exitDate).getFirstMillisecond();
-
-        Marker sellMarker = new ValueMarker(sellSignalBarTime);
-        sellMarker.setPaint(Color.RED);
-        sellMarker.setLabel("S - " + entryIndex);
-        plot.addDomainMarker(sellMarker);
+        Marker marker = new ValueMarker(barTime);
+        marker.setPaint(trade.isBuy() ? Color.GREEN : Color.RED);
+        marker.setLabel(trade.isBuy() ? "B - " : "S - " + index);
+        plot.addDomainMarker(marker);
     }
 
-    public int getStartIndex() {
+    int getStartIndex() {
         return Math.max(this.series.getRemovedBarsCount(), this.series.getBeginIndex());
     }
 
