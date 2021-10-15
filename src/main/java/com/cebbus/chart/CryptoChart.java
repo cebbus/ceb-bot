@@ -35,6 +35,11 @@ public abstract class CryptoChart {
             addSignal(plot, p.getEntry());
             addSignal(plot, p.getExit());
         });
+
+        Trade lastTrade = tradingRecord.getLastTrade();
+        if (lastTrade != null && lastTrade.isBuy()) {
+            addSignal(plot, lastTrade);
+        }
     }
 
     void addSignal(XYPlot plot, Trade trade) {
