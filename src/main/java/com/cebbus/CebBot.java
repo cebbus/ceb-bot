@@ -2,7 +2,7 @@ package com.cebbus;
 
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.binance.Speculator;
-import com.cebbus.chart.CryptoChartPanel;
+import com.cebbus.chart.panel.CryptoChartPanel;
 import com.cebbus.util.PropertyReader;
 import lombok.extern.slf4j.Slf4j;
 import org.ta4j.core.BarSeries;

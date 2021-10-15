@@ -10,7 +10,7 @@ import com.cebbus.binance.listener.CandlestickEventListener;
 import com.cebbus.binance.listener.operation.TradeOperation;
 import com.cebbus.binance.listener.operation.UpdateCacheOperation;
 import com.cebbus.binance.listener.operation.UpdateSeriesOperation;
-import com.cebbus.chart.CryptoChartPanel;
+import com.cebbus.chart.panel.CryptoChartPanel;
 import com.cebbus.util.LimitedHashMap;
 import com.cebbus.util.PropertyReader;
 import lombok.extern.slf4j.Slf4j;

@@ -1,9 +1,7 @@
-package com.cebbus.chart;
+package com.cebbus.chart.panel;
 
 import com.cebbus.analysis.TheOracle;
-import com.cebbus.chart.panel.ChartListPanel;
-import com.cebbus.chart.panel.PerformancePanel;
-import com.cebbus.chart.panel.TradeTable;
+import com.cebbus.chart.ColorPalette;
 import com.cebbus.util.PropertyReader;
 import org.jfree.chart.ui.ApplicationFrame;
 
