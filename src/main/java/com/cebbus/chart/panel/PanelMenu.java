@@ -32,6 +32,9 @@ public class PanelMenu {
                 boolean success = this.speculator.buy();
                 if (success) {
                     JOptionPane.showMessageDialog(null, "You are in!");
+                } else {
+                    JOptionPane.showMessageDialog(null,
+                            "Something went wrong, check the log file.", null, JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
@@ -43,6 +46,9 @@ public class PanelMenu {
                 boolean success = this.speculator.sell();
                 if (success) {
                     JOptionPane.showMessageDialog(null, "You are out!");
+                } else {
+                    JOptionPane.showMessageDialog(null,
+                            "Something went wrong, check the log file.", null, JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
