@@ -33,7 +33,7 @@ public class BuyerAction extends TraderAction {
             }
         }
 
-        if (noBalance(SYMBOL_QUOTE)) {
+        if (noBalance(SYMBOL_QUOTE, false)) {
             log.info("you have no balance!");
             return false;
         }

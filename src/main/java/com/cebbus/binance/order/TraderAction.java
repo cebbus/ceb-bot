@@ -7,6 +7,9 @@ import com.binance.api.client.domain.account.AssetBalance;
 import com.binance.api.client.domain.account.NewOrderResponse;
 import com.binance.api.client.domain.account.Order;
 import com.binance.api.client.domain.account.request.AllOrdersRequest;
+import com.binance.api.client.domain.general.FilterType;
+import com.binance.api.client.domain.general.SymbolFilter;
+import com.binance.api.client.domain.general.SymbolInfo;
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.exception.OrderNotFoundException;
 import com.cebbus.util.PropertyReader;
@@ -41,14 +44,26 @@ public abstract class TraderAction {
         this.restClient = restClient;
     }
 
-    boolean noBalance(String s) {
+    boolean noBalance(String s, boolean checkMinQty) {
         AssetBalance balance = getBalance(s);
-        return strToBd(balance.getFree()).doubleValue() <= 0;
+        BigDecimal free = strToBd(balance.getFree());
+
+        if (!checkMinQty) {
+            return free.doubleValue() <= 0;
+        } else {
+            BigDecimal minQty = new BigDecimal(getLotSizeFilter().getMinQty());
+            return free.compareTo(minQty) < 0;
+        }
     }
 
     AssetBalance getBalance(String s) {
         Account account = this.restClient.getAccount();
         return account.getAssetBalance(s);
+    }
+
+    SymbolFilter getLotSizeFilter() {
+        SymbolInfo symbolInfo = this.restClient.getExchangeInfo().getSymbolInfo(SYMBOL);
+        return symbolInfo.getSymbolFilter(FilterType.LOT_SIZE);
     }
 
     Trade createTradeRecord(NewOrderResponse response) {
