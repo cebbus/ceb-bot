@@ -2,6 +2,9 @@ package com.cebbus.util;
 
 import com.binance.api.client.domain.market.CandlestickInterval;
 import lombok.extern.slf4j.Slf4j;
+import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
+import org.jasypt.iv.RandomIvGenerator;
+import org.jasypt.properties.EncryptableProperties;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,11 +13,18 @@ import java.util.Properties;
 @Slf4j
 public class PropertyReader {
 
-    private static final Properties PROPERTIES = new Properties();
+    private static final Properties PROPERTIES;
+    private static final StandardPBEStringEncryptor ENCRYPTOR;
 
     static {
-        ClassLoader classLoader = PropertyReader.class.getClassLoader();
+        ENCRYPTOR = new StandardPBEStringEncryptor();
+        ENCRYPTOR.setPassword("&RICHIE_RICH&"); //TODO move to env variable
+        ENCRYPTOR.setAlgorithm("PBEWithHMACSHA512AndAES_256");
+        ENCRYPTOR.setIvGenerator(new RandomIvGenerator());
+        ENCRYPTOR.setStringOutputType("HEXADECIMAL");
 
+        PROPERTIES = new EncryptableProperties(ENCRYPTOR);
+        ClassLoader classLoader = PropertyReader.class.getClassLoader();
         try {
             InputStream inputStream = classLoader.getResourceAsStream("api.properties");
             PROPERTIES.load(inputStream);
