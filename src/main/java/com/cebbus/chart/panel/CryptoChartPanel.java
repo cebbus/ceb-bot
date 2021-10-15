@@ -1,8 +1,9 @@
 package com.cebbus.chart.panel;
 
 import com.cebbus.analysis.TheOracle;
+import com.cebbus.binance.Speculator;
+import com.cebbus.binance.order.TradeStatus;
 import com.cebbus.chart.ColorPalette;
-import com.cebbus.util.PropertyReader;
 import org.jfree.chart.ui.ApplicationFrame;
 
 import javax.swing.*;
@@ -14,16 +15,18 @@ public class CryptoChartPanel {
     private static final int PANEL_HEIGHT = 800;
 
     private final ApplicationFrame frame;
-
+    private final StatusPanel statusPanel;
     private final TradeTable tradeTable;
     private final ChartListPanel chartListPanel;
     private final PerformancePanel performancePanel;
 
-    public CryptoChartPanel(TheOracle theOracle) {
+    public CryptoChartPanel(TheOracle theOracle, Speculator speculator) {
         this.frame = new ApplicationFrame("CebBot!");
+        this.frame.setJMenuBar(new PanelMenu(speculator).create());
         this.frame.setPreferredSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
         this.frame.pack();
 
+        this.statusPanel = new StatusPanel();
         this.tradeTable = new TradeTable(theOracle);
         this.chartListPanel = new ChartListPanel(theOracle);
         this.performancePanel = new PerformancePanel(theOracle);
@@ -34,15 +37,10 @@ public class CryptoChartPanel {
     }
 
     private void addTradePerformance() {
-        JPanel titlePanel = new JPanel();
-        titlePanel.setBackground(ColorPalette.DARK_RED);
-        titlePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        titlePanel.setMaximumSize(new Dimension(250, 25));
-        titlePanel.setPreferredSize(new Dimension(250, 25));
-
-        JLabel title = new JLabel(PropertyReader.getSymbol() + " - " + PropertyReader.getInterval().name());
-        title.setForeground(ColorPalette.SOFT_WIGHT);
-        titlePanel.add(title);
+        JPanel statePanel = this.statusPanel.getPanel();
+        statePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        statePanel.setMaximumSize(new Dimension(250, 25));
+        statePanel.setPreferredSize(new Dimension(250, 25));
 
         JPanel perPanel = this.performancePanel.create();
         perPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -51,7 +49,7 @@ public class CryptoChartPanel {
         perPanel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
 
         JPanel panel = new JPanel();
-        panel.add(titlePanel);
+        panel.add(statePanel);
         panel.add(perPanel);
 
         BoxLayout layout = new BoxLayout(panel, BoxLayout.Y_AXIS);
@@ -82,6 +80,10 @@ public class CryptoChartPanel {
         this.tradeTable.refresh();
         this.chartListPanel.refresh();
         this.performancePanel.refresh();
+    }
+
+    public void changeStatus(TradeStatus status) {
+        this.statusPanel.changeStatus(status);
     }
 
 }

@@ -22,13 +22,15 @@ public class BuyerAction extends TraderAction {
         return createTradeRecord(orderResponse);
     }
 
-    public boolean enterable() {
-        Strategy strategy = this.theOracle.prophesy();
+    public boolean enterable(boolean askTheOracle) {
         TradingRecord tradingRecord = this.theOracle.getTradingRecord();
-        int endIndex = this.theOracle.getSeries().getEndIndex();
 
-        if (!strategy.shouldEnter(endIndex, tradingRecord)) {
-            return false;
+        if (askTheOracle) {
+            Strategy strategy = this.theOracle.prophesy();
+            int endIndex = this.theOracle.getSeries().getEndIndex();
+            if (!strategy.shouldEnter(endIndex, tradingRecord)) {
+                return false;
+            }
         }
 
         if (noBalance(SYMBOL_QUOTE)) {

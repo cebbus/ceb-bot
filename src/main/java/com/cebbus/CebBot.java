@@ -24,10 +24,12 @@ public class CebBot {
         TheOracle theOracle = new TheOracle(series);
         theOracle.chooseBest();
 
-        CryptoChartPanel chartPanel = new CryptoChartPanel(theOracle);
+        CryptoChartPanel chartPanel = new CryptoChartPanel(theOracle, speculator);
         chartPanel.show();
 
-        speculator.startSpec(theOracle, chartPanel);
+        speculator.setTheOracle(theOracle);
+        speculator.setChartPanel(chartPanel);
+        speculator.startSpec();
     }
 
 }

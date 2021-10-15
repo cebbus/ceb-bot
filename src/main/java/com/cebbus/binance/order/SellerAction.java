@@ -22,13 +22,15 @@ public class SellerAction extends TraderAction {
         return createTradeRecord(orderResponse);
     }
 
-    public boolean exitable() {
-        Strategy strategy = this.theOracle.prophesy();
+    public boolean exitable(boolean askTheOracle) {
         TradingRecord tradingRecord = this.theOracle.getTradingRecord();
-        int endIndex = this.theOracle.getSeries().getEndIndex();
 
-        if (!strategy.shouldExit(endIndex, tradingRecord)) {
-            return false;
+        if (askTheOracle) {
+            Strategy strategy = this.theOracle.prophesy();
+            int endIndex = this.theOracle.getSeries().getEndIndex();
+            if (!strategy.shouldExit(endIndex, tradingRecord)) {
+                return false;
+            }
         }
 
         if (noBalance(SYMBOL_BASE)) {
