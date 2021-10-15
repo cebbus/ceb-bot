@@ -8,10 +8,7 @@ import org.ta4j.core.indicators.CachedIndicator;
 import org.ta4j.core.indicators.SMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.num.Num;
-import org.ta4j.core.rules.CrossedDownIndicatorRule;
-import org.ta4j.core.rules.CrossedUpIndicatorRule;
-import org.ta4j.core.rules.OverIndicatorRule;
-import org.ta4j.core.rules.UnderIndicatorRule;
+import org.ta4j.core.rules.*;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -36,9 +33,10 @@ public class ScalpingStrategy extends BaseCebStrategy {
         Rule entryRule = new OverIndicatorRule(shortSma, middleSma)
                 .and(new OverIndicatorRule(shortSma, longSma));
 
-        Rule exitRule = new UnderIndicatorRule(shortSma, middleSma)
+        Rule exitRule = (new UnderIndicatorRule(shortSma, middleSma)
                 .and(new UnderIndicatorRule(shortSma, longSma))
-                .and(new ForceToWinRule(closePrice, 0.0));
+                .and(new ForceToWinRule(closePrice, 0.0)))
+                .or(new StopLossRule(closePrice, 5));
 
         BaseStrategy strategy = new BaseStrategy("Scalping", entryRule, exitRule);
 
