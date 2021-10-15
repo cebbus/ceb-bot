@@ -10,7 +10,6 @@ import org.ta4j.core.BarSeries;
 import org.ta4j.core.Trade;
 import org.ta4j.core.TradingRecord;
 
-import java.awt.*;
 import java.sql.Timestamp;
 import java.time.ZonedDateTime;
 
@@ -22,9 +21,9 @@ public abstract class CryptoChart {
         this.series = series;
     }
 
-    abstract JFreeChart create();
+    public abstract JFreeChart create();
 
-    abstract void refresh();
+    public abstract void refresh();
 
     RegularTimePeriod convertToPeriod(ZonedDateTime dateTime) {
         return new Millisecond(Timestamp.valueOf(dateTime.toLocalDateTime()));
@@ -48,7 +47,7 @@ public abstract class CryptoChart {
         double barTime = convertToPeriod(dateTime).getFirstMillisecond();
 
         Marker marker = new ValueMarker(barTime);
-        marker.setPaint(trade.isBuy() ? Color.GREEN : Color.RED);
+        marker.setPaint(trade.isBuy() ? ColorPalette.GREEN : ColorPalette.RED);
         marker.setLabel((trade.isBuy() ? "B - " : "S - ") + index);
         plot.addDomainMarker(marker);
     }

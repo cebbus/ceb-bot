@@ -1,5 +1,7 @@
-package com.cebbus.chart;
+package com.cebbus.chart.panel;
 
+import com.cebbus.analysis.TheOracle;
+import com.cebbus.chart.ColorPalette;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.Position;
 import org.ta4j.core.Trade;
@@ -15,17 +17,17 @@ import java.util.List;
 
 public class TradeTable {
 
-    private Trade lastTradeBuffer;
-
     private final BarSeries series;
     private final TradingRecord tradingRecord;
     private final TradingRecord backtestRecord;
     private final DefaultTableModel model = new DefaultTableModel();
 
-    public TradeTable(BarSeries series, TradingRecord tradingRecord, TradingRecord backtestRecord) {
-        this.series = series;
-        this.tradingRecord = tradingRecord;
-        this.backtestRecord = backtestRecord;
+    private Trade lastTradeBuffer;
+
+    public TradeTable(TheOracle theOracle) {
+        this.series = theOracle.getSeries();
+        this.tradingRecord = theOracle.getTradingRecord();
+        this.backtestRecord = theOracle.backtest();
     }
 
     public JTable create() {
@@ -84,14 +86,14 @@ public class TradeTable {
                 int column) {
             final Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             if ("B".equals(value)) {
-                c.setForeground(Color.GREEN);
+                c.setForeground(ColorPalette.GREEN);
             } else if ("S".equals(value)) {
-                c.setForeground(Color.RED);
+                c.setForeground(ColorPalette.RED);
             } else {
-                c.setForeground(Color.DARK_GRAY);
+                c.setForeground(ColorPalette.DARK_GRAY);
             }
 
-            c.setBackground(row % 2 == 0 ? new Color(230, 230, 230) : new Color(250, 250, 250));
+            c.setBackground(row % 2 == 0 ? ColorPalette.LIGHT_GRAY : ColorPalette.SOFT_WIGHT);
 
             return c;
         }

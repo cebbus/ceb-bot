@@ -48,14 +48,20 @@ public class LineChart extends CryptoChart {
         this.chart = ChartFactory.createTimeSeriesChart(null, null,
                 null, axis, true, true, false);
 
+        this.chart.setBackgroundPaint(ColorPalette.SOFT_WIGHT);
+        this.chart.getLegend().setBackgroundPaint(ColorPalette.SOFT_WIGHT);
+
         XYPlot xyPlot = this.chart.getXYPlot();
+        xyPlot.setDrawingSupplier(new ChartDrawingSupplier());
+        xyPlot.setBackgroundPaint(ColorPalette.LIGHT_GRAY);
+
         addSignals(xyPlot, this.backtestRecord);
 
         return this.chart;
     }
 
     @Override
-    void refresh() {
+    public void refresh() {
         if (this.chart == null) {
             return;
         }

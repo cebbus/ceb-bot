@@ -27,13 +27,18 @@ public class CandlestickChart extends CryptoChart {
     public JFreeChart create() {
         OHLCDataset dataset = createChartData();
         this.chart = ChartFactory.createCandlestickChart(null, null, null, dataset, false);
+        this.chart.setBackgroundPaint(ColorPalette.SOFT_WIGHT);
 
         XYPlot xyPlot = this.chart.getXYPlot();
+        xyPlot.setBackgroundPaint(ColorPalette.LIGHT_GRAY);
 
         NumberAxis numberAxis = (NumberAxis) xyPlot.getRangeAxis();
         numberAxis.setAutoRangeIncludesZero(false);
 
-        CandlestickRenderer renderer = new CandlestickRenderer();
+        CandlestickRenderer renderer = new CustomCandlestickRenderer();
+        renderer.setUpPaint(ColorPalette.GREEN);
+        renderer.setDownPaint(ColorPalette.RED);
+
         renderer.setAutoWidthMethod(1);
         xyPlot.setRenderer(renderer);
 
@@ -41,7 +46,7 @@ public class CandlestickChart extends CryptoChart {
     }
 
     @Override
-    void refresh() {
+    public void refresh() {
         if (this.chart == null) {
             return;
         }
