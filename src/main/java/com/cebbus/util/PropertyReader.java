@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
 import org.jasypt.iv.RandomIvGenerator;
 import org.jasypt.properties.EncryptableProperties;
+import org.jasypt.properties.PropertyValueEncryptionUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,6 +29,17 @@ public class PropertyReader {
         try {
             InputStream inputStream = classLoader.getResourceAsStream("api.properties");
             PROPERTIES.load(inputStream);
+
+            PROPERTIES.entrySet().stream()
+                    .filter(e -> e.getKey().equals("api.key") || e.getKey().equals("api.secret"))
+                    .filter(e -> e.getValue() != null && !e.getValue().toString().isBlank())
+                    .filter(e -> !PropertyValueEncryptionUtils.isEncryptedValue(e.getValue().toString()))
+                    .forEach(e -> {
+                        Object key = e.getKey();
+                        String value = e.getValue().toString();
+                        log.warn("you should encrypt your private for your own safety. you can use this encrypted value for {}: {}",
+                                key, PropertyValueEncryptionUtils.encrypt(value, ENCRYPTOR));
+                    });
         } catch (IOException e) {
             log.error(e.getMessage(), e);
             System.exit(-1);
