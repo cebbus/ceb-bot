@@ -19,7 +19,6 @@ import static com.cebbus.util.PropertyEncryptor.getEncryptor;
 public class PropertyReader {
 
     private static final Properties PROPERTIES;
-    private static final String PROP_FILE_NAME = "api.properties";
 
     static {
         PROPERTIES = new EncryptableProperties(getEncryptor());
@@ -69,13 +68,15 @@ public class PropertyReader {
     }
 
     private static URL findPropertyUrl() throws MalformedURLException {
+        String fileName = "api.properties";
+
         ClassLoader loader = PropertyReader.class.getClassLoader();
 
         URL jarLoc = CebBot.class.getProtectionDomain().getCodeSource().getLocation();
         File jarDir = new File(jarLoc.getPath()).getParentFile();
-        File propFile = new File(jarDir, PROP_FILE_NAME);
+        File propFile = new File(jarDir, fileName);
 
-        URL url = propFile.exists() ? propFile.toURI().toURL() : loader.getResource(PROP_FILE_NAME);
+        URL url = propFile.exists() ? propFile.toURI().toURL() : loader.getResource(fileName);
         log.info("Property file loaded from {}", url != null ? url.getPath() : null);
 
         return url;

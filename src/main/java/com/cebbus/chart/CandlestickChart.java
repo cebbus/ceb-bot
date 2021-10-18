@@ -53,8 +53,11 @@ public class CandlestickChart extends CryptoChart {
 
         int endIndex = this.series.getEndIndex();
         Bar bar = this.series.getBar(endIndex);
+        RegularTimePeriod period = convertToPeriod(bar.getEndTime());
 
-        this.ohlcSeries.add(createItem(bar));
+        if (!itemExist(period)) {
+            this.ohlcSeries.add(createItem(bar));
+        }
     }
 
     private OHLCDataset createChartData() {
@@ -80,5 +83,15 @@ public class CandlestickChart extends CryptoChart {
         double close = bar.getClosePrice().doubleValue();
 
         return new OHLCItem(period, open, high, low, close);
+    }
+
+    private boolean itemExist(RegularTimePeriod newPeriod) {
+        int count = this.ohlcSeries.getItemCount();
+        if (count == 0) {
+            return false;
+        }
+
+        RegularTimePeriod lastPeriod = this.ohlcSeries.getPeriod(count - 1);
+        return lastPeriod.equals(newPeriod);
     }
 }

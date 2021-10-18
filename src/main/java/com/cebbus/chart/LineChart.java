@@ -69,11 +69,13 @@ public class LineChart extends CryptoChart {
         this.indicatorMap.forEach((name, indicator) -> {
             int endIndex = this.series.getEndIndex();
             Bar bar = this.series.getBar(endIndex);
-
             RegularTimePeriod period = convertToPeriod(bar.getEndTime());
-            double value = indicator.getValue(endIndex).doubleValue();
 
-            this.timeSeriesMap.get(name).add(period, value);
+            TimeSeries timeSeries = this.timeSeriesMap.get(name);
+            if (!itemExist(timeSeries, period)) {
+                double value = indicator.getValue(endIndex).doubleValue();
+                timeSeries.add(period, value);
+            }
         });
 
         Trade lastTrade = this.tradingRecord.getLastTrade();
@@ -100,5 +102,15 @@ public class LineChart extends CryptoChart {
         }
 
         return timeSeries;
+    }
+
+    private boolean itemExist(TimeSeries timeSeries, RegularTimePeriod newPeriod) {
+        int count = timeSeries.getItemCount();
+        if (count == 0) {
+            return false;
+        }
+
+        RegularTimePeriod lastPeriod = timeSeries.getTimePeriod(count - 1);
+        return lastPeriod.equals(newPeriod);
     }
 }
