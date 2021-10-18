@@ -13,7 +13,7 @@ public abstract class BaseCebStrategy implements CebStrategy {
     final BarSeries series;
     final BuilderResult builderResult;
 
-    public BaseCebStrategy(BarSeries series) {
+    BaseCebStrategy(BarSeries series) {
         this.series = series;
         this.builderResult = build();
     }

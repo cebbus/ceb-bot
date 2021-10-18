@@ -28,6 +28,9 @@ public class ForceToWinRule extends AbstractRule {
         }
 
         double profit = (exitValue / entryValue) - 1;
-        return profit > minProfit;
+        boolean satisfied = profit > minProfit;
+        this.traceIsSatisfied(i, satisfied);
+
+        return satisfied;
     }
 }
