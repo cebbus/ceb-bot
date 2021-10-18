@@ -153,12 +153,12 @@ public class PerformancePanel {
         Num versus = versusBuyAndHoldCriterion.calculate(this.series, tradingRecord);
 
         Map<String, Object> map = new LinkedHashMap<>();
-        map.put("Number of pos", tradingRecord.getPositionCount());
-        map.put("Number of bars", numOfBars.intValue());
+        map.put("Number of Pos", tradingRecord.getPositionCount());
+        map.put("Number of Bars", numOfBars.intValue());
         map.put("Total Return (%)", DECIMAL_FORMAT.format(calcPercentage(totalReturn)));
-        map.put("Hold return (%)", DECIMAL_FORMAT.format(calcPercentage(buyAndHold)));
+        map.put("Hold Return (%)", DECIMAL_FORMAT.format(calcPercentage(buyAndHold)));
         map.put("Custom vs Hold (%)", DECIMAL_FORMAT.format(calcPercentage(versus)));
-        map.put("Winning ratio (%)", DECIMAL_FORMAT.format(calcPercentage(winningRatio)));
+        map.put("Winning Ratio (%)", DECIMAL_FORMAT.format(calcPercentage(winningRatio)));
 
         return map;
     }
