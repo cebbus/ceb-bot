@@ -1,45 +1,32 @@
 package com.cebbus.util;
 
 import com.binance.api.client.domain.market.CandlestickInterval;
+import com.cebbus.CebBot;
 import lombok.extern.slf4j.Slf4j;
-import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
-import org.jasypt.iv.RandomIvGenerator;
 import org.jasypt.properties.EncryptableProperties;
-import org.jasypt.properties.PropertyValueEncryptionUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Properties;
+
+import static com.cebbus.util.PropertyEncryptor.checkSecretsEncryption;
+import static com.cebbus.util.PropertyEncryptor.getEncryptor;
 
 @Slf4j
 public class PropertyReader {
 
     private static final Properties PROPERTIES;
-    private static final StandardPBEStringEncryptor ENCRYPTOR;
+    private static final String PROP_FILE_NAME = "api.properties";
 
     static {
-        ENCRYPTOR = new StandardPBEStringEncryptor();
-        ENCRYPTOR.setPassword("&RICHIE_RICH&"); //TODO move to env variable
-        ENCRYPTOR.setAlgorithm("PBEWithHMACSHA512AndAES_256");
-        ENCRYPTOR.setIvGenerator(new RandomIvGenerator());
-        ENCRYPTOR.setStringOutputType("HEXADECIMAL");
+        PROPERTIES = new EncryptableProperties(getEncryptor());
 
-        PROPERTIES = new EncryptableProperties(ENCRYPTOR);
-        ClassLoader classLoader = PropertyReader.class.getClassLoader();
-        try {
-            InputStream inputStream = classLoader.getResourceAsStream("api.properties");
-            PROPERTIES.load(inputStream);
-
-            PROPERTIES.entrySet().stream()
-                    .filter(e -> e.getKey().equals("api.key") || e.getKey().equals("api.secret"))
-                    .filter(e -> e.getValue() != null && !e.getValue().toString().isBlank())
-                    .filter(e -> !PropertyValueEncryptionUtils.isEncryptedValue(e.getValue().toString()))
-                    .forEach(e -> {
-                        Object key = e.getKey();
-                        String value = e.getValue().toString();
-                        log.warn("you should encrypt your private for your own safety. you can use this encrypted value for {}: {}",
-                                key, PropertyValueEncryptionUtils.encrypt(value, ENCRYPTOR));
-                    });
+        try (InputStream is = findPropertyUrl().openStream()) {
+            PROPERTIES.load(is);
+            checkSecretsEncryption(PROPERTIES.entrySet());
         } catch (IOException e) {
             log.error(e.getMessage(), e);
             System.exit(-1);
@@ -79,6 +66,19 @@ public class PropertyReader {
 
     public static String getProperty(String key) {
         return PROPERTIES.getProperty(key);
+    }
+
+    private static URL findPropertyUrl() throws MalformedURLException {
+        ClassLoader loader = PropertyReader.class.getClassLoader();
+
+        URL jarLoc = CebBot.class.getProtectionDomain().getCodeSource().getLocation();
+        File jarDir = new File(jarLoc.getPath()).getParentFile();
+        File propFile = new File(jarDir, PROP_FILE_NAME);
+
+        URL url = propFile.exists() ? propFile.toURI().toURL() : loader.getResource(PROP_FILE_NAME);
+        log.info("Property file loaded from {}", url != null ? url.getPath() : null);
+
+        return url;
     }
 
 }
