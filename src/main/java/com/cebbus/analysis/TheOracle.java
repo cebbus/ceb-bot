@@ -1,6 +1,7 @@
 package com.cebbus.analysis;
 
 import com.cebbus.analysis.strategy.*;
+import com.cebbus.util.ReflectionUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.ta4j.core.*;
 import org.ta4j.core.analysis.criteria.pnl.GrossReturnCriterion;
@@ -18,9 +19,9 @@ public class TheOracle {
     private final CebStrategy cebStrategy;
     private final TradingRecord tradingRecord = new BaseTradingRecord();
 
-    public TheOracle(BarSeries series) {
+    public TheOracle(BarSeries series, String strategy) {
         this.series = series;
-        this.cebStrategy = new ScalpingStrategy(series);
+        this.cebStrategy = ReflectionUtil.initStrategy(series, strategy);
     }
 
     public TradingRecord backtest() {
@@ -37,6 +38,8 @@ public class TheOracle {
         strategies.add(calculateProfit(rc, new MovingMomentumStrategy(this.series)));
         strategies.add(calculateProfit(rc, new ObvStrategy(this.series)));
         strategies.add(calculateProfit(rc, new ScalpingStrategy(this.series)));
+        strategies.add(calculateProfit(rc, new CciCorrectionStrategy(this.series)));
+        strategies.add(calculateProfit(rc, new GoldenCrossStrategy(this.series)));
 
         BarSeriesManager seriesManager = new BarSeriesManager(this.series);
         Strategy bestStrategy = rc.chooseBest(seriesManager, strategies);

@@ -1,11 +1,11 @@
 package com.cebbus.binance.order;
 
-import com.binance.api.client.BinanceApiRestClient;
 import com.binance.api.client.domain.account.AssetBalance;
 import com.binance.api.client.domain.account.NewOrder;
 import com.binance.api.client.domain.account.NewOrderResponse;
 import com.binance.api.client.domain.general.SymbolFilter;
 import com.cebbus.analysis.TheOracle;
+import com.cebbus.binance.Speculator;
 import lombok.extern.slf4j.Slf4j;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.Trade;
@@ -17,13 +17,17 @@ import java.math.RoundingMode;
 @Slf4j
 public class SellerAction extends TraderAction {
 
-    public SellerAction(TheOracle theOracle, BinanceApiRestClient restClient) {
-        super(theOracle, restClient);
+    public SellerAction(TheOracle theOracle, Speculator speculator) {
+        super(theOracle, speculator);
     }
 
     public Trade exit() {
-        NewOrderResponse orderResponse = sell();
-        return createTradeRecord(orderResponse);
+        if (this.speculator.isActive()) {
+            NewOrderResponse orderResponse = sell();
+            return createTradeRecord(orderResponse);
+        } else {
+            return createTradeRecord();
+        }
     }
 
     public boolean exitable(boolean askTheOracle) {
@@ -37,9 +41,11 @@ public class SellerAction extends TraderAction {
             }
         }
 
-        if (noBalance(SYMBOL_BASE, true)) {
-            log.info("you have no coin!");
-            return false;
+        if (this.speculator.isActive()) {
+            if (noBalance(this.symbol.getBase(), true)) {
+                log.info("you have no coin!");
+                return false;
+            }
         }
 
         if (!tradingRecord.getCurrentPosition().isOpened()) {
@@ -55,10 +61,10 @@ public class SellerAction extends TraderAction {
         BigDecimal stepSize = new BigDecimal(symbolFilter.getStepSize());
         int scale = Math.max(0, stepSize.stripTrailingZeros().scale());
 
-        AssetBalance balance = getBalance(SYMBOL_BASE);
+        AssetBalance balance = getBalance(this.symbol.getBase());
         BigDecimal quantity = new BigDecimal(balance.getFree()).setScale(scale, RoundingMode.HALF_DOWN);
 
-        NewOrder sellOrder = NewOrder.marketSell(SYMBOL, quantity.toPlainString());
+        NewOrder sellOrder = NewOrder.marketSell(this.symbol.getName(), quantity.toPlainString());
 
         return this.restClient.newOrder(sellOrder);
     }

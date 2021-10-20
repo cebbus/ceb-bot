@@ -10,9 +10,10 @@ import com.binance.api.client.domain.account.request.AllOrdersRequest;
 import com.binance.api.client.domain.general.FilterType;
 import com.binance.api.client.domain.general.SymbolFilter;
 import com.binance.api.client.domain.general.SymbolInfo;
+import com.cebbus.analysis.Symbol;
 import com.cebbus.analysis.TheOracle;
+import com.cebbus.binance.Speculator;
 import com.cebbus.exception.OrderNotFoundException;
-import com.cebbus.util.PropertyReader;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.ta4j.core.BarSeries;
@@ -31,17 +32,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 public abstract class TraderAction {
 
     static final int SCALE = 8;
-    static final String SYMBOL = PropertyReader.getSymbol();
-    static final String SYMBOL_BASE = PropertyReader.getSymbolBase();
-    static final String SYMBOL_QUOTE = PropertyReader.getSymbolQuote();
 
     final TheOracle theOracle;
+    final Speculator speculator;
+    final Symbol symbol;
     final BinanceApiRestClient restClient;
     final AtomicInteger counter = new AtomicInteger(0);
 
-    TraderAction(TheOracle theOracle, BinanceApiRestClient restClient) {
+    TraderAction(TheOracle theOracle, Speculator speculator) {
         this.theOracle = theOracle;
-        this.restClient = restClient;
+        this.speculator = speculator;
+        this.symbol = speculator.getSymbol();
+        this.restClient = speculator.getRestClient();
     }
 
     boolean noBalance(String s, boolean checkMinQty) {
@@ -62,8 +64,19 @@ public abstract class TraderAction {
     }
 
     SymbolFilter getLotSizeFilter() {
-        SymbolInfo symbolInfo = this.restClient.getExchangeInfo().getSymbolInfo(SYMBOL);
+        SymbolInfo symbolInfo = this.restClient.getExchangeInfo().getSymbolInfo(this.symbol.getName());
         return symbolInfo.getSymbolFilter(FilterType.LOT_SIZE);
+    }
+
+    Trade createTradeRecord() {
+        BarSeries series = this.theOracle.getSeries();
+        int endIndex = series.getEndIndex();
+        Num closePrice = series.getLastBar().getClosePrice();
+
+        TradingRecord tradingRecord = this.theOracle.getTradingRecord();
+        tradingRecord.operate(endIndex, closePrice, DecimalNum.valueOf(1));
+
+        return tradingRecord.getLastTrade();
     }
 
     Trade createTradeRecord(NewOrderResponse response) {
@@ -86,7 +99,7 @@ public abstract class TraderAction {
 
     //order not returns immediately, that's why wait a second before the retry
     private Order findOrder(Long orderId) {
-        List<Order> orders = this.restClient.getAllOrders(new AllOrdersRequest(SYMBOL));
+        List<Order> orders = this.restClient.getAllOrders(new AllOrdersRequest(this.symbol.getName()));
         Optional<Order> order = orders.stream().filter(o -> o.getOrderId().equals(orderId)).findFirst();
 
         if (order.isPresent()) {

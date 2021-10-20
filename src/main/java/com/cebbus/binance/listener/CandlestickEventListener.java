@@ -7,15 +7,12 @@ import com.cebbus.exception.OrderNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Slf4j
 public class CandlestickEventListener implements BinanceApiCallback<CandlestickEvent> {
 
-    private final List<EventOperation> operationList;
-
-    public CandlestickEventListener(List<EventOperation> operationList) {
-        this.operationList = operationList;
-    }
+    private final List<EventOperation> operationList = new CopyOnWriteArrayList<>();
 
     @Override
     public void onResponse(CandlestickEvent response) {
@@ -40,6 +37,10 @@ public class CandlestickEventListener implements BinanceApiCallback<CandlestickE
     @Override
     public void onFailure(Throwable cause) {
         log.error(cause.getMessage(), cause);
+    }
+
+    public void addOperation(EventOperation operation) {
+        this.operationList.add(operation);
     }
 
 }

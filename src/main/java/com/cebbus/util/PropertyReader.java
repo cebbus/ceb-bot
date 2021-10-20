@@ -2,6 +2,7 @@ package com.cebbus.util;
 
 import com.binance.api.client.domain.market.CandlestickInterval;
 import com.cebbus.CebBot;
+import com.cebbus.analysis.Symbol;
 import lombok.extern.slf4j.Slf4j;
 import org.jasypt.properties.EncryptableProperties;
 
@@ -10,6 +11,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import static com.cebbus.util.PropertyEncryptor.checkSecretsEncryption;
@@ -47,20 +50,32 @@ public class PropertyReader {
         return Integer.valueOf(getProperty("cache.size"));
     }
 
-    public static String getSymbol() {
-        return getSymbolBase() + getSymbolQuote();
-    }
+    public static List<Symbol> getSymbols() {
+        String[] baseArr = getProperty("symbol.base").split(",");
+        String[] quoteArr = getProperty("symbol.quote").split(",");
+        String[] intervalArr = getProperty("interval").split(",");
+        String[] strategyArr = getProperty("strategy").split(",");
 
-    public static String getSymbolBase() {
-        return getProperty("symbol.base");
-    }
+        if (baseArr.length != quoteArr.length
+                || baseArr.length != intervalArr.length
+                || baseArr.length != strategyArr.length) {
+            log.error("base, quote and interval must be the same length!");
+            System.exit(-1);
+        }
 
-    public static String getSymbolQuote() {
-        return getProperty("symbol.quote");
-    }
+        int size = baseArr.length;
+        List<Symbol> symbols = new ArrayList<>(size);
 
-    public static CandlestickInterval getInterval() {
-        return CandlestickInterval.valueOf(getProperty("interval"));
+        for (int i = 0; i < size; i++) {
+            symbols.add(new Symbol(
+                    baseArr[i].trim(),
+                    quoteArr[i].trim(),
+                    strategyArr[i].trim(),
+                    CandlestickInterval.valueOf(intervalArr[i].trim())
+            ));
+        }
+
+        return symbols;
     }
 
     public static String getProperty(String key) {

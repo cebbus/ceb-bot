@@ -1,6 +1,5 @@
 package com.cebbus.binance.listener.operation;
 
-import com.binance.api.client.BinanceApiRestClient;
 import com.binance.api.client.domain.event.CandlestickEvent;
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.binance.Speculator;
@@ -12,24 +11,16 @@ import org.ta4j.core.Trade;
 @Slf4j
 public class TradeOperation implements EventOperation {
 
-    private final Speculator speculator;
     private final BuyerAction buyerAction;
     private final SellerAction sellerAction;
 
     public TradeOperation(TheOracle theOracle, Speculator speculator) {
-        BinanceApiRestClient restClient = speculator.getRestClient();
-
-        this.speculator = speculator;
-        this.buyerAction = new BuyerAction(theOracle, restClient);
-        this.sellerAction = new SellerAction(theOracle, restClient);
+        this.buyerAction = new BuyerAction(theOracle, speculator);
+        this.sellerAction = new SellerAction(theOracle, speculator);
     }
 
     @Override
     public void operate(CandlestickEvent response) {
-        if (!this.speculator.isActive()) {
-            return;
-        }
-
         Trade trade = null;
         if (this.buyerAction.enterable(true)) {
             log.info("should enter!");

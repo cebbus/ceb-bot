@@ -4,36 +4,36 @@ import com.cebbus.analysis.TheOracle;
 import com.cebbus.binance.Speculator;
 import com.cebbus.binance.order.TradeStatus;
 import com.cebbus.chart.ColorPalette;
-import org.jfree.chart.ui.ApplicationFrame;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class CryptoChartPanel {
+public class CryptoTabPanel {
 
-    private static final int PANEL_WIDTH = 1400;
-    private static final int PANEL_HEIGHT = 800;
-
-    private final ApplicationFrame frame;
+    private final JPanel panel;
+    private final PanelMenu panelMenu;
     private final StatusPanel statusPanel;
     private final TradeTable tradeTable;
     private final ChartListPanel chartListPanel;
     private final PerformancePanel performancePanel;
 
-    public CryptoChartPanel(TheOracle theOracle, Speculator speculator) {
-        this.frame = new ApplicationFrame("CebBot!");
-        this.frame.setJMenuBar(new PanelMenu(speculator).create());
-        this.frame.setPreferredSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
-        this.frame.pack();
+    public CryptoTabPanel(TheOracle theOracle, Speculator speculator) {
+        this.panel = new JPanel(new BorderLayout());
 
-        this.statusPanel = new StatusPanel();
+        this.panelMenu = new PanelMenu(speculator);
+        this.statusPanel = new StatusPanel(speculator);
         this.tradeTable = new TradeTable(theOracle);
         this.chartListPanel = new ChartListPanel(theOracle);
         this.performancePanel = new PerformancePanel(theOracle);
 
+        addMenu();
         addTradePerformance();
         addTradeHistory();
         addChartList();
+    }
+
+    private void addMenu() {
+        this.panel.add(this.panelMenu.create(), BorderLayout.NORTH);
     }
 
     private void addTradePerformance() {
@@ -55,7 +55,7 @@ public class CryptoChartPanel {
         BoxLayout layout = new BoxLayout(panel, BoxLayout.Y_AXIS);
         panel.setLayout(layout);
 
-        this.frame.add(panel, BorderLayout.WEST);
+        this.panel.add(panel, BorderLayout.WEST);
     }
 
     private void addTradeHistory() {
@@ -63,17 +63,13 @@ public class CryptoChartPanel {
         scrollPane.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, ColorPalette.DARK_GRAY));
         scrollPane.setPreferredSize(new Dimension(250, 200));
 
-        this.frame.add(scrollPane, BorderLayout.SOUTH);
+        this.panel.add(scrollPane, BorderLayout.SOUTH);
     }
 
     private void addChartList() {
         JScrollPane scrollPane = new JScrollPane(this.chartListPanel.create());
         scrollPane.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 0, ColorPalette.DARK_GRAY));
-        this.frame.add(scrollPane, BorderLayout.CENTER);
-    }
-
-    public void show() {
-        this.frame.setVisible(true);
+        this.panel.add(scrollPane, BorderLayout.CENTER);
     }
 
     public void refresh() {
@@ -86,4 +82,7 @@ public class CryptoChartPanel {
         this.statusPanel.changeStatus(status);
     }
 
+    public JPanel getPanel() {
+        return panel;
+    }
 }

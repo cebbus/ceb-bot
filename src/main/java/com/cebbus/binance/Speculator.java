@@ -3,66 +3,78 @@ package com.cebbus.binance;
 import com.binance.api.client.BinanceApiRestClient;
 import com.binance.api.client.BinanceApiWebSocketClient;
 import com.binance.api.client.domain.market.Candlestick;
-import com.binance.api.client.domain.market.CandlestickInterval;
+import com.cebbus.analysis.Symbol;
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.analysis.mapper.BarMapper;
 import com.cebbus.binance.listener.CandlestickEventListener;
+import com.cebbus.binance.listener.operation.EventOperation;
 import com.cebbus.binance.listener.operation.TradeOperation;
 import com.cebbus.binance.listener.operation.UpdateCacheOperation;
 import com.cebbus.binance.listener.operation.UpdateSeriesOperation;
 import com.cebbus.binance.order.TradeStatus;
-import com.cebbus.chart.panel.CryptoChartPanel;
 import com.cebbus.util.LimitedHashMap;
-import com.cebbus.util.PropertyReader;
 import lombok.extern.slf4j.Slf4j;
 import org.ta4j.core.Bar;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Slf4j
 public class Speculator {
 
-    private static final String SYMBOL = PropertyReader.getSymbol();
-    private static final CandlestickInterval INTERVAL = PropertyReader.getInterval();
-    private static final Map<Long, Candlestick> CACHE = new LimitedHashMap<>();
-
+    private final Symbol symbol;
     private final BinanceApiRestClient restClient;
+    private final Map<Long, Candlestick> candlestickCache = new LimitedHashMap<>();
+
+    private final CandlestickEventListener listener = new CandlestickEventListener();
+    private final List<Consumer<Boolean>> manualTradeListeners = new ArrayList<>();
+    private final List<Consumer<TradeStatus>> statusChangeListeners = new ArrayList<>();
 
     private TradeStatus status;
     private TheOracle theOracle;
-    private CryptoChartPanel chartPanel;
 
-    public Speculator() {
+    public Speculator(Symbol symbol) {
+        this.symbol = symbol;
         this.restClient = ClientFactory.restClient();
     }
 
     public void loadHistory() {
-        List<Candlestick> bars = this.restClient.getCandlestickBars(SYMBOL, INTERVAL);
-        bars.forEach(candlestick -> CACHE.put(candlestick.getCloseTime(), candlestick));
+        List<Candlestick> bars = this.restClient.getCandlestickBars(this.symbol.getName(), this.symbol.getInterval());
+        bars.forEach(candlestick -> this.candlestickCache.put(candlestick.getCloseTime(), candlestick));
     }
 
     public void startSpec() {
         Objects.requireNonNull(this.theOracle);
-        Objects.requireNonNull(this.chartPanel);
 
-        CandlestickEventListener listener = new CandlestickEventListener(List.of(
-                new UpdateCacheOperation(CACHE),
-                new UpdateSeriesOperation(this.theOracle.getSeries()),
-                new TradeOperation(this.theOracle, this),
-                response -> this.chartPanel.refresh()));
+        this.listener.addOperation(new UpdateCacheOperation(this.candlestickCache));
+        this.listener.addOperation(new UpdateSeriesOperation(this.theOracle.getSeries()));
+        this.listener.addOperation(new TradeOperation(this.theOracle, this));
 
         try (BinanceApiWebSocketClient client = ClientFactory.webSocketClient()) {
-            client.onCandlestickEvent(SYMBOL.toLowerCase(), INTERVAL, listener);
+            client.onCandlestickEvent(this.symbol.getName().toLowerCase(), this.symbol.getInterval(), this.listener);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
     }
 
     public List<Bar> convertToBarList() {
-        return CACHE.values().stream().map(BarMapper::valueOf).collect(Collectors.toList());
+        return this.candlestickCache.values().stream().map(BarMapper::valueOf).collect(Collectors.toList());
+    }
+
+    public void addCandlestickEventOperation(EventOperation operation) {
+        this.listener.addOperation(operation);
+    }
+
+    public void addStatusChangeListener(Consumer<TradeStatus> operation) {
+        this.statusChangeListeners.add(operation);
+    }
+
+    public void addManualTradeListeners(Consumer<Boolean> operation) {
+        this.manualTradeListeners.add(operation);
     }
 
     public boolean buy() {
@@ -75,16 +87,20 @@ public class Speculator {
 
     public void activate() {
         this.status = TradeStatus.ACTIVE;
-        this.chartPanel.changeStatus(TradeStatus.ACTIVE);
+        this.statusChangeListeners.forEach(o -> o.accept(this.status));
     }
 
     public void deactivate() {
         this.status = TradeStatus.INACTIVE;
-        this.chartPanel.changeStatus(TradeStatus.INACTIVE);
+        this.statusChangeListeners.forEach(o -> o.accept(this.status));
     }
 
     public boolean isActive() {
         return status == null || status == TradeStatus.ACTIVE;
+    }
+
+    public Symbol getSymbol() {
+        return symbol;
     }
 
     public BinanceApiRestClient getRestClient() {
@@ -95,17 +111,11 @@ public class Speculator {
         this.theOracle = theOracle;
     }
 
-    public void setChartPanel(CryptoChartPanel chartPanel) {
-        this.chartPanel = chartPanel;
-    }
-
     private boolean trade(boolean isBuy) {
         TradeOperation trader = new TradeOperation(this.theOracle, this);
         boolean success = isBuy ? trader.manualEnter() : trader.manualExit();
-        if (success) {
-            this.chartPanel.refresh();
-        }
 
+        this.manualTradeListeners.forEach(o -> o.accept(success));
         return success;
     }
 }
