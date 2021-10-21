@@ -3,6 +3,7 @@ package com.cebbus.util;
 import com.binance.api.client.domain.market.CandlestickInterval;
 import com.cebbus.CebBot;
 import com.cebbus.analysis.Symbol;
+import com.cebbus.binance.order.TradeStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.jasypt.properties.EncryptableProperties;
 
@@ -55,10 +56,12 @@ public class PropertyReader {
         String[] quoteArr = getProperty("symbol.quote").split(",");
         String[] intervalArr = getProperty("interval").split(",");
         String[] strategyArr = getProperty("strategy").split(",");
+        String[] statusArr = getProperty("status").split(",");
 
         if (baseArr.length != quoteArr.length
                 || baseArr.length != intervalArr.length
-                || baseArr.length != strategyArr.length) {
+                || baseArr.length != strategyArr.length
+                || baseArr.length != statusArr.length) {
             log.error("base, quote and interval must be the same length!");
             System.exit(-1);
         }
@@ -71,7 +74,8 @@ public class PropertyReader {
                     baseArr[i].trim(),
                     quoteArr[i].trim(),
                     strategyArr[i].trim(),
-                    CandlestickInterval.valueOf(intervalArr[i].trim())
+                    CandlestickInterval.valueOf(intervalArr[i].trim()),
+                    TradeStatus.valueOf(statusArr[i].trim())
             ));
         }
 

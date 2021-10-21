@@ -39,6 +39,7 @@ public class Speculator {
 
     public Speculator(Symbol symbol) {
         this.symbol = symbol;
+        this.status = symbol.getStatus();
         this.restClient = ClientFactory.restClient();
     }
 
