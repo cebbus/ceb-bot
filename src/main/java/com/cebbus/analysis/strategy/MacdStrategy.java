@@ -11,6 +11,7 @@ import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.indicators.volume.OnBalanceVolumeIndicator;
 import org.ta4j.core.num.Num;
 import org.ta4j.core.rules.OverIndicatorRule;
+import org.ta4j.core.rules.StopLossRule;
 import org.ta4j.core.rules.UnderIndicatorRule;
 
 import java.util.LinkedHashMap;
@@ -25,6 +26,9 @@ public class MacdStrategy extends BaseCebStrategy {
     @Override
     BuilderResult build() {
         ClosePriceIndicator cpi = new ClosePriceIndicator(this.series);
+        SMAIndicator cpiShortSma = new SMAIndicator(cpi, 50);
+        SMAIndicator cpiLongSma = new SMAIndicator(cpi, 200);
+
         OnBalanceVolumeIndicator obv = new OnBalanceVolumeIndicator(this.series);
         SMAIndicator obvSma = new SMAIndicator(obv, 21);
 
@@ -35,21 +39,24 @@ public class MacdStrategy extends BaseCebStrategy {
                 .and(new OverIndicatorRule(obv, obvSma))
                 .and(new OverIndicatorRule(macd, 0));
 
-        Rule exitRule = new UnderIndicatorRule(macd, signal);
+        Rule exitRule = new UnderIndicatorRule(macd, signal)
+                .or(new StopLossRule(cpi, 5));
 
         BaseStrategy strategy = new BaseStrategy("MACD", entryRule, exitRule);
 
         Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
         indicators.put("MACD", new LinkedHashMap<>());
         indicators.get("MACD").put("MACD", macd);
-        indicators.get("MACD").put("Signal", signal);
+        indicators.get("MACD").put("EMA (9)", signal);
 
         indicators.put("OBV", new LinkedHashMap<>());
         indicators.get("OBV").put("OBV", obv);
-        indicators.get("OBV").put("OBV SMA", obvSma);
+        indicators.get("OBV").put("SMA (50)", obvSma);
 
         indicators.put("CPI", new LinkedHashMap<>());
         indicators.get("CPI").put("Close Price", cpi);
+        indicators.get("CPI").put("SMA (50)", cpiShortSma);
+        indicators.get("CPI").put("SMA (200)", cpiLongSma);
 
         return new BuilderResult(strategy, indicators);
     }
