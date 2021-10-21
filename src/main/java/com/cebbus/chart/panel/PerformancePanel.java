@@ -126,9 +126,11 @@ public class PerformancePanel {
         label.setText(value.toString());
 
         if (percentage) {
-            if (isGreaterThanZero(value)) {
+            String val = value.toString().replace(",", "");
+
+            if (isGreaterThanZero(val)) {
                 label.setForeground(ColorPalette.GREEN);
-            } else if (isLessThanZero(value)) {
+            } else if (isLessThanZero(val)) {
                 label.setForeground(ColorPalette.RED);
             } else {
                 label.setForeground(ColorPalette.DARK_GRAY);
@@ -167,12 +169,12 @@ public class PerformancePanel {
         return (num.doubleValue() - 1) * 100;
     }
 
-    private boolean isGreaterThanZero(Object value) {
-        return Double.parseDouble(value.toString()) > 0;
+    private boolean isGreaterThanZero(String value) {
+        return Double.parseDouble(value) > 0;
     }
 
-    private boolean isLessThanZero(Object value) {
-        return Double.parseDouble(value.toString()) < 0;
+    private boolean isLessThanZero(String value) {
+        return Double.parseDouble(value) < 0;
     }
 
     private boolean isPercentage(String key) {

@@ -1,6 +1,5 @@
 package com.cebbus.analysis.strategy;
 
-import com.cebbus.analysis.rule.BackwardUnderIndicatorRule;
 import com.cebbus.analysis.rule.ForceToWinRule;
 import com.cebbus.analysis.rule.LastEntryOverIndicatorRule;
 import org.ta4j.core.BarSeries;
@@ -46,8 +45,7 @@ public class ScalpingStrategy extends BaseCebStrategy {
 
         Rule entryRule = new OverIndicatorRule(shortSma, middleSma)
                 .and(new OverIndicatorRule(shortSma, longSma))
-                .and(new OverIndicatorRule(volume, volumeSma))
-                .and(new BackwardUnderIndicatorRule(volume, volumeSma, 12, 0.7));
+                .and(new OverIndicatorRule(volume, volumeSma));
 
         Rule exitRule = new UnderIndicatorRule(shortSma, middleSma)
                 .and(new UnderIndicatorRule(shortSma, longSma))

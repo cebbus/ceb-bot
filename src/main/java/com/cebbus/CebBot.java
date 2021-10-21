@@ -30,7 +30,7 @@ public class CebBot {
                     .build();
 
             TheOracle theOracle = new TheOracle(series, symbol.getStrategy());
-            theOracle.chooseBest();
+            //theOracle.chooseBest();
 
             speculator.setTheOracle(theOracle);
             speculator.startSpec();
