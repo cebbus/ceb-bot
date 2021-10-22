@@ -39,8 +39,7 @@ public class MacdStrategy extends BaseCebStrategy {
                 .and(new OverIndicatorRule(obv, obvSma))
                 .and(new OverIndicatorRule(macd, 0));
 
-        Rule exitRule = new UnderIndicatorRule(macd, signal)
-                .or(new StopLossRule(cpi, 5));
+        Rule exitRule = new UnderIndicatorRule(macd, signal);
 
         BaseStrategy strategy = new BaseStrategy("MACD", entryRule, exitRule);
 
