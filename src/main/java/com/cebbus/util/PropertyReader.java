@@ -62,7 +62,7 @@ public class PropertyReader {
                 || baseArr.length != intervalArr.length
                 || baseArr.length != strategyArr.length
                 || baseArr.length != statusArr.length) {
-            log.error("base, quote and interval must be the same length!");
+            log.error("base, quote, interval, strategy and status must be the same length!");
             System.exit(-1);
         }
 

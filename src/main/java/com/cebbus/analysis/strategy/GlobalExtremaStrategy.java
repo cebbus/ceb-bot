@@ -23,11 +23,11 @@ public class GlobalExtremaStrategy extends BaseCebStrategy {
         ClosePriceIndicator closePrice = new ClosePriceIndicator(this.series);
 
         HighPriceIndicator highPrice = new HighPriceIndicator(this.series);
-        HighestValueIndicator weekHighPrice = new HighestValueIndicator(highPrice, 2016);
+        HighestValueIndicator weekHighPrice = new HighestValueIndicator(highPrice, 7);
         TransformIndicator upWeek = TransformIndicator.multiply(weekHighPrice, 0.996D);
 
         LowPriceIndicator lowPrice = new LowPriceIndicator(this.series);
-        LowestValueIndicator weekLowPrice = new LowestValueIndicator(lowPrice, 2016);
+        LowestValueIndicator weekLowPrice = new LowestValueIndicator(lowPrice, 7);
         TransformIndicator downWeek = TransformIndicator.multiply(weekLowPrice, 1.004D);
 
         Rule entryRule = new UnderIndicatorRule(closePrice, downWeek);
@@ -36,19 +36,10 @@ public class GlobalExtremaStrategy extends BaseCebStrategy {
         BaseStrategy strategy = new BaseStrategy("Global Extrema", entryRule, exitRule);
 
         Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
-        indicators.put("CHL", Map.of(
-                "CPI", closePrice,
-                "HPI", highPrice,
-                "LPI", lowPrice)
-        );
-
-        indicators.put("TR", Map.of(
-                "CPI", closePrice,
-                "Week High", weekHighPrice,
-                "Up Week", upWeek,
-                "Week Low", weekLowPrice,
-                "Down Week", downWeek)
-        );
+        indicators.put("CPI", new LinkedHashMap<>());
+        indicators.get("CPI").put("CPI", closePrice);
+        indicators.get("CPI").put("Up Week", upWeek);
+        indicators.get("CPI").put("Down Week", downWeek);
 
         return new BuilderResult(strategy, indicators);
     }

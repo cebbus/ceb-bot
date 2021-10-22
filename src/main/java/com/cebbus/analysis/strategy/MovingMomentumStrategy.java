@@ -30,6 +30,7 @@ public class MovingMomentumStrategy extends BaseCebStrategy {
         EMAIndicator longEma = new EMAIndicator(closePrice, 26);
 
         StochasticOscillatorKIndicator stochasticOscillK = new StochasticOscillatorKIndicator(this.series, 14);
+
         MACDIndicator macd = new MACDIndicator(closePrice, 9, 26);
         EMAIndicator emaMacd = new EMAIndicator(macd, 18);
 
@@ -44,18 +45,17 @@ public class MovingMomentumStrategy extends BaseCebStrategy {
         BaseStrategy strategy = new BaseStrategy("Moving Momentum", entryRule, exitRule);
 
         Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
-        indicators.put("CPI-SMA", Map.of(
-                "CPI", closePrice,
-                "Short EMA", shortEma,
-                "Long EMA", longEma)
-        );
+        indicators.put("CPI", new LinkedHashMap<>());
+        indicators.get("CPI").put("CPI", closePrice);
+        indicators.get("CPI").put("EMA (9)", shortEma);
+        indicators.get("CPI").put("EMA (26)", longEma);
 
-        indicators.put("STO", Map.of("STO", stochasticOscillK));
+        indicators.put("MACD", new LinkedHashMap<>());
+        indicators.get("MACD").put("MACD", macd);
+        indicators.get("MACD").put("EMA (18)", emaMacd);
 
-        indicators.put("MACD", Map.of(
-                "MACD", macd,
-                "EMA MACD", emaMacd)
-        );
+        indicators.put("STO", new LinkedHashMap<>());
+        indicators.get("STO").put("STO", stochasticOscillK);
 
         return new BuilderResult(strategy, indicators);
     }

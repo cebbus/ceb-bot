@@ -123,18 +123,20 @@ public class PerformancePanel {
     }
 
     private void updateValueLabel(JLabel label, Object value, boolean percentage) {
-        label.setText(value.toString());
-
         if (percentage) {
-            String val = value.toString().replace(",", "");
+            double val = calcPercentage((Num) value);
 
-            if (isGreaterThanZero(val)) {
+            if (val > 0) {
                 label.setForeground(ColorPalette.GREEN);
-            } else if (isLessThanZero(val)) {
+            } else if (val < 0) {
                 label.setForeground(ColorPalette.RED);
             } else {
                 label.setForeground(ColorPalette.DARK_GRAY);
             }
+
+            label.setText(DECIMAL_FORMAT.format(val));
+        } else {
+            label.setText(value.toString());
         }
     }
 
@@ -157,10 +159,10 @@ public class PerformancePanel {
         Map<String, Object> map = new LinkedHashMap<>();
         map.put("Number of Pos", tradingRecord.getPositionCount());
         map.put("Number of Bars", numOfBars.intValue());
-        map.put("Total Return (%)", DECIMAL_FORMAT.format(calcPercentage(totalReturn)));
-        map.put("Hold Return (%)", DECIMAL_FORMAT.format(calcPercentage(buyAndHold)));
-        map.put("Custom vs Hold (%)", DECIMAL_FORMAT.format(calcPercentage(versus)));
-        map.put("Winning Ratio (%)", DECIMAL_FORMAT.format(calcPercentage(winningRatio)));
+        map.put("Total Return (%)", totalReturn);
+        map.put("Hold Return (%)", buyAndHold);
+        map.put("Custom vs Hold (%)", versus);
+        map.put("Winning Ratio (%)", winningRatio);
 
         return map;
     }

@@ -34,26 +34,24 @@ public class AdxStrategy extends BaseCebStrategy {
         MinusDIIndicator minusDIIndicator = new MinusDIIndicator(this.series, 14);
 
         Rule entryRule = new OverIndicatorRule(adxIndicator, 20)
-                .and(new CrossedUpIndicatorRule(plusDIIndicator, minusDIIndicator))
+                .and(new OverIndicatorRule(plusDIIndicator, minusDIIndicator))
                 .and(new OverIndicatorRule(closePrice, sma));
 
         Rule exitRule = new OverIndicatorRule(adxIndicator, 20)
-                .and(new CrossedDownIndicatorRule(plusDIIndicator, minusDIIndicator))
+                .and(new UnderIndicatorRule(plusDIIndicator, minusDIIndicator))
                 .and(new UnderIndicatorRule(closePrice, sma));
 
         BaseStrategy strategy = new BaseStrategy("ADX", entryRule, exitRule, 14);
 
         Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
-        indicators.put("CPI-SMA", Map.of(
-                "CPI", closePrice,
-                "SMA", sma)
-        );
+        indicators.put("ADX", new LinkedHashMap<>());
+        indicators.get("ADX").put("ADX (14)", adxIndicator);
+        indicators.get("ADX").put("Minus DI (14)", minusDIIndicator);
+        indicators.get("ADX").put("Plus DI (14)", plusDIIndicator);
 
-        indicators.put("ADX - DI", Map.of(
-                "ADX", adxIndicator,
-                "Plus DI", plusDIIndicator,
-                "Minus DI", minusDIIndicator)
-        );
+        indicators.put("CPI", new LinkedHashMap<>());
+        indicators.get("CPI").put("CPI", closePrice);
+        indicators.get("CPI").put("SMA (50)", sma);
 
         return new BuilderResult(strategy, indicators);
     }

@@ -47,11 +47,10 @@ public class Rsi2Strategy extends BaseCebStrategy {
         BaseStrategy strategy = new BaseStrategy("RSI", entryRule, exitRule);
 
         Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
-        indicators.put("CPI-SMA", Map.of(
-                "CPI", closePrice,
-                "Short SMA", shortSma,
-                "Long SMA", longSma)
-        );
+        indicators.put("CPI", new LinkedHashMap<>());
+        indicators.get("CPI").put("CPI", closePrice);
+        indicators.get("CPI").put("SMA (5)", shortSma);
+        indicators.get("CPI").put("SMA (200)", longSma);
 
         indicators.put("RSI", Map.of("RSI", rsi));
 

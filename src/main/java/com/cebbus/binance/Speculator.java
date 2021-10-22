@@ -14,7 +14,9 @@ import com.cebbus.binance.listener.operation.UpdateSeriesOperation;
 import com.cebbus.binance.order.TradeStatus;
 import com.cebbus.util.LimitedHashMap;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.ta4j.core.Bar;
+import org.ta4j.core.num.Num;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -98,6 +100,10 @@ public class Speculator {
 
     public boolean isActive() {
         return status == null || status == TradeStatus.ACTIVE;
+    }
+
+    public List<Pair<String, Num>> calcStrategies() {
+        return this.theOracle.calcStrategies();
     }
 
     public Symbol getSymbol() {

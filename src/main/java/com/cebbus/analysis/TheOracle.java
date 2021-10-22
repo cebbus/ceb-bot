@@ -1,16 +1,20 @@
 package com.cebbus.analysis;
 
-import com.cebbus.analysis.strategy.*;
+import com.cebbus.analysis.strategy.BaseCebStrategy;
+import com.cebbus.analysis.strategy.CebStrategy;
 import com.cebbus.util.ReflectionUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.ta4j.core.*;
 import org.ta4j.core.analysis.criteria.pnl.GrossReturnCriterion;
 import org.ta4j.core.indicators.CachedIndicator;
 import org.ta4j.core.num.Num;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import static com.cebbus.util.ReflectionUtil.initStrategy;
 
 @Slf4j
 public class TheOracle {
@@ -21,37 +25,45 @@ public class TheOracle {
 
     public TheOracle(BarSeries series, String strategy) {
         this.series = series;
-        this.cebStrategy = ReflectionUtil.initStrategy(series, strategy);
+
+        CebStrategy cs;
+        if (strategy.contains("&")) {
+            String[] strategies = strategy.split("&");
+            cs = initStrategy(series, strategies[0]);
+            for (int i = 1; i < strategies.length; i++) {
+                cs = cs.and(initStrategy(series, strategies[i]));
+            }
+        } else if (strategy.contains("|")) {
+            String[] strategies = strategy.split("\\|");
+            cs = initStrategy(series, strategies[0]);
+            for (int i = 1; i < strategies.length; i++) {
+                cs = cs.or(initStrategy(series, strategies[i]));
+            }
+        } else {
+            cs = initStrategy(series, strategy);
+        }
+
+        this.cebStrategy = cs;
     }
 
     public TradingRecord backtest() {
         return backtest(prophesy());
     }
 
-    public void chooseBest() {
-        AnalysisCriterion rc = new GrossReturnCriterion();
-        List<Strategy> strategies = new ArrayList<>();
+    public List<Pair<String, Num>> calcStrategies() {
+        List<Class<? extends BaseCebStrategy>> strategies = ReflectionUtil.listStrategyClasses();
 
-        strategies.add(calculateProfit(rc, new Rsi2Strategy(this.series)));
-        strategies.add(calculateProfit(rc, new AdxStrategy(this.series)));
-        strategies.add(calculateProfit(rc, new GlobalExtremaStrategy(this.series)));
-        strategies.add(calculateProfit(rc, new MovingMomentumStrategy(this.series)));
-        strategies.add(calculateProfit(rc, new ObvStrategy(this.series)));
-        strategies.add(calculateProfit(rc, new ScalpingStrategy(this.series)));
-        strategies.add(calculateProfit(rc, new CciCorrectionStrategy(this.series)));
-        strategies.add(calculateProfit(rc, new GoldenCrossStrategy(this.series)));
-
-        BarSeriesManager seriesManager = new BarSeriesManager(this.series);
-        Strategy bestStrategy = rc.chooseBest(seriesManager, strategies);
-        log.info("--> Best strategy: " + bestStrategy.getName() + "\n");
+        return strategies.stream().map(clazz -> {
+            Strategy strategy = initStrategy(this.series, clazz).getStrategy();
+            return Pair.of(strategy.getName(), calculateProfit(strategy));
+        }).collect(Collectors.toList());
     }
 
-    private Strategy calculateProfit(AnalysisCriterion criterion, CebStrategy cs) {
-        Strategy s = cs.getStrategy();
-        TradingRecord r = backtest(s);
-        log.info(s.getName() + ":\t" + criterion.calculate(this.series, r));
+    private Num calculateProfit(Strategy strategy) {
+        AnalysisCriterion criterion = new GrossReturnCriterion();
+        TradingRecord rec = backtest(strategy);
 
-        return s;
+        return criterion.calculate(this.series, rec);
     }
 
     private TradingRecord backtest(Strategy s) {

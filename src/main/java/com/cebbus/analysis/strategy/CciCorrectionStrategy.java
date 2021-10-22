@@ -39,11 +39,10 @@ public class CciCorrectionStrategy extends BaseCebStrategy {
         strategy.setUnstablePeriod(5);
 
         Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
-        indicators.put("CCI", Map.of(
-                "CPI", closePrice,
-                "Short CCI", shortCci,
-                "Long CCI", longCci)
-        );
+        indicators.put("CCI", new LinkedHashMap<>());
+        indicators.get("CCI").put("CPI", closePrice);
+        indicators.get("CCI").put("CCI (5)", shortCci);
+        indicators.get("CCI").put("CCI (200)", longCci);
 
         return new BuilderResult(strategy, indicators);
     }

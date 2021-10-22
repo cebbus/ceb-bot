@@ -30,19 +30,16 @@ public class ObvStrategy extends BaseCebStrategy {
         SMAIndicator sma = new SMAIndicator(obv, 21);
 
         Rule entryRule = new CrossedUpIndicatorRule(obv, sma);
-        //Rule entryRule = new OverIndicatorRule(sma, obv);
         Rule exitRule = new CrossedDownIndicatorRule(obv, sma);
-        //Rule exitRule = new UnderIndicatorRule(sma, obv);
 
         BaseStrategy strategy = new BaseStrategy("OBV", entryRule, exitRule);
 
         Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
-        indicators.put("OBV", Map.of(
-                "OBV", obv,
-                "SMA", sma)
-        );
-
         indicators.put("CPI", Map.of("CPI", cpi));
+
+        indicators.put("OBV", new LinkedHashMap<>());
+        indicators.get("OBV").put("OBV", obv);
+        indicators.get("OBV").put("SMA (21)", sma);
 
         return new BuilderResult(strategy, indicators);
     }

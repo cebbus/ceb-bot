@@ -6,6 +6,7 @@ import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.CachedIndicator;
 import org.ta4j.core.num.Num;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public abstract class BaseCebStrategy implements CebStrategy {
@@ -21,6 +22,18 @@ public abstract class BaseCebStrategy implements CebStrategy {
     abstract BuilderResult build();
 
     @Override
+    public CebStrategy and(CebStrategy other) {
+        Strategy strategy = this.getStrategy().and(other.getStrategy());
+        return createNewStrategy(strategy, concatIndicators(other));
+    }
+
+    @Override
+    public CebStrategy or(CebStrategy other) {
+        Strategy strategy = this.getStrategy().or(other.getStrategy());
+        return createNewStrategy(strategy, concatIndicators(other));
+    }
+
+    @Override
     public Strategy getStrategy() {
         return this.builderResult.strategy;
     }
@@ -28,6 +41,30 @@ public abstract class BaseCebStrategy implements CebStrategy {
     @Override
     public Map<String, Map<String, CachedIndicator<Num>>> getIndicators() {
         return this.builderResult.indicators;
+    }
+
+    private CebStrategy createNewStrategy(Strategy strategy, Map<String, Map<String, CachedIndicator<Num>>> indicators) {
+        return new BaseCebStrategy(this.series) {
+            @Override
+            BuilderResult build() {
+                return new BuilderResult(strategy, indicators);
+            }
+        };
+    }
+
+    private Map<String, Map<String, CachedIndicator<Num>>> concatIndicators(CebStrategy other) {
+        Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>(this.getIndicators());
+
+        other.getIndicators().forEach((k, v) -> {
+            if (indicators.containsKey(k)) {
+                indicators.get(k).putAll(v);
+            } else {
+                indicators.put(k, v);
+            }
+        });
+        indicators.putAll(other.getIndicators());
+
+        return indicators;
     }
 
     @Data

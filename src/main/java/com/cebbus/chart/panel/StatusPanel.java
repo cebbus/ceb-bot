@@ -18,7 +18,7 @@ public class StatusPanel {
 
     public StatusPanel(Speculator speculator) {
         Symbol symbol = speculator.getSymbol();
-        String strategy = symbol.getStrategy();
+        String strategy = symbol.getStrategy().replace("Strategy", "");
         String interval = snakeCaseToCapitalWord(symbol.getInterval().name());
 
         JLabel title = new JLabel(String.format("%s - %s", strategy, interval));
