@@ -23,6 +23,7 @@ public class CryptoAppFrame {
         this.appFrame.setPreferredSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
         this.appFrame.add(this.tabPane);
         this.appFrame.pack();
+        this.appFrame.setLocationRelativeTo(null);
     }
 
     public void addTab(TheOracle theOracle, Speculator speculator) {
