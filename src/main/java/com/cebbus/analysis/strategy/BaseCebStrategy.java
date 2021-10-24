@@ -55,6 +55,11 @@ public abstract class BaseCebStrategy implements CebStrategy {
     private Map<String, Map<String, CachedIndicator<Num>>> concatIndicators(CebStrategy other) {
         Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>(this.getIndicators());
 
+        this.getIndicators().forEach((k, v) -> {
+            indicators.put(k, new LinkedHashMap<>());
+            indicators.get(k).putAll(v);
+        });
+
         other.getIndicators().forEach((k, v) -> {
             if (indicators.containsKey(k)) {
                 indicators.get(k).putAll(v);
