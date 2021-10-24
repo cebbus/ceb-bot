@@ -56,7 +56,8 @@ public class LineChart extends CryptoChart {
         xyPlot.setBackgroundPaint(ColorPalette.LIGHT_GRAY);
         xyPlot.setFixedLegendItems(xyPlot.getLegendItems());
 
-        addSignals(xyPlot, this.backtestRecord);
+        addSignals(xyPlot, this.backtestRecord, true);
+        addSignals(xyPlot, this.tradingRecord, false);
 
         return this.chart;
     }

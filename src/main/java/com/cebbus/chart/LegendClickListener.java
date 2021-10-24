@@ -25,8 +25,7 @@ public class LegendClickListener implements ChartMouseListener {
         XYPlot plot = (XYPlot) chartMouseEvent.getChart().getPlot();
 
         XYItemRenderer renderer = plot.getRenderer();
-        boolean seriesVisible = renderer.isSeriesVisible(index);
-        renderer.setSeriesVisible(index, !seriesVisible);
+        renderer.setSeriesVisible(index, !renderer.isSeriesVisible(index));
     }
 
     @Override

@@ -13,6 +13,8 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class TradeTable {
@@ -38,11 +40,18 @@ public class TradeTable {
         this.model.addColumn("Price");
         this.model.addColumn("Total");
 
-        List<Position> positions = this.backtestRecord.getPositions();
-        for (Position position : positions) {
-            this.model.addRow(tradeToRow(position.getEntry()));
-            this.model.addRow(tradeToRow(position.getExit()));
+        List<Trade> tradeList = new ArrayList<>();
+
+        List<Position> positionList = this.backtestRecord.getPositions();
+        positionList.forEach(p -> tradeList.addAll(positionToTradeList(p)));
+
+        Trade lastEntry = this.tradingRecord.getLastEntry();
+        if (lastEntry != null) {
+            tradeList.add(lastEntry);
         }
+
+        tradeList.sort(Comparator.comparingInt(Trade::getIndex));
+        tradeList.forEach(t -> this.model.addRow(tradeToRow(t)));
 
         JTable table = new JTable(this.model);
         table.setDefaultRenderer(Object.class, new BuySellRenderer());
@@ -75,6 +84,10 @@ public class TradeTable {
         return row;
     }
 
+    private List<Trade> positionToTradeList(Position position) {
+        return List.of(position.getEntry(), position.getExit());
+    }
+
     private static class BuySellRenderer extends DefaultTableCellRenderer {
         @Override
         public Component getTableCellRendererComponent(
@@ -98,6 +111,5 @@ public class TradeTable {
             return c;
         }
     }
-
 
 }

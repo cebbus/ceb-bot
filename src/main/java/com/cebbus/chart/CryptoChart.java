@@ -30,15 +30,15 @@ public abstract class CryptoChart {
         return new Millisecond(Timestamp.valueOf(dateTime.toLocalDateTime()));
     }
 
-    void addSignals(XYPlot plot, TradingRecord tradingRecord) {
+    void addSignals(XYPlot plot, TradingRecord tradingRecord, boolean backtest) {
         tradingRecord.getPositions().forEach(p -> {
-            addSignal(plot, p.getEntry(), true);
-            addSignal(plot, p.getExit(), true);
+            addSignal(plot, p.getEntry(), backtest);
+            addSignal(plot, p.getExit(), backtest);
         });
 
         Trade lastTrade = tradingRecord.getLastTrade();
         if (lastTrade != null && lastTrade.isBuy()) {
-            addSignal(plot, lastTrade, true);
+            addSignal(plot, lastTrade, backtest);
         }
     }
 
