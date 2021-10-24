@@ -3,6 +3,7 @@ package com.cebbus.chart.panel;
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.chart.CryptoChart;
 import com.cebbus.chart.CryptoChartFactory;
+import com.cebbus.chart.LegendClickListener;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.ta4j.core.BarSeries;
@@ -44,6 +45,7 @@ public class ChartListPanel {
             ChartPanel panel = new ChartPanel(c);
             panel.setFillZoomRectangle(true);
             panel.setMouseWheelEnabled(true);
+            panel.addChartMouseListener(new LegendClickListener());
             panel.setPreferredSize(new Dimension(CENTER_WIDTH - 10, CHART_HEIGHT));
 
             chartListPanel.add(panel);

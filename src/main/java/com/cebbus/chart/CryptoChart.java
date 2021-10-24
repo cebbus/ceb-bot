@@ -10,6 +10,7 @@ import org.ta4j.core.BarSeries;
 import org.ta4j.core.Trade;
 import org.ta4j.core.TradingRecord;
 
+import java.awt.*;
 import java.sql.Timestamp;
 import java.time.ZonedDateTime;
 
@@ -31,24 +32,36 @@ public abstract class CryptoChart {
 
     void addSignals(XYPlot plot, TradingRecord tradingRecord) {
         tradingRecord.getPositions().forEach(p -> {
-            addSignal(plot, p.getEntry());
-            addSignal(plot, p.getExit());
+            addSignal(plot, p.getEntry(), true);
+            addSignal(plot, p.getExit(), true);
         });
 
         Trade lastTrade = tradingRecord.getLastTrade();
         if (lastTrade != null && lastTrade.isBuy()) {
-            addSignal(plot, lastTrade);
+            addSignal(plot, lastTrade, true);
         }
     }
 
     void addSignal(XYPlot plot, Trade trade) {
+        addSignal(plot, trade, false);
+    }
+
+    private void addSignal(XYPlot plot, Trade trade, boolean backtest) {
         int index = trade.getIndex();
         ZonedDateTime dateTime = this.series.getBar(index).getEndTime();
         double barTime = convertToPeriod(dateTime).getFirstMillisecond();
 
         Marker marker = new ValueMarker(barTime);
-        marker.setPaint(trade.isBuy() ? ColorPalette.GREEN : ColorPalette.RED);
-        marker.setLabel((trade.isBuy() ? "B - " : "S - ") + index);
+        Color color;
+        if (backtest) {
+            color = trade.isBuy() ? ColorPalette.ORANGE : ColorPalette.PURPLE;
+        } else {
+            color = trade.isBuy() ? ColorPalette.GREEN : ColorPalette.RED;
+        }
+
+        marker.setLabel(trade.isBuy() ? "B" : "S");
+        marker.setPaint(color);
+        marker.setLabelBackgroundColor(color);
         plot.addDomainMarker(marker);
     }
 

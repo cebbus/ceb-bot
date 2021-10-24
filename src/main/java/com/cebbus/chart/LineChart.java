@@ -54,6 +54,7 @@ public class LineChart extends CryptoChart {
         XYPlot xyPlot = this.chart.getXYPlot();
         xyPlot.setDrawingSupplier(new ChartDrawingSupplier());
         xyPlot.setBackgroundPaint(ColorPalette.LIGHT_GRAY);
+        xyPlot.setFixedLegendItems(xyPlot.getLegendItems());
 
         addSignals(xyPlot, this.backtestRecord);
 
