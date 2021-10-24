@@ -8,8 +8,8 @@ import org.ta4j.core.indicators.SMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.indicators.volume.OnBalanceVolumeIndicator;
 import org.ta4j.core.num.Num;
-import org.ta4j.core.rules.CrossedDownIndicatorRule;
-import org.ta4j.core.rules.CrossedUpIndicatorRule;
+import org.ta4j.core.rules.OverIndicatorRule;
+import org.ta4j.core.rules.UnderIndicatorRule;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -29,8 +29,8 @@ public class ObvStrategy extends BaseCebStrategy {
         OnBalanceVolumeIndicator obv = new OnBalanceVolumeIndicator(this.series);
         SMAIndicator sma = new SMAIndicator(obv, 21);
 
-        Rule entryRule = new CrossedUpIndicatorRule(obv, sma);
-        Rule exitRule = new CrossedDownIndicatorRule(obv, sma);
+        Rule entryRule = new OverIndicatorRule(obv, sma);
+        Rule exitRule = new UnderIndicatorRule(obv, sma);
 
         BaseStrategy strategy = new BaseStrategy("OBV", entryRule, exitRule);
 
