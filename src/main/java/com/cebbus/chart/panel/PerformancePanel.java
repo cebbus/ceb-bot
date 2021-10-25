@@ -2,6 +2,7 @@ package com.cebbus.chart.panel;
 
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.chart.ColorPalette;
+import lombok.Data;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.TradingRecord;
 import org.ta4j.core.analysis.criteria.BuyAndHoldReturnCriterion;
@@ -9,15 +10,18 @@ import org.ta4j.core.analysis.criteria.NumberOfBarsCriterion;
 import org.ta4j.core.analysis.criteria.VersusBuyAndHoldCriterion;
 import org.ta4j.core.analysis.criteria.WinningPositionsRatioCriterion;
 import org.ta4j.core.analysis.criteria.pnl.GrossReturnCriterion;
-import org.ta4j.core.num.Num;
 
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicIconFactory;
 import java.awt.*;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.cebbus.chart.ColorPalette.*;
 
 public class PerformancePanel {
 
@@ -44,10 +48,10 @@ public class PerformancePanel {
         panel.add(createTitleLabel("Backtest Results"), createConst(rowNum, 0));
         panel.add(new JLabel(""), createConst(rowNum, 1));
 
-        Map<String, Object> backtestMap = createCriterionMap(this.backtestRecord);
-        backtestMap.forEach((s, o) -> {
-            panel.add(createThinLabel(s), createConst(rowNum, 0));
-            panel.add(createValueLabel(o, isPercentage(s)), createConst(rowNum, 1));
+        List<CriterionResult> backtestResultList = createCriterionMap(this.backtestRecord);
+        backtestResultList.forEach(r -> {
+            panel.add(createThinLabel(r.getLabel()), createConst(rowNum, 0));
+            panel.add(createValueLabel(r), createConst(rowNum, 1));
         });
 
         //add empty row
@@ -57,8 +61,8 @@ public class PerformancePanel {
         panel.add(createTitleLabel("Current Results"), createConst(rowNum, 0));
         panel.add(new JLabel(""), createConst(rowNum, 1));
 
-        Map<String, Object> currentMap = createCriterionMap(this.tradingRecord);
-        currentMap.forEach((s, o) -> this.infoLabelMap.put(s, createValueLabel(o, isPercentage(s))));
+        List<CriterionResult> currentResultList = createCriterionMap(this.tradingRecord);
+        currentResultList.forEach(r -> this.infoLabelMap.put(r.getLabel(), createValueLabel(r)));
 
         this.infoLabelMap.forEach((s, l) -> {
             panel.add(createThinLabel(s), createConst(rowNum, 0));
@@ -70,12 +74,10 @@ public class PerformancePanel {
 
     public void refresh() {
         if (this.tradingRecord.getPositionCount() > this.lastPositionCount) {
-            Map<String, Object> currentMap = createCriterionMap(this.tradingRecord);
-            currentMap.forEach((s, o) -> {
-                JLabel label = this.infoLabelMap.get(s);
-                boolean percent = isPercentage(s);
-
-                updateValueLabel(label, o, percent);
+            List<CriterionResult> currentResultList = createCriterionMap(this.tradingRecord);
+            currentResultList.forEach(r -> {
+                JLabel label = this.infoLabelMap.get(r.getLabel());
+                updateValueLabel(label, r);
             });
 
             this.lastPositionCount = this.tradingRecord.getPositionCount();
@@ -115,71 +117,58 @@ public class PerformancePanel {
         return label;
     }
 
-    private JLabel createValueLabel(Object value, boolean percentage) {
+    private JLabel createValueLabel(CriterionResult result) {
         JLabel label = createThinLabel();
-        updateValueLabel(label, value, percentage);
-
+        updateValueLabel(label, result);
         return label;
     }
 
-    private void updateValueLabel(JLabel label, Object value, boolean percentage) {
-        if (percentage) {
-            double val = calcPercentage((Num) value);
-
-            if (val > 0) {
-                label.setForeground(ColorPalette.GREEN);
-            } else if (val < 0) {
-                label.setForeground(ColorPalette.RED);
-            } else {
-                label.setForeground(ColorPalette.DARK_GRAY);
-            }
-
-            label.setText(DECIMAL_FORMAT.format(val));
-        } else {
-            label.setText(value.toString());
-        }
+    private void updateValueLabel(JLabel label, CriterionResult result) {
+        label.setText(result.getValue());
+        label.setForeground(result.getColor());
     }
 
-    private Map<String, Object> createCriterionMap(TradingRecord tradingRecord) {
-        GrossReturnCriterion returnCriterion = new GrossReturnCriterion();
-        Num totalReturn = returnCriterion.calculate(this.series, tradingRecord);
+    private List<CriterionResult> createCriterionMap(TradingRecord tradingRecord) {
+        List<CriterionResult> resultList = new ArrayList<>();
+
+        int positionCount = tradingRecord.getPositionCount();
+        resultList.add(new CriterionResult("Number of Pos", Integer.toString(positionCount), DARK_GRAY));
 
         NumberOfBarsCriterion numberOfBarsCriterion = new NumberOfBarsCriterion();
-        Num numOfBars = numberOfBarsCriterion.calculate(this.series, tradingRecord);
+        int numOfBars = numberOfBarsCriterion.calculate(this.series, tradingRecord).intValue();
+        resultList.add(new CriterionResult("Number of Bars", Integer.toString(numOfBars), DARK_GRAY));
 
-        WinningPositionsRatioCriterion winningRatioCriterion = new WinningPositionsRatioCriterion();
-        Num winningRatio = winningRatioCriterion.calculate(this.series, tradingRecord);
+        GrossReturnCriterion returnCriterion = new GrossReturnCriterion();
+        double totalReturn = returnCriterion.calculate(this.series, tradingRecord).doubleValue();
+        resultList.add(new CriterionResult("Strategy Return",
+                DECIMAL_FORMAT.format(totalReturn),
+                totalReturn > 0 ? GREEN : RED));
 
         BuyAndHoldReturnCriterion buyAndHoldReturnCriterion = new BuyAndHoldReturnCriterion();
-        Num buyAndHold = buyAndHoldReturnCriterion.calculate(this.series, tradingRecord);
+        double buyAndHold = buyAndHoldReturnCriterion.calculate(this.series, tradingRecord).doubleValue();
+        resultList.add(new CriterionResult("Buy and Hold Return",
+                DECIMAL_FORMAT.format(buyAndHold),
+                buyAndHold > 0 ? GREEN : RED));
 
         VersusBuyAndHoldCriterion versusBuyAndHoldCriterion = new VersusBuyAndHoldCriterion(returnCriterion);
-        Num versus = versusBuyAndHoldCriterion.calculate(this.series, tradingRecord);
+        double versus = versusBuyAndHoldCriterion.calculate(this.series, tradingRecord).doubleValue();
+        resultList.add(new CriterionResult("Strategy vs Hold (%)",
+                DECIMAL_FORMAT.format(versus * 100),
+                versus > 1 ? GREEN : RED));
 
-        Map<String, Object> map = new LinkedHashMap<>();
-        map.put("Number of Pos", tradingRecord.getPositionCount());
-        map.put("Number of Bars", numOfBars.intValue());
-        map.put("Total Return (%)", totalReturn);
-        map.put("Hold Return (%)", buyAndHold);
-        map.put("Custom vs Hold (%)", versus);
-        map.put("Winning Ratio (%)", winningRatio);
+        WinningPositionsRatioCriterion winningRatioCriterion = new WinningPositionsRatioCriterion();
+        double winningRatio = winningRatioCriterion.calculate(this.series, tradingRecord).doubleValue();
+        resultList.add(new CriterionResult("Strategy Winning Ratio (%)",
+                DECIMAL_FORMAT.format(winningRatio * 100),
+                winningRatio > 0.75 ? GREEN : RED));
 
-        return map;
+        return resultList;
     }
 
-    private double calcPercentage(Num num) {
-        return (num.doubleValue() - 1) * 100;
-    }
-
-    private boolean isGreaterThanZero(String value) {
-        return Double.parseDouble(value) > 0;
-    }
-
-    private boolean isLessThanZero(String value) {
-        return Double.parseDouble(value) < 0;
-    }
-
-    private boolean isPercentage(String key) {
-        return key.endsWith("(%)");
+    @Data
+    private static class CriterionResult {
+        private final String label;
+        private final String value;
+        private final Color color;
     }
 }
