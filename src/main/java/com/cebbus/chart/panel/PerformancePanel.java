@@ -91,7 +91,9 @@ public class PerformancePanel {
         panel.add(createTitleLabel("Symbol Informations"), createConst(rowNum, 0));
         panel.add(new JLabel(""), createConst(rowNum, 1));
 
-        this.infoLabelMap.put("Symbol", createThinLabel(this.symbol.getName()));
+        String name = capitalizeWord(this.symbol.getBase()) + " & " + capitalizeWord(this.symbol.getQuote());
+
+        this.infoLabelMap.put("Symbol", createThinLabel(name));
         this.infoLabelMap.put("Strategy", createThinLabel(this.symbol.getStrategy().replace("Strategy", "")));
         this.infoLabelMap.put("Interval", createThinLabel(snakeCaseToCapitalWord(this.symbol.getInterval().name())));
         this.infoLabelMap.put("Weight (%)", createThinLabel(DECIMAL_FORMAT.format(this.symbol.getWeight() * 100)));
@@ -210,9 +212,11 @@ public class PerformancePanel {
     }
 
     private String snakeCaseToCapitalWord(String value) {
-        return Arrays.stream(value.split("_"))
-                .map(w -> StringUtils.capitalize(w.toLowerCase(Locale.ROOT)))
-                .collect(Collectors.joining(" "));
+        return Arrays.stream(value.split("_")).map(this::capitalizeWord).collect(Collectors.joining(" "));
+    }
+
+    private String capitalizeWord(String value) {
+        return StringUtils.capitalize(value.toLowerCase(Locale.ROOT));
     }
 
     @Data

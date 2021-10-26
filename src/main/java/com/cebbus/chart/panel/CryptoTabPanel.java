@@ -45,7 +45,7 @@ public class CryptoTabPanel {
         perPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         perPanel.setPreferredSize(new Dimension(250, 350));
         perPanel.setMaximumSize(new Dimension(250, 350));
-        perPanel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+        perPanel.setBorder(BorderFactory.createEmptyBorder(0, 8, 8, 8));
 
         JPanel panel = new JPanel();
         panel.add(statePanel);

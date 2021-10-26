@@ -76,15 +76,14 @@ public class PropertyReader {
         List<Symbol> symbols = new ArrayList<>(size);
 
         for (int i = 0; i < size; i++) {
-            symbols.add(new Symbol(
-                    i,
-                    Double.parseDouble(weightArr[i].trim()),
-                    baseArr[i].trim(),
-                    quoteArr[i].trim(),
-                    strategyArr[i].trim(),
-                    CandlestickInterval.valueOf(intervalArr[i].trim()),
-                    TradeStatus.valueOf(statusArr[i].trim())
-            ));
+            String base = baseArr[i].trim();
+            String quote = quoteArr[i].trim();
+            String strategy = strategyArr[i].trim();
+            double weight = Double.parseDouble(weightArr[i].trim());
+            CandlestickInterval interval = CandlestickInterval.valueOf(intervalArr[i].trim());
+            TradeStatus status = weight <= 0 ? TradeStatus.INACTIVE : TradeStatus.valueOf(statusArr[i].trim());
+
+            symbols.add(new Symbol(i, weight, base, quote, strategy, interval, status));
         }
 
         return symbols;

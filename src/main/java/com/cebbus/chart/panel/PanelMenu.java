@@ -22,7 +22,8 @@ public class PanelMenu {
     public JMenuBar create() {
         JMenuBar menuBar = new JMenuBar();
 
-        if (PropertyReader.isCredentialsExist()) {
+        if (PropertyReader.isCredentialsExist()
+                && this.speculator.getSymbol().getWeight() > 0) {
             menuBar.add(createOrderMenu());
             menuBar.add(createStatusMenu());
         }
