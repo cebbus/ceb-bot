@@ -41,7 +41,7 @@ public class CebBot {
             speculator.recordOpenPosition();
             speculator.startSpec();
 
-            appFrame.addTab(theOracle, speculator);
+            appFrame.addTab(speculator);
             splashFrame.progress();
 
             specHolder.addSpeculator(speculator);

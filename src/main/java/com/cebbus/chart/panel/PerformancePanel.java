@@ -1,8 +1,11 @@
 package com.cebbus.chart.panel;
 
+import com.cebbus.analysis.Symbol;
 import com.cebbus.analysis.TheOracle;
+import com.cebbus.binance.Speculator;
 import com.cebbus.chart.ColorPalette;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.TradingRecord;
 import org.ta4j.core.analysis.criteria.BuyAndHoldReturnCriterion;
@@ -15,11 +18,10 @@ import javax.swing.*;
 import javax.swing.plaf.basic.BasicIconFactory;
 import java.awt.*;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static com.cebbus.chart.ColorPalette.*;
 
@@ -27,16 +29,21 @@ public class PerformancePanel {
 
     private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#,###.0000");
 
+    private final Symbol symbol;
     private final BarSeries series;
     private final TradingRecord tradingRecord;
     private final TradingRecord backtestRecord;
     private final Map<String, JLabel> infoLabelMap = new LinkedHashMap<>();
+    private final Map<String, JLabel> tradingLabelMap = new LinkedHashMap<>();
     private final Map<String, JLabel> backtestLabelMap = new LinkedHashMap<>();
 
     private int lastPositionCount;
     private int lastBacktestPositionCount;
 
-    public PerformancePanel(TheOracle theOracle) {
+    public PerformancePanel(Speculator speculator) {
+        this.symbol = speculator.getSymbol();
+
+        TheOracle theOracle = speculator.getTheOracle();
         this.series = theOracle.getSeries();
         this.tradingRecord = theOracle.getTradingRecord();
         this.backtestRecord = theOracle.getBacktestRecord();
@@ -50,31 +57,11 @@ public class PerformancePanel {
 
         JPanel panel = new JPanel(new GridBagLayout());
 
-        panel.add(createTitleLabel("Backtest Results"), createConst(rowNum, 0));
-        panel.add(new JLabel(""), createConst(rowNum, 1));
-
-        List<CriterionResult> backtestResultList = createCriterionMap(this.backtestRecord);
-        backtestResultList.forEach(r -> this.backtestLabelMap.put(r.getLabel(), createValueLabel(r)));
-
-        this.backtestLabelMap.forEach((s, l) -> {
-            panel.add(createThinLabel(s), createConst(rowNum, 0));
-            panel.add(l, createConst(rowNum, 1));
-        });
-
-        //add empty row
-        panel.add(new JLabel(" "), createConst(rowNum, 0));
-        panel.add(new JLabel(" "), createConst(rowNum, 1));
-
-        panel.add(createTitleLabel("Current Results"), createConst(rowNum, 0));
-        panel.add(new JLabel(""), createConst(rowNum, 1));
-
-        List<CriterionResult> currentResultList = createCriterionMap(this.tradingRecord);
-        currentResultList.forEach(r -> this.infoLabelMap.put(r.getLabel(), createValueLabel(r)));
-
-        this.infoLabelMap.forEach((s, l) -> {
-            panel.add(createThinLabel(s), createConst(rowNum, 0));
-            panel.add(l, createConst(rowNum, 1));
-        });
+        addInformationPart(panel, rowNum);
+        addEmptyRow(panel, rowNum);
+        addBacktestPart(panel, rowNum);
+        addEmptyRow(panel, rowNum);
+        addTradingPart(panel, rowNum);
 
         return panel;
     }
@@ -89,10 +76,56 @@ public class PerformancePanel {
 
         if (this.tradingRecord.getPositionCount() > this.lastPositionCount) {
             List<CriterionResult> resultList = createCriterionMap(this.tradingRecord);
-            resultList.forEach(r -> updateValueLabel(this.infoLabelMap.get(r.getLabel()), r));
+            resultList.forEach(r -> updateValueLabel(this.tradingLabelMap.get(r.getLabel()), r));
 
             this.lastPositionCount = this.tradingRecord.getPositionCount();
         }
+    }
+
+    private void addEmptyRow(JPanel panel, AtomicInteger rowNum) {
+        panel.add(new JLabel(" "), createConst(rowNum, 0));
+        panel.add(new JLabel(" "), createConst(rowNum, 1));
+    }
+
+    private void addInformationPart(JPanel panel, AtomicInteger rowNum) {
+        panel.add(createTitleLabel("Symbol Informations"), createConst(rowNum, 0));
+        panel.add(new JLabel(""), createConst(rowNum, 1));
+
+        this.infoLabelMap.put("Symbol", createThinLabel(this.symbol.getName()));
+        this.infoLabelMap.put("Strategy", createThinLabel(this.symbol.getStrategy().replace("Strategy", "")));
+        this.infoLabelMap.put("Interval", createThinLabel(snakeCaseToCapitalWord(this.symbol.getInterval().name())));
+        this.infoLabelMap.put("Weight (%)", createThinLabel(DECIMAL_FORMAT.format(this.symbol.getWeight() * 100)));
+
+        this.infoLabelMap.forEach((s, l) -> {
+            panel.add(createThinLabel(s), createConst(rowNum, 0));
+            panel.add(l, createConst(rowNum, 1));
+        });
+    }
+
+    private void addBacktestPart(JPanel panel, AtomicInteger rowNum) {
+        panel.add(createTitleLabel("Backtest Results"), createConst(rowNum, 0));
+        panel.add(new JLabel(""), createConst(rowNum, 1));
+
+        List<CriterionResult> backtestResultList = createCriterionMap(this.backtestRecord);
+        backtestResultList.forEach(r -> this.backtestLabelMap.put(r.getLabel(), createValueLabel(r)));
+
+        this.backtestLabelMap.forEach((s, l) -> {
+            panel.add(createThinLabel(s), createConst(rowNum, 0));
+            panel.add(l, createConst(rowNum, 1));
+        });
+    }
+
+    private void addTradingPart(JPanel panel, AtomicInteger rowNum) {
+        panel.add(createTitleLabel("Current Results"), createConst(rowNum, 0));
+        panel.add(new JLabel(""), createConst(rowNum, 1));
+
+        List<CriterionResult> currentResultList = createCriterionMap(this.tradingRecord);
+        currentResultList.forEach(r -> this.tradingLabelMap.put(r.getLabel(), createValueLabel(r)));
+
+        this.tradingLabelMap.forEach((s, l) -> {
+            panel.add(createThinLabel(s), createConst(rowNum, 0));
+            panel.add(l, createConst(rowNum, 1));
+        });
     }
 
     private JLabel createTitleLabel(String text) {
@@ -174,6 +207,12 @@ public class PerformancePanel {
                 winningRatio > 0.75 ? GREEN : RED));
 
         return resultList;
+    }
+
+    private String snakeCaseToCapitalWord(String value) {
+        return Arrays.stream(value.split("_"))
+                .map(w -> StringUtils.capitalize(w.toLowerCase(Locale.ROOT)))
+                .collect(Collectors.joining(" "));
     }
 
     @Data

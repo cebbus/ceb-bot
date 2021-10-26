@@ -1,11 +1,11 @@
 package com.cebbus.chart.panel;
 
-import com.cebbus.analysis.TheOracle;
 import com.cebbus.binance.Speculator;
 import org.jfree.chart.ui.ApplicationFrame;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Objects;
 
 public class CryptoAppFrame {
 
@@ -26,9 +26,11 @@ public class CryptoAppFrame {
         this.appFrame.setLocationRelativeTo(null);
     }
 
-    public void addTab(TheOracle theOracle, Speculator speculator) {
-        CryptoTabPanel tabPanel = new CryptoTabPanel(theOracle, speculator);
-        this.tabPane.addTab(theOracle.getSeries().getName(), tabPanel.getPanel());
+    public void addTab(Speculator speculator) {
+        Objects.requireNonNull(speculator.getTheOracle());
+
+        CryptoTabPanel tabPanel = new CryptoTabPanel(speculator);
+        this.tabPane.addTab(speculator.getTheOracle().getSeries().getName(), tabPanel.getPanel());
 
         speculator.addCandlestickEventOperation(response -> tabPanel.refresh());
         speculator.addStatusChangeListener(tabPanel::changeStatus);

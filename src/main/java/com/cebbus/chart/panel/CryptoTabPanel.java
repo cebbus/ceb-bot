@@ -1,6 +1,5 @@
 package com.cebbus.chart.panel;
 
-import com.cebbus.analysis.TheOracle;
 import com.cebbus.binance.Speculator;
 import com.cebbus.binance.order.TradeStatus;
 import com.cebbus.chart.ColorPalette;
@@ -17,14 +16,14 @@ public class CryptoTabPanel {
     private final ChartListPanel chartListPanel;
     private final PerformancePanel performancePanel;
 
-    public CryptoTabPanel(TheOracle theOracle, Speculator speculator) {
+    public CryptoTabPanel(Speculator speculator) {
         this.panel = new JPanel(new BorderLayout());
 
         this.panelMenu = new PanelMenu(speculator);
         this.statusPanel = new StatusPanel(speculator);
-        this.tradeTable = new TradeTable(theOracle);
-        this.chartListPanel = new ChartListPanel(theOracle);
-        this.performancePanel = new PerformancePanel(theOracle);
+        this.tradeTable = new TradeTable(speculator.getTheOracle());
+        this.chartListPanel = new ChartListPanel(speculator.getTheOracle());
+        this.performancePanel = new PerformancePanel(speculator);
 
         addMenu();
         addTradePerformance();
@@ -44,8 +43,8 @@ public class CryptoTabPanel {
 
         JPanel perPanel = this.performancePanel.create();
         perPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        perPanel.setPreferredSize(new Dimension(250, 250));
-        perPanel.setMaximumSize(new Dimension(250, 250));
+        perPanel.setPreferredSize(new Dimension(250, 350));
+        perPanel.setMaximumSize(new Dimension(250, 350));
         perPanel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
 
         JPanel panel = new JPanel();
