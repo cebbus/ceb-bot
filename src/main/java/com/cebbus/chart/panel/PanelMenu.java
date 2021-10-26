@@ -1,6 +1,7 @@
 package com.cebbus.chart.panel;
 
 import com.cebbus.binance.Speculator;
+import com.cebbus.util.PropertyReader;
 import org.apache.commons.lang3.tuple.Pair;
 import org.ta4j.core.num.Num;
 
@@ -21,13 +22,12 @@ public class PanelMenu {
     public JMenuBar create() {
         JMenuBar menuBar = new JMenuBar();
 
-        JMenu order = createOrderMenu();
-        JMenu status = createStatusMenu();
-        JMenu strategy = createStrategyMenu();
+        if (PropertyReader.isCredentialsExist()) {
+            menuBar.add(createOrderMenu());
+            menuBar.add(createStatusMenu());
+        }
 
-        menuBar.add(order);
-        menuBar.add(status);
-        menuBar.add(strategy);
+        menuBar.add(createStrategyMenu());
         return menuBar;
     }
 
@@ -35,6 +35,13 @@ public class PanelMenu {
         JMenu order = new JMenu("Order");
         JMenuItem buy = new JMenuItem("Buy");
         buy.addActionListener(e -> {
+            if (!this.speculator.isActive()) {
+                JOptionPane.showMessageDialog(null,
+                        "You cannot buy the coin because of the speculator is inactive!",
+                        "Invalid Process", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
             int input = JOptionPane.showConfirmDialog(null, "Are you sure you want to buy coins?");
             if (input == 0) {
                 boolean success = this.speculator.buy();
@@ -49,6 +56,13 @@ public class PanelMenu {
 
         JMenuItem sell = new JMenuItem("Sell");
         sell.addActionListener(e -> {
+            if (!this.speculator.isActive()) {
+                JOptionPane.showMessageDialog(null,
+                        "You cannot sell the coin because of the speculator is inactive!",
+                        "Invalid Process", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
             int input = JOptionPane.showConfirmDialog(null, "Are you sure you want to sell coins?");
             if (input == 0) {
                 boolean success = this.speculator.sell();

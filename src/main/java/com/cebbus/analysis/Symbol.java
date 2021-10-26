@@ -6,6 +6,8 @@ import lombok.Data;
 
 @Data
 public class Symbol {
+    private final int id;
+    private final double weight;
     private final String base;
     private final String quote;
     private final String strategy;

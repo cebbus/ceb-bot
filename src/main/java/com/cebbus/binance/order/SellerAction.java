@@ -4,7 +4,6 @@ import com.binance.api.client.domain.account.AssetBalance;
 import com.binance.api.client.domain.account.NewOrder;
 import com.binance.api.client.domain.account.NewOrderResponse;
 import com.binance.api.client.domain.general.SymbolFilter;
-import com.cebbus.analysis.TheOracle;
 import com.cebbus.binance.Speculator;
 import lombok.extern.slf4j.Slf4j;
 import org.ta4j.core.Strategy;
@@ -17,8 +16,8 @@ import java.math.RoundingMode;
 @Slf4j
 public class SellerAction extends TraderAction {
 
-    public SellerAction(TheOracle theOracle, Speculator speculator) {
-        super(theOracle, speculator);
+    public SellerAction(Speculator speculator) {
+        super(speculator);
     }
 
     public Trade exit() {
@@ -26,12 +25,12 @@ public class SellerAction extends TraderAction {
             NewOrderResponse orderResponse = sell();
             return createTradeRecord(orderResponse);
         } else {
-            return createTradeRecord();
+            return createBacktestRecord();
         }
     }
 
     public boolean exitable(boolean askTheOracle) {
-        TradingRecord tradingRecord = this.theOracle.getTradingRecord();
+        TradingRecord tradingRecord = getTradingRecord();
 
         if (askTheOracle) {
             Strategy strategy = this.theOracle.prophesy();
@@ -41,16 +40,16 @@ public class SellerAction extends TraderAction {
             }
         }
 
+        if (!tradingRecord.getCurrentPosition().isOpened()) {
+            log.info("you have no position!");
+            return false;
+        }
+
         if (this.speculator.isActive()) {
             if (noBalance(this.symbol.getBase(), true)) {
                 log.info("you have no coin!");
                 return false;
             }
-        }
-
-        if (!tradingRecord.getCurrentPosition().isOpened()) {
-            log.info("you have no position!");
-            return false;
         }
 
         return true;

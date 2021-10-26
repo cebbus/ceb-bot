@@ -17,6 +17,11 @@ import com.cebbus.binance.listener.operation.UpdateCacheOperation;
 import com.cebbus.binance.listener.operation.UpdateSeriesOperation;
 import com.cebbus.binance.order.TradeStatus;
 import com.cebbus.util.LimitedHashMap;
+import com.cebbus.util.PropertyReader;
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.ta4j.core.Bar;
@@ -31,15 +36,27 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+@Data
 @Slf4j
 public class Speculator {
 
     private final Symbol symbol;
     private final BinanceApiRestClient restClient;
+
+    @Getter(value = AccessLevel.NONE)
+    @Setter(value = AccessLevel.NONE)
     private final Map<Long, Candlestick> candlestickCache = new LimitedHashMap<>();
 
+    @Getter(value = AccessLevel.NONE)
+    @Setter(value = AccessLevel.NONE)
     private final CandlestickEventListener listener = new CandlestickEventListener();
+
+    @Getter(value = AccessLevel.NONE)
+    @Setter(value = AccessLevel.NONE)
     private final List<Consumer<Boolean>> manualTradeListeners = new ArrayList<>();
+
+    @Getter(value = AccessLevel.NONE)
+    @Setter(value = AccessLevel.NONE)
     private final List<Consumer<TradeStatus>> statusChangeListeners = new ArrayList<>();
 
     private TradeStatus status;
@@ -56,17 +73,14 @@ public class Speculator {
         bars.forEach(candlestick -> this.candlestickCache.put(candlestick.getCloseTime(), candlestick));
     }
 
-    public void checkOpenPosition() {
-        Objects.requireNonNull(this.theOracle);
-
-        Optional<Trade> optTrade = getLastTrade();
-        Optional<Order> optOrder = optTrade.isEmpty() ? Optional.empty() : getOrder(optTrade.get().getOrderId());
-        if (optOrder.isEmpty()) {
+    public void recordOpenPosition() {
+        Pair<Optional<Trade>, Optional<Order>> lastTradeAndOrder = getLastTradeAndOrder();
+        if (lastTradeAndOrder.getKey().isEmpty() || lastTradeAndOrder.getValue().isEmpty()) {
             return;
         }
 
-        Trade trade = optTrade.get();
-        Order order = optOrder.get();
+        Order order = lastTradeAndOrder.getValue().get();
+        Trade trade = lastTradeAndOrder.getKey().get();
         if (order.getSide() == OrderSide.SELL) {
             return;
         }
@@ -86,7 +100,7 @@ public class Speculator {
 
         this.listener.addOperation(new UpdateCacheOperation(this.candlestickCache));
         this.listener.addOperation(new UpdateSeriesOperation(this.theOracle.getSeries()));
-        this.listener.addOperation(new TradeOperation(this.theOracle, this));
+        this.listener.addOperation(new TradeOperation(this));
 
         try (BinanceApiWebSocketClient client = ClientFactory.webSocketClient()) {
             client.onCandlestickEvent(this.symbol.getName().toLowerCase(), this.symbol.getInterval(), this.listener);
@@ -137,24 +151,24 @@ public class Speculator {
         return this.theOracle.calcStrategies();
     }
 
-    public Symbol getSymbol() {
-        return symbol;
-    }
-
-    public BinanceApiRestClient getRestClient() {
-        return restClient;
-    }
-
-    public void setTheOracle(TheOracle theOracle) {
-        this.theOracle = theOracle;
-    }
-
     private boolean trade(boolean isBuy) {
-        TradeOperation trader = new TradeOperation(this.theOracle, this);
+        TradeOperation trader = new TradeOperation(this);
         boolean success = isBuy ? trader.manualEnter() : trader.manualExit();
 
         this.manualTradeListeners.forEach(o -> o.accept(success));
         return success;
+    }
+
+    private Pair<Optional<Trade>, Optional<Order>> getLastTradeAndOrder() {
+        Objects.requireNonNull(this.theOracle);
+        if (!PropertyReader.isCredentialsExist()) {
+            log.warn("needs credentials!");
+            return Pair.of(Optional.empty(), Optional.empty());
+        }
+
+        Optional<Trade> optTrade = getLastTrade();
+        Optional<Order> optOrder = optTrade.isEmpty() ? Optional.empty() : getOrder(optTrade.get().getOrderId());
+        return Pair.of(optTrade, optOrder);
     }
 
     private Optional<Trade> getLastTrade() {

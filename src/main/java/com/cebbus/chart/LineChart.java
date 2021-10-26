@@ -20,6 +20,7 @@ public class LineChart extends CryptoChart {
 
     private JFreeChart chart;
     private Trade lastTradeBuffer;
+    private Trade lastBacktestBuffer;
 
     private final TradingRecord tradingRecord;
     private final TradingRecord backtestRecord;
@@ -36,6 +37,9 @@ public class LineChart extends CryptoChart {
         this.indicatorMap = indicatorMap;
         this.tradingRecord = tradingRecord;
         this.backtestRecord = backtestRecord;
+
+        this.lastTradeBuffer = this.tradingRecord.getLastTrade();
+        this.lastBacktestBuffer = this.backtestRecord.getLastTrade();
     }
 
     @Override
@@ -80,10 +84,18 @@ public class LineChart extends CryptoChart {
             }
         });
 
+        Trade lastBacktest = this.backtestRecord.getLastTrade();
+        if (lastBacktest != null && !lastBacktest.equals(this.lastBacktestBuffer)) {
+            XYPlot xyPlot = this.chart.getXYPlot();
+            addSignal(xyPlot, lastBacktest, true);
+
+            this.lastBacktestBuffer = lastBacktest;
+        }
+
         Trade lastTrade = this.tradingRecord.getLastTrade();
         if (lastTrade != null && !lastTrade.equals(this.lastTradeBuffer)) {
             XYPlot xyPlot = this.chart.getXYPlot();
-            addSignal(xyPlot, lastTrade);
+            addSignal(xyPlot, lastTrade, false);
 
             this.lastTradeBuffer = lastTrade;
         }

@@ -3,32 +3,42 @@ package com.cebbus.binance.order;
 import com.binance.api.client.domain.account.AssetBalance;
 import com.binance.api.client.domain.account.NewOrder;
 import com.binance.api.client.domain.account.NewOrderResponse;
-import com.cebbus.analysis.TheOracle;
 import com.cebbus.binance.Speculator;
+import com.cebbus.exception.ZeroWeightException;
+import com.cebbus.util.SpeculatorHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.Trade;
 import org.ta4j.core.TradingRecord;
 
+import java.math.BigDecimal;
+
 @Slf4j
 public class BuyerAction extends TraderAction {
 
-    public BuyerAction(TheOracle theOracle, Speculator speculator) {
-        super(theOracle, speculator);
+    public BuyerAction(Speculator speculator) {
+        super(speculator);
     }
 
     public Trade enter() {
         if (this.speculator.isActive()) {
-            NewOrderResponse orderResponse = buy();
-            return createTradeRecord(orderResponse);
-        } else {
-            return createTradeRecord();
-        }
+            SpeculatorHolder specHolder = SpeculatorHolder.getInstance();
 
+            try {
+                specHolder.lock(this.speculator);
+
+                NewOrderResponse orderResponse = buy(specHolder);
+                return createTradeRecord(orderResponse);
+            } finally {
+                specHolder.releaseLock(this.speculator);
+            }
+        } else {
+            return createBacktestRecord();
+        }
     }
 
     public boolean enterable(boolean askTheOracle) {
-        TradingRecord tradingRecord = this.theOracle.getTradingRecord();
+        TradingRecord tradingRecord = getTradingRecord();
 
         if (askTheOracle) {
             Strategy strategy = this.theOracle.prophesy();
@@ -38,6 +48,11 @@ public class BuyerAction extends TraderAction {
             }
         }
 
+        if (!tradingRecord.getCurrentPosition().isNew()) {
+            log.info("you are already in a position!");
+            return false;
+        }
+
         if (this.speculator.isActive()) {
             if (noBalance(this.symbol.getQuote(), false)) {
                 log.info("you have no balance!");
@@ -45,20 +60,22 @@ public class BuyerAction extends TraderAction {
             }
         }
 
-        if (!tradingRecord.getCurrentPosition().isNew()) {
-            log.info("you are already in a position!");
-            return false;
-        }
-
         return true;
     }
 
-    private NewOrderResponse buy() {
+    private NewOrderResponse buy(SpeculatorHolder specHolder) {
+        double weight = specHolder.calculateWeight(this.speculator);
+        if (weight == 0) {
+            throw new ZeroWeightException("weight must be greater than zero");
+        }
+
         AssetBalance balance = getBalance(this.symbol.getQuote());
+        BigDecimal quantity = new BigDecimal(balance.getFree())
+                .multiply(new BigDecimal(weight));
 
         NewOrder buyOrder = NewOrder
                 .marketBuy(this.symbol.getName(), null)
-                .quoteOrderQty(balance.getFree());
+                .quoteOrderQty(quantity.toPlainString());
 
         return this.restClient.newOrder(buyOrder);
     }

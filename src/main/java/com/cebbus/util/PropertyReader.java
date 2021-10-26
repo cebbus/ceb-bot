@@ -51,18 +51,24 @@ public class PropertyReader {
         return Integer.valueOf(getProperty("cache.size"));
     }
 
+    public static boolean isCredentialsExist() {
+        return !getApiKey().isBlank() && !getApiSecret().isBlank();
+    }
+
     public static List<Symbol> getSymbols() {
         String[] baseArr = getProperty("symbol.base").split(",");
         String[] quoteArr = getProperty("symbol.quote").split(",");
-        String[] intervalArr = getProperty("interval").split(",");
-        String[] strategyArr = getProperty("strategy").split(",");
-        String[] statusArr = getProperty("status").split(",");
+        String[] intervalArr = getProperty("symbol.interval").split(",");
+        String[] strategyArr = getProperty("symbol.strategy").split(",");
+        String[] statusArr = getProperty("symbol.status").split(",");
+        String[] weightArr = getProperty("symbol.weight").split(",");
 
         if (baseArr.length != quoteArr.length
                 || baseArr.length != intervalArr.length
                 || baseArr.length != strategyArr.length
-                || baseArr.length != statusArr.length) {
-            log.error("base, quote, interval, strategy and status must be the same length!");
+                || baseArr.length != statusArr.length
+                || baseArr.length != weightArr.length) {
+            log.error("base, quote, interval, strategy, status and weight must be the same length!");
             System.exit(-1);
         }
 
@@ -71,6 +77,8 @@ public class PropertyReader {
 
         for (int i = 0; i < size; i++) {
             symbols.add(new Symbol(
+                    i,
+                    Double.parseDouble(weightArr[i].trim()),
                     baseArr[i].trim(),
                     quoteArr[i].trim(),
                     strategyArr[i].trim(),
@@ -82,7 +90,7 @@ public class PropertyReader {
         return symbols;
     }
 
-    public static String getProperty(String key) {
+    private static String getProperty(String key) {
         return PROPERTIES.getProperty(key);
     }
 

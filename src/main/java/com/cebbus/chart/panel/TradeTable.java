@@ -25,11 +25,15 @@ public class TradeTable {
     private final DefaultTableModel model = new DefaultTableModel();
 
     private Trade lastTradeBuffer;
+    private Trade lastBacktestBuffer;
 
     public TradeTable(TheOracle theOracle) {
         this.series = theOracle.getSeries();
         this.tradingRecord = theOracle.getTradingRecord();
-        this.backtestRecord = theOracle.backtest();
+        this.backtestRecord = theOracle.getBacktestRecord();
+
+        this.lastTradeBuffer = this.tradingRecord.getLastTrade();
+        this.lastBacktestBuffer = this.backtestRecord.getLastTrade();
     }
 
     public JTable create() {
@@ -61,6 +65,12 @@ public class TradeTable {
     }
 
     public void refresh() {
+        Trade lastBacktest = this.backtestRecord.getLastTrade();
+        if (lastBacktest != null && !lastBacktest.equals(this.lastBacktestBuffer)) {
+            this.model.addRow(tradeToRow(lastBacktest));
+            this.lastBacktestBuffer = lastBacktest;
+        }
+
         Trade lastTrade = this.tradingRecord.getLastTrade();
         if (lastTrade != null && !lastTrade.equals(this.lastTradeBuffer)) {
             this.model.addRow(tradeToRow(lastTrade));

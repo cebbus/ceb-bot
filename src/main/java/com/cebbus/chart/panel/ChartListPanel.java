@@ -32,7 +32,7 @@ public class ChartListPanel {
     public ChartListPanel(TheOracle theOracle) {
         this.series = theOracle.getSeries();
         this.tradingRecord = theOracle.getTradingRecord();
-        this.backtestRecord = theOracle.backtest();
+        this.backtestRecord = theOracle.getBacktestRecord();
         this.indicators = theOracle.getIndicators();
     }
 

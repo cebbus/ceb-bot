@@ -67,7 +67,6 @@ public abstract class BaseCebStrategy implements CebStrategy {
                 indicators.put(k, v);
             }
         });
-        indicators.putAll(other.getIndicators());
 
         return indicators;
     }

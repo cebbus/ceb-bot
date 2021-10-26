@@ -42,11 +42,7 @@ public abstract class CryptoChart {
         }
     }
 
-    void addSignal(XYPlot plot, Trade trade) {
-        addSignal(plot, trade, false);
-    }
-
-    private void addSignal(XYPlot plot, Trade trade, boolean backtest) {
+    void addSignal(XYPlot plot, Trade trade, boolean backtest) {
         int index = trade.getIndex();
         ZonedDateTime dateTime = this.series.getBar(index).getEndTime();
         double barTime = convertToPeriod(dateTime).getFirstMillisecond();

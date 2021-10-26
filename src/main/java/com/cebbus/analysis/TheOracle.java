@@ -3,6 +3,7 @@ package com.cebbus.analysis;
 import com.cebbus.analysis.strategy.BaseCebStrategy;
 import com.cebbus.analysis.strategy.CebStrategy;
 import com.cebbus.util.ReflectionUtil;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.ta4j.core.*;
@@ -16,12 +17,14 @@ import java.util.stream.Collectors;
 
 import static com.cebbus.util.ReflectionUtil.initStrategy;
 
+@Data
 @Slf4j
 public class TheOracle {
 
     private final BarSeries series;
     private final CebStrategy cebStrategy;
-    private final TradingRecord tradingRecord = new BaseTradingRecord();
+    private final TradingRecord tradingRecord;
+    private final TradingRecord backtestRecord;
 
     public TheOracle(BarSeries series, String strategy) {
         this.series = series;
@@ -44,10 +47,8 @@ public class TheOracle {
         }
 
         this.cebStrategy = cs;
-    }
-
-    public TradingRecord backtest() {
-        return backtest(prophesy());
+        this.tradingRecord = new BaseTradingRecord();
+        this.backtestRecord = backtest(prophesy());
     }
 
     public List<Pair<String, Num>> calcStrategies() {
@@ -69,14 +70,6 @@ public class TheOracle {
     private TradingRecord backtest(Strategy s) {
         BarSeriesManager seriesManager = new BarSeriesManager(this.series);
         return seriesManager.run(s);
-    }
-
-    public BarSeries getSeries() {
-        return series;
-    }
-
-    public TradingRecord getTradingRecord() {
-        return tradingRecord;
     }
 
     public Strategy prophesy() {

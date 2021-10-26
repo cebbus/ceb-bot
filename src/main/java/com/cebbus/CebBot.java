@@ -6,6 +6,7 @@ import com.cebbus.binance.Speculator;
 import com.cebbus.chart.panel.CryptoAppFrame;
 import com.cebbus.chart.panel.CryptoSplashFrame;
 import com.cebbus.util.PropertyReader;
+import com.cebbus.util.SpeculatorHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBarSeriesBuilder;
@@ -18,6 +19,8 @@ public class CebBot {
     private static final List<Symbol> SYMBOLS = PropertyReader.getSymbols();
 
     public static void main(String[] args) {
+        SpeculatorHolder specHolder = SpeculatorHolder.getInstance();
+
         CryptoSplashFrame splashFrame = new CryptoSplashFrame(SYMBOLS.size());
         splashFrame.show();
 
@@ -35,11 +38,13 @@ public class CebBot {
 
             TheOracle theOracle = new TheOracle(series, symbol.getStrategy());
             speculator.setTheOracle(theOracle);
-            speculator.checkOpenPosition();
+            speculator.recordOpenPosition();
             speculator.startSpec();
 
             appFrame.addTab(theOracle, speculator);
             splashFrame.progress();
+
+            specHolder.addSpeculator(speculator);
         }
 
         splashFrame.hide();

@@ -31,13 +31,18 @@ public class PerformancePanel {
     private final TradingRecord tradingRecord;
     private final TradingRecord backtestRecord;
     private final Map<String, JLabel> infoLabelMap = new LinkedHashMap<>();
+    private final Map<String, JLabel> backtestLabelMap = new LinkedHashMap<>();
 
     private int lastPositionCount;
+    private int lastBacktestPositionCount;
 
     public PerformancePanel(TheOracle theOracle) {
         this.series = theOracle.getSeries();
         this.tradingRecord = theOracle.getTradingRecord();
-        this.backtestRecord = theOracle.backtest();
+        this.backtestRecord = theOracle.getBacktestRecord();
+
+        this.lastPositionCount = this.tradingRecord.getPositionCount();
+        this.lastBacktestPositionCount = this.backtestRecord.getPositionCount();
     }
 
     public JPanel create() {
@@ -49,9 +54,11 @@ public class PerformancePanel {
         panel.add(new JLabel(""), createConst(rowNum, 1));
 
         List<CriterionResult> backtestResultList = createCriterionMap(this.backtestRecord);
-        backtestResultList.forEach(r -> {
-            panel.add(createThinLabel(r.getLabel()), createConst(rowNum, 0));
-            panel.add(createValueLabel(r), createConst(rowNum, 1));
+        backtestResultList.forEach(r -> this.backtestLabelMap.put(r.getLabel(), createValueLabel(r)));
+
+        this.backtestLabelMap.forEach((s, l) -> {
+            panel.add(createThinLabel(s), createConst(rowNum, 0));
+            panel.add(l, createConst(rowNum, 1));
         });
 
         //add empty row
@@ -73,12 +80,16 @@ public class PerformancePanel {
     }
 
     public void refresh() {
+        if (this.backtestRecord.getPositionCount() > this.lastBacktestPositionCount) {
+            List<CriterionResult> resultList = createCriterionMap(this.backtestRecord);
+            resultList.forEach(r -> updateValueLabel(this.backtestLabelMap.get(r.getLabel()), r));
+
+            this.lastBacktestPositionCount = this.backtestRecord.getPositionCount();
+        }
+
         if (this.tradingRecord.getPositionCount() > this.lastPositionCount) {
-            List<CriterionResult> currentResultList = createCriterionMap(this.tradingRecord);
-            currentResultList.forEach(r -> {
-                JLabel label = this.infoLabelMap.get(r.getLabel());
-                updateValueLabel(label, r);
-            });
+            List<CriterionResult> resultList = createCriterionMap(this.tradingRecord);
+            resultList.forEach(r -> updateValueLabel(this.infoLabelMap.get(r.getLabel()), r));
 
             this.lastPositionCount = this.tradingRecord.getPositionCount();
         }

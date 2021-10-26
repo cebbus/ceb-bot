@@ -1,7 +1,6 @@
 package com.cebbus.binance.listener.operation;
 
 import com.binance.api.client.domain.event.CandlestickEvent;
-import com.cebbus.analysis.TheOracle;
 import com.cebbus.binance.Speculator;
 import com.cebbus.binance.order.BuyerAction;
 import com.cebbus.binance.order.SellerAction;
@@ -14,9 +13,9 @@ public class TradeOperation implements EventOperation {
     private final BuyerAction buyerAction;
     private final SellerAction sellerAction;
 
-    public TradeOperation(TheOracle theOracle, Speculator speculator) {
-        this.buyerAction = new BuyerAction(theOracle, speculator);
-        this.sellerAction = new SellerAction(theOracle, speculator);
+    public TradeOperation(Speculator speculator) {
+        this.buyerAction = new BuyerAction(speculator);
+        this.sellerAction = new SellerAction(speculator);
     }
 
     @Override

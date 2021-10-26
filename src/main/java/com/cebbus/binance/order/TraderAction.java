@@ -33,16 +33,16 @@ public abstract class TraderAction {
 
     static final int SCALE = 8;
 
-    final TheOracle theOracle;
     final Speculator speculator;
     final Symbol symbol;
+    final TheOracle theOracle;
     final BinanceApiRestClient restClient;
     final AtomicInteger counter = new AtomicInteger(0);
 
-    TraderAction(TheOracle theOracle, Speculator speculator) {
-        this.theOracle = theOracle;
+    TraderAction(Speculator speculator) {
         this.speculator = speculator;
         this.symbol = speculator.getSymbol();
+        this.theOracle = speculator.getTheOracle();
         this.restClient = speculator.getRestClient();
     }
 
@@ -68,12 +68,12 @@ public abstract class TraderAction {
         return symbolInfo.getSymbolFilter(FilterType.LOT_SIZE);
     }
 
-    Trade createTradeRecord() {
+    Trade createBacktestRecord() {
         BarSeries series = this.theOracle.getSeries();
         int endIndex = series.getEndIndex();
         Num closePrice = series.getLastBar().getClosePrice();
 
-        TradingRecord tradingRecord = this.theOracle.getTradingRecord();
+        TradingRecord tradingRecord = this.theOracle.getBacktestRecord();
         tradingRecord.operate(endIndex, closePrice, DecimalNum.valueOf(1));
 
         return tradingRecord.getLastTrade();
@@ -95,6 +95,10 @@ public abstract class TraderAction {
         tradingRecord.operate(endIndex, priceAmount.getKey(), priceAmount.getValue());
 
         return tradingRecord.getLastTrade();
+    }
+
+    TradingRecord getTradingRecord() {
+        return this.speculator.isActive() ? this.theOracle.getTradingRecord() : this.theOracle.getBacktestRecord();
     }
 
     //order not returns immediately, that's why wait a second before the retry
