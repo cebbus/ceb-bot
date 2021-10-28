@@ -26,6 +26,13 @@ public class TheOracle {
     private final TradingRecord tradingRecord;
     private final TradingRecord backtestRecord;
 
+    public TheOracle(BarSeries series) {
+        this.series = series;
+        this.cebStrategy = null;
+        this.tradingRecord = null;
+        this.backtestRecord = null;
+    }
+
     public TheOracle(BarSeries series, String strategy) {
         this.series = series;
 
@@ -56,7 +63,7 @@ public class TheOracle {
 
         return strategies.stream().map(clazz -> {
             Strategy strategy = initStrategy(this.series, clazz).getStrategy();
-            return Pair.of(strategy.getName(), calculateProfit(strategy));
+            return Pair.of(clazz.getSimpleName(), calculateProfit(strategy));
         }).collect(Collectors.toList());
     }
 

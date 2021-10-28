@@ -9,7 +9,7 @@ import java.awt.*;
 
 public class CryptoTabPanel {
 
-    private final JPanel panel;
+    private final JPanel container;
     private final PanelMenu panelMenu;
     private final StatusPanel statusPanel;
     private final TradeTable tradeTable;
@@ -17,7 +17,7 @@ public class CryptoTabPanel {
     private final PerformancePanel performancePanel;
 
     public CryptoTabPanel(Speculator speculator) {
-        this.panel = new JPanel(new BorderLayout());
+        this.container = new JPanel(new BorderLayout());
 
         this.panelMenu = new PanelMenu(speculator);
         this.statusPanel = new StatusPanel(speculator);
@@ -32,7 +32,7 @@ public class CryptoTabPanel {
     }
 
     private void addMenu() {
-        this.panel.add(this.panelMenu.create(), BorderLayout.NORTH);
+        this.container.add(this.panelMenu.create(), BorderLayout.NORTH);
     }
 
     private void addTradePerformance() {
@@ -54,7 +54,7 @@ public class CryptoTabPanel {
         BoxLayout layout = new BoxLayout(panel, BoxLayout.Y_AXIS);
         panel.setLayout(layout);
 
-        this.panel.add(panel, BorderLayout.WEST);
+        this.container.add(panel, BorderLayout.WEST);
     }
 
     private void addTradeHistory() {
@@ -62,13 +62,13 @@ public class CryptoTabPanel {
         scrollPane.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, ColorPalette.DARK_GRAY));
         scrollPane.setPreferredSize(new Dimension(250, 200));
 
-        this.panel.add(scrollPane, BorderLayout.SOUTH);
+        this.container.add(scrollPane, BorderLayout.SOUTH);
     }
 
     private void addChartList() {
         JScrollPane scrollPane = new JScrollPane(this.chartListPanel.create());
         scrollPane.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 0, ColorPalette.DARK_GRAY));
-        this.panel.add(scrollPane, BorderLayout.CENTER);
+        this.container.add(scrollPane, BorderLayout.CENTER);
     }
 
     public void refresh() {
@@ -81,7 +81,7 @@ public class CryptoTabPanel {
         this.statusPanel.changeStatus(status);
     }
 
-    public JPanel getPanel() {
-        return panel;
+    public JPanel getContainer() {
+        return container;
     }
 }

@@ -7,6 +7,7 @@ import com.binance.api.client.domain.account.Order;
 import com.binance.api.client.domain.account.Trade;
 import com.binance.api.client.domain.account.request.AllOrdersRequest;
 import com.binance.api.client.domain.market.Candlestick;
+import com.binance.api.client.domain.market.CandlestickInterval;
 import com.cebbus.analysis.Symbol;
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.analysis.mapper.BarMapper;
@@ -40,12 +41,13 @@ import java.util.stream.Collectors;
 @Slf4j
 public class Speculator {
 
+    private final int limit;
     private final Symbol symbol;
     private final BinanceApiRestClient restClient;
 
     @Getter(value = AccessLevel.NONE)
     @Setter(value = AccessLevel.NONE)
-    private final Map<Long, Candlestick> candlestickCache = new LimitedHashMap<>();
+    private final Map<Long, Candlestick> candlestickCache;
 
     @Getter(value = AccessLevel.NONE)
     @Setter(value = AccessLevel.NONE)
@@ -65,11 +67,24 @@ public class Speculator {
     public Speculator(Symbol symbol) {
         this.symbol = symbol;
         this.status = symbol.getStatus();
+        this.limit = PropertyReader.getCacheSize();
         this.restClient = ClientFactory.restClient();
+        this.candlestickCache = LimitedHashMap.create(this.limit);
+    }
+
+    public Speculator(Symbol symbol, int limit) {
+        this.limit = limit;
+        this.symbol = symbol;
+        this.status = symbol.getStatus();
+        this.restClient = ClientFactory.restClient();
+        this.candlestickCache = LimitedHashMap.create(this.limit);
     }
 
     public void loadHistory() {
-        List<Candlestick> bars = this.restClient.getCandlestickBars(this.symbol.getName(), this.symbol.getInterval());
+        String symName = this.symbol.getName();
+        CandlestickInterval interval = this.symbol.getInterval();
+        List<Candlestick> bars = this.restClient.getCandlestickBars(symName, interval, this.limit, null, null);
+
         bars.forEach(candlestick -> this.candlestickCache.put(candlestick.getCloseTime(), candlestick));
     }
 
@@ -148,6 +163,8 @@ public class Speculator {
     }
 
     public List<Pair<String, Num>> calcStrategies() {
+        Objects.requireNonNull(this.theOracle);
+
         return this.theOracle.calcStrategies();
     }
 

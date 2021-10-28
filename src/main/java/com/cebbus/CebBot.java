@@ -42,10 +42,12 @@ public class CebBot {
             speculator.startSpec();
 
             appFrame.addTab(speculator);
-            splashFrame.progress();
-
             specHolder.addSpeculator(speculator);
+
+            splashFrame.progress();
         }
+
+        appFrame.addTestTab();
 
         splashFrame.hide();
         appFrame.show();

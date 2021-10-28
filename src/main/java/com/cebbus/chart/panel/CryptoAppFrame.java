@@ -1,6 +1,7 @@
 package com.cebbus.chart.panel;
 
 import com.cebbus.binance.Speculator;
+import com.cebbus.chart.panel.test.CryptoTestTabPanel;
 import org.jfree.chart.ui.ApplicationFrame;
 
 import javax.swing.*;
@@ -30,7 +31,7 @@ public class CryptoAppFrame {
         Objects.requireNonNull(speculator.getTheOracle());
 
         CryptoTabPanel tabPanel = new CryptoTabPanel(speculator);
-        this.tabPane.addTab(speculator.getTheOracle().getSeries().getName(), tabPanel.getPanel());
+        this.tabPane.addTab(speculator.getTheOracle().getSeries().getName(), tabPanel.getContainer());
 
         speculator.addCandlestickEventOperation(response -> tabPanel.refresh());
         speculator.addStatusChangeListener(tabPanel::changeStatus);
@@ -41,8 +42,12 @@ public class CryptoAppFrame {
         });
     }
 
+    public void addTestTab() {
+        CryptoTestTabPanel tabPanel = new CryptoTestTabPanel();
+        this.tabPane.addTab("TEST", tabPanel.getContainer());
+    }
+
     public void show() {
         this.appFrame.setVisible(true);
     }
-
 }
