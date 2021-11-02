@@ -47,6 +47,7 @@ public class ReflectionUtil {
                 MovingMomentumStrategy.class,
                 ObvStrategy.class,
                 Rsi2Strategy.class,
-                ScalpingStrategy.class);
+                ScalpingStrategy.class,
+                RsiStrategy.class);
     }
 }

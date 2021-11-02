@@ -8,7 +8,7 @@ import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
 import org.ta4j.core.indicators.CachedIndicator;
-import org.ta4j.core.indicators.SMAIndicator;
+import org.ta4j.core.indicators.RSIIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.num.Num;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
@@ -17,40 +17,41 @@ import org.ta4j.core.rules.CrossedUpIndicatorRule;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class GoldenCrossStrategy extends BaseCebStrategy {
+public class RsiStrategy extends BaseCebStrategy {
 
-    public GoldenCrossStrategy(BarSeries series) {
-        super(series, new Number[]{50, 200});
+    public RsiStrategy(BarSeries series) {
+        super(series, new Number[]{14, 30, 70});
     }
 
     @Override
     public void build() {
-        int shortBarCount = this.parameters[0].intValue();
-        int longBarCount = this.parameters[1].intValue();
+        int rsiBarCount = this.parameters[0].intValue();
+        int rsiBuyThreshold = this.parameters[1].intValue();
+        int rsiSellThreshold = this.parameters[2].intValue();
 
         ClosePriceIndicator closePrice = new ClosePriceIndicator(this.series);
-        SMAIndicator shortSma = new SMAIndicator(closePrice, shortBarCount);
-        SMAIndicator longSma = new SMAIndicator(closePrice, longBarCount);
+        RSIIndicator rsi = new RSIIndicator(closePrice, rsiBarCount);
 
-        Rule entryRule = new CrossedUpIndicatorRule(shortSma, longSma);
-        Rule exitRule = new CrossedDownIndicatorRule(shortSma, longSma);
+        Rule entryRule = new CrossedDownIndicatorRule(rsi, rsiBuyThreshold);
+        Rule exitRule = new CrossedUpIndicatorRule(rsi, rsiSellThreshold);
 
-        BaseStrategy strategy = new BaseStrategy("Golden Cross", entryRule, exitRule);
+        BaseStrategy strategy = new BaseStrategy("RSI", entryRule, exitRule);
 
         Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
         indicators.put("CPI", new LinkedHashMap<>());
         indicators.get("CPI").put("CPI", closePrice);
-        indicators.get("CPI").put(String.format("SMA (%s)", shortBarCount), shortSma);
-        indicators.get("CPI").put(String.format("SMA (%s)", longBarCount), longSma);
+
+        indicators.put("RSI", Map.of(String.format("RSI (%s)", rsiBarCount), rsi));
 
         this.builderResult = new BuilderResult(strategy, indicators);
     }
 
     @Override
     public Gene[] createGene(Configuration conf) throws InvalidConfigurationException {
-        IntegerGene shortBarCount = new IntegerGene(conf, 25, 75);
-        IntegerGene longBarCount = new IntegerGene(conf, 100, 300);
+        IntegerGene rsiBarCount = new IntegerGene(conf, 10, 50);
+        IntegerGene entryThreshold = new IntegerGene(conf, 1, 50);
+        IntegerGene exitThreshold = new IntegerGene(conf, 51, 100);
 
-        return new Gene[]{shortBarCount, longBarCount};
+        return new Gene[]{rsiBarCount, entryThreshold, exitThreshold};
     }
 }

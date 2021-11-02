@@ -1,5 +1,8 @@
 package com.cebbus.analysis.strategy;
 
+import org.jgap.Configuration;
+import org.jgap.Gene;
+import org.jgap.InvalidConfigurationException;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
@@ -19,11 +22,11 @@ import java.util.Map;
 public class Rsi2Strategy extends BaseCebStrategy {
 
     public Rsi2Strategy(BarSeries series) {
-        super(series);
+        super(series, new Number[0]);
     }
 
     @Override
-    public BuilderResult build() {
+    public void build() {
         ClosePriceIndicator closePrice = new ClosePriceIndicator(this.series);
         SMAIndicator shortSma = new SMAIndicator(closePrice, 5);
         SMAIndicator longSma = new SMAIndicator(closePrice, 200);
@@ -44,7 +47,7 @@ public class Rsi2Strategy extends BaseCebStrategy {
                 .and(new CrossedUpIndicatorRule(rsi, 95)) // Signal 1
                 .and(new UnderIndicatorRule(shortSma, closePrice)); // Signal 2
 
-        BaseStrategy strategy = new BaseStrategy("RSI", entryRule, exitRule);
+        BaseStrategy strategy = new BaseStrategy("RSI 2", entryRule, exitRule);
 
         Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
         indicators.put("CPI", new LinkedHashMap<>());
@@ -54,7 +57,13 @@ public class Rsi2Strategy extends BaseCebStrategy {
 
         indicators.put("RSI", Map.of("RSI", rsi));
 
-        return new BuilderResult(strategy, indicators);
+        this.builderResult = new BuilderResult(strategy, indicators);
+    }
+
+    @Override
+    //TODO optimization not implemented
+    public Gene[] createGene(Configuration conf) throws InvalidConfigurationException {
+        return new Gene[0];
     }
 
 }

@@ -1,5 +1,9 @@
 package com.cebbus.analysis.strategy;
 
+import org.jgap.Configuration;
+import org.jgap.Gene;
+import org.jgap.InvalidConfigurationException;
+import org.jgap.impl.IntegerGene;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
@@ -17,18 +21,21 @@ import java.util.Map;
 public class MacdStrategy extends BaseCebStrategy {
 
     public MacdStrategy(BarSeries series) {
-        super(series);
+        super(series, new Number[]{9, 0});
     }
 
     @Override
-    BuilderResult build() {
+    public void build() {
+        int emaBarCount = this.parameters[0].intValue();
+        int emaThreshold = this.parameters[1].intValue();
+
         ClosePriceIndicator cpi = new ClosePriceIndicator(this.series);
 
         MACDIndicator macd = new MACDIndicator(cpi);
-        EMAIndicator signal = new EMAIndicator(macd, 9);
+        EMAIndicator signal = new EMAIndicator(macd, emaBarCount);
 
         Rule entryRule = new OverIndicatorRule(macd, signal)
-                .and(new OverIndicatorRule(macd, 0));
+                .and(new OverIndicatorRule(macd, emaThreshold));
 
         Rule exitRule = new UnderIndicatorRule(macd, signal);
 
@@ -37,8 +44,15 @@ public class MacdStrategy extends BaseCebStrategy {
         Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
         indicators.put("MACD", new LinkedHashMap<>());
         indicators.get("MACD").put("MACD", macd);
-        indicators.get("MACD").put("EMA (9)", signal);
+        indicators.get("MACD").put(String.format("EMA (%s)", emaBarCount), signal);
 
-        return new BuilderResult(strategy, indicators);
+        this.builderResult = new BuilderResult(strategy, indicators);
+    }
+
+    @Override
+    public Gene[] createGene(Configuration conf) throws InvalidConfigurationException {
+        IntegerGene emaBarCount = new IntegerGene(conf, 1, 20);
+        IntegerGene emaThreshold = new IntegerGene(conf, -10, 10);
+        return new Gene[]{emaBarCount, emaThreshold};
     }
 }

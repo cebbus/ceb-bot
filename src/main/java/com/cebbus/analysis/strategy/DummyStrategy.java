@@ -1,6 +1,10 @@
 package com.cebbus.analysis.strategy;
 
 import com.cebbus.analysis.rule.BackwardUnderIndicatorRule;
+import org.jgap.Configuration;
+import org.jgap.Gene;
+import org.jgap.InvalidConfigurationException;
+import org.jgap.impl.IntegerGene;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
@@ -17,16 +21,19 @@ import java.util.Map;
 public class DummyStrategy extends BaseCebStrategy {
 
     public DummyStrategy(BarSeries series) {
-        super(series);
+        super(series, new Number[]{50, 21});
     }
 
     @Override
-    public BuilderResult build() {
+    public void build() {
+        int smaBarCount = this.parameters[0].intValue();
+        int backwardUnderThreshold = this.parameters[1].intValue();
+
         ClosePriceIndicator closePrice = new ClosePriceIndicator(this.series);
-        SMAIndicator sma = new SMAIndicator(closePrice, 50);
+        SMAIndicator sma = new SMAIndicator(closePrice, smaBarCount);
 
         Rule entryRule = new OverIndicatorRule(closePrice, sma)
-                .and(new BackwardUnderIndicatorRule(closePrice, sma, 21));
+                .and(new BackwardUnderIndicatorRule(closePrice, sma, backwardUnderThreshold));
 
         Rule exitRule = new UnderIndicatorRule(closePrice, sma);
 
@@ -35,9 +42,16 @@ public class DummyStrategy extends BaseCebStrategy {
         Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
         indicators.put("CPI", new LinkedHashMap<>());
         indicators.get("CPI").put("CPI", closePrice);
-        indicators.get("CPI").put("SMA (50)", sma);
+        indicators.get("CPI").put(String.format("SMA (%s)", smaBarCount), sma);
 
-        return new BuilderResult(strategy, indicators);
+        this.builderResult = new BuilderResult(strategy, indicators);
     }
 
+    @Override
+    public Gene[] createGene(Configuration conf) throws InvalidConfigurationException {
+        IntegerGene smaBarCount = new IntegerGene(conf, 10, 100);
+        IntegerGene backwardUnderThreshold = new IntegerGene(conf, 10, 50);
+
+        return new Gene[]{smaBarCount, backwardUnderThreshold};
+    }
 }

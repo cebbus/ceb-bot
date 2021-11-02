@@ -3,9 +3,15 @@ package com.cebbus.analysis;
 import com.cebbus.analysis.strategy.BaseCebStrategy;
 import com.cebbus.analysis.strategy.CebStrategy;
 import com.cebbus.util.ReflectionUtil;
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
+import org.jgap.Chromosome;
+import org.jgap.Configuration;
+import org.jgap.InvalidConfigurationException;
 import org.ta4j.core.*;
 import org.ta4j.core.analysis.criteria.pnl.GrossReturnCriterion;
 import org.ta4j.core.indicators.CachedIndicator;
@@ -22,16 +28,13 @@ import static com.cebbus.util.ReflectionUtil.initStrategy;
 public class TheOracle {
 
     private final BarSeries series;
-    private final CebStrategy cebStrategy;
     private final TradingRecord tradingRecord;
-    private final TradingRecord backtestRecord;
 
-    public TheOracle(BarSeries series) {
-        this.series = series;
-        this.cebStrategy = null;
-        this.tradingRecord = null;
-        this.backtestRecord = null;
-    }
+    @Getter(value = AccessLevel.NONE)
+    private final CebStrategy cebStrategy;
+
+    @Setter(value = AccessLevel.NONE)
+    private TradingRecord backtestRecord;
 
     public TheOracle(BarSeries series, String strategy) {
         this.series = series;
@@ -55,6 +58,10 @@ public class TheOracle {
 
         this.cebStrategy = cs;
         this.tradingRecord = new BaseTradingRecord();
+        backtest();
+    }
+
+    public void backtest() {
         this.backtestRecord = backtest(prophesy());
     }
 
@@ -65,6 +72,10 @@ public class TheOracle {
             Strategy strategy = initStrategy(this.series, clazz).getStrategy();
             return Pair.of(clazz.getSimpleName(), calculateProfit(strategy));
         }).collect(Collectors.toList());
+    }
+
+    public Num calculateProfit() {
+        return calculateProfit(prophesy());
     }
 
     private Num calculateProfit(Strategy strategy) {
@@ -85,5 +96,13 @@ public class TheOracle {
 
     public Map<String, Map<String, CachedIndicator<Num>>> getIndicators() {
         return this.cebStrategy.getIndicators();
+    }
+
+    public Chromosome getProphesyOmen(Configuration conf) throws InvalidConfigurationException {
+        return new Chromosome(conf, this.cebStrategy.createGene(conf));
+    }
+
+    public void changeProphesyParameters(Number... parameters) {
+        this.cebStrategy.rebuild(parameters);
     }
 }

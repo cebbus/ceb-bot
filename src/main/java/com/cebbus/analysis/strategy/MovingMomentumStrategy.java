@@ -1,5 +1,8 @@
 package com.cebbus.analysis.strategy;
 
+import org.jgap.Configuration;
+import org.jgap.Gene;
+import org.jgap.InvalidConfigurationException;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
@@ -20,11 +23,11 @@ import java.util.Map;
 public class MovingMomentumStrategy extends BaseCebStrategy {
 
     public MovingMomentumStrategy(BarSeries series) {
-        super(series);
+        super(series, new Number[0]);
     }
 
     @Override
-    public BuilderResult build() {
+    public void build() {
         ClosePriceIndicator closePrice = new ClosePriceIndicator(this.series);
         EMAIndicator shortEma = new EMAIndicator(closePrice, 9);
         EMAIndicator longEma = new EMAIndicator(closePrice, 26);
@@ -57,7 +60,13 @@ public class MovingMomentumStrategy extends BaseCebStrategy {
         indicators.put("STO", new LinkedHashMap<>());
         indicators.get("STO").put("STO", stochasticOscillK);
 
-        return new BuilderResult(strategy, indicators);
+        this.builderResult = new BuilderResult(strategy, indicators);
+    }
+
+    @Override
+    //TODO optimization not implemented
+    public Gene[] createGene(Configuration conf) throws InvalidConfigurationException {
+        return new Gene[0];
     }
 
 }

@@ -1,5 +1,10 @@
 package com.cebbus.analysis.strategy;
 
+import org.jgap.Configuration;
+import org.jgap.Gene;
+import org.jgap.InvalidConfigurationException;
+import org.jgap.impl.DoubleGene;
+import org.jgap.impl.IntegerGene;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseStrategy;
 import org.ta4j.core.Rule;
@@ -15,20 +20,24 @@ import java.util.Map;
 public class GlobalExtremaStrategy extends BaseCebStrategy {
 
     public GlobalExtremaStrategy(BarSeries series) {
-        super(series);
+        super(series, new Number[]{7, 0.996D, 1.004D});
     }
 
     @Override
-    public BuilderResult build() {
+    public void build() {
+        int priceBarCount = this.parameters[0].intValue();
+        double highCoefficient = this.parameters[1].doubleValue();
+        double lowCoefficient = this.parameters[2].doubleValue();
+
         ClosePriceIndicator closePrice = new ClosePriceIndicator(this.series);
 
         HighPriceIndicator highPrice = new HighPriceIndicator(this.series);
-        HighestValueIndicator weekHighPrice = new HighestValueIndicator(highPrice, 7);
-        TransformIndicator upWeek = TransformIndicator.multiply(weekHighPrice, 0.996D);
+        HighestValueIndicator weekHighPrice = new HighestValueIndicator(highPrice, priceBarCount);
+        TransformIndicator upWeek = TransformIndicator.multiply(weekHighPrice, highCoefficient);
 
         LowPriceIndicator lowPrice = new LowPriceIndicator(this.series);
-        LowestValueIndicator weekLowPrice = new LowestValueIndicator(lowPrice, 7);
-        TransformIndicator downWeek = TransformIndicator.multiply(weekLowPrice, 1.004D);
+        LowestValueIndicator weekLowPrice = new LowestValueIndicator(lowPrice, priceBarCount);
+        TransformIndicator downWeek = TransformIndicator.multiply(weekLowPrice, lowCoefficient);
 
         Rule entryRule = new UnderIndicatorRule(closePrice, downWeek);
         Rule exitRule = new OverIndicatorRule(closePrice, upWeek);
@@ -41,7 +50,16 @@ public class GlobalExtremaStrategy extends BaseCebStrategy {
         indicators.get("CPI").put("Up Week", upWeek);
         indicators.get("CPI").put("Down Week", downWeek);
 
-        return new BuilderResult(strategy, indicators);
+        this.builderResult = new BuilderResult(strategy, indicators);
+    }
+
+    @Override
+    public Gene[] createGene(Configuration conf) throws InvalidConfigurationException {
+        IntegerGene priceBarCount = new IntegerGene(conf, 1, 30);
+        DoubleGene highCoefficient = new DoubleGene(conf, 0.990, 0.999);
+        DoubleGene lowCoefficient = new DoubleGene(conf, 1.001, 1.009);
+
+        return new Gene[]{priceBarCount, highCoefficient, lowCoefficient};
     }
 
 }

@@ -104,7 +104,7 @@ public class TestFormPanel {
         speculator.loadHistory();
 
         BarSeries series = new BaseBarSeries(speculator.convertToBarList());
-        TheOracle theOracle = new TheOracle(series);
+        TheOracle theOracle = new TheOracle(series, "JunkStrategy");
         speculator.setTheOracle(theOracle);
 
         return speculator;
