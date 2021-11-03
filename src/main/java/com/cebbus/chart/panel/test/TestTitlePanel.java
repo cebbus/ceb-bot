@@ -25,7 +25,11 @@ public class TestTitlePanel {
     }
 
     public void changeStatus(boolean active) {
-        this.panel.setBackground(getColor(active));
+        changeColor(getColor(active));
+    }
+
+    public void changeColor(Color color) {
+        this.panel.setBackground(color);
     }
 
     public JPanel getPanel() {

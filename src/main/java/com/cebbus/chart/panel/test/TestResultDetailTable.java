@@ -3,6 +3,7 @@ package com.cebbus.chart.panel.test;
 import com.cebbus.analysis.OptimizeTask;
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.binance.Speculator;
+import com.cebbus.chart.ColorPalette;
 import com.cebbus.chart.panel.WaitDialog;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.TradingRecord;
@@ -120,6 +121,7 @@ public class TestResultDetailTable {
         this.speculator = speculator;
 
         this.optBtn.setEnabled(true);
+        this.title.changeStatus(true);
 
         DefaultTableModel model = (DefaultTableModel) this.table.getModel();
 
@@ -161,6 +163,8 @@ public class TestResultDetailTable {
 
     public void update(Speculator speculator) {
         this.speculator = speculator;
+
+        this.title.changeColor(ColorPalette.ORANGE);
 
         DefaultTableModel model = (DefaultTableModel) this.table.getModel();
 

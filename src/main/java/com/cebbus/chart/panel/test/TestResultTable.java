@@ -113,6 +113,7 @@ public class TestResultTable {
         this.speculator = speculator;
 
         this.showBtn.setEnabled(false);
+        this.title.changeStatus(true);
 
         DefaultTableModel model = (DefaultTableModel) this.table.getModel();
         model.setRowCount(0);
