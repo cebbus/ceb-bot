@@ -22,6 +22,7 @@ public class CciCorrectionStrategy extends BaseCebStrategy {
 
     public CciCorrectionStrategy(BarSeries series) {
         super(series, new Number[]{200, 5});
+        build();
     }
 
     @Override

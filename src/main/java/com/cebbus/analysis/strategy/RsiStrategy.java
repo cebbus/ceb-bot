@@ -21,6 +21,7 @@ public class RsiStrategy extends BaseCebStrategy {
 
     public RsiStrategy(BarSeries series) {
         super(series, new Number[]{14, 30, 70});
+        build();
     }
 
     @Override

@@ -15,6 +15,7 @@ import org.ta4j.core.analysis.criteria.pnl.GrossReturnCriterion;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,17 +50,15 @@ public class TestResultDetailTable {
         tableModel.addColumn("Value");
 
         JTable jTable = new JTable(tableModel);
+        jTable.setPreferredScrollableViewportSize(new Dimension(WEST_ITEM_WIDTH, 150));
+        jTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         jTable.setFillsViewportHeight(true);
 
-        TableColumn valueColumn = jTable.getColumnModel().getColumn(1);
-        valueColumn.setWidth(10);
-        valueColumn.setMinWidth(10);
-        valueColumn.setPreferredWidth(10);
+        TableColumnModel columnModel = jTable.getColumnModel();
+        rearrangeColumnSize(columnModel);
 
         JScrollPane scrollPane = new JScrollPane(jTable);
-        scrollPane.setMinimumSize(new Dimension(WEST_ITEM_WIDTH, 150));
-        scrollPane.setMaximumSize(new Dimension(WEST_ITEM_WIDTH, 150));
-        scrollPane.setPreferredSize(new Dimension(WEST_ITEM_WIDTH, 150));
+        setSize(scrollPane, WEST_ITEM_WIDTH, 150);
 
         this.panel.add(scrollPane);
 
@@ -94,10 +93,27 @@ public class TestResultDetailTable {
         return jButton;
     }
 
+    private void rearrangeColumnSize(TableColumnModel columnModel) {
+        TableColumn metricColumn = columnModel.getColumn(0);
+        setColumnSize(metricColumn, WEST_ITEM_WIDTH - 78);
+
+        for (int i = 1; i < columnModel.getColumnCount(); i++) {
+            TableColumn column = columnModel.getColumn(1);
+            setColumnSize(column, 75);
+        }
+    }
+
     private void setSize(JComponent component, int width, int height) {
         component.setMinimumSize(new Dimension(width, height));
         component.setMaximumSize(new Dimension(width, height));
         component.setPreferredSize(new Dimension(width, height));
+    }
+
+    private void setColumnSize(TableColumn column, int width) {
+        column.setWidth(width);
+        column.setMinWidth(width);
+        column.setMaxWidth(width);
+        column.setPreferredWidth(width);
     }
 
     public void reload(Speculator speculator) {
@@ -106,6 +122,13 @@ public class TestResultDetailTable {
         this.optBtn.setEnabled(true);
 
         DefaultTableModel model = (DefaultTableModel) this.table.getModel();
+
+        model.setColumnCount(0);
+        model.addColumn("Metric");
+        model.addColumn("Value");
+
+        TableColumnModel columnModel = this.table.getColumnModel();
+        rearrangeColumnSize(columnModel);
 
         model.setRowCount(0);
 
@@ -134,6 +157,44 @@ public class TestResultDetailTable {
         WinningPositionsRatioCriterion winningRatioCriterion = new WinningPositionsRatioCriterion();
         double winningRatio = winningRatioCriterion.calculate(series, tradingRecord).doubleValue();
         model.addRow(new Object[]{"Strategy Winning Ratio (%)", RESULT_FORMAT.format(winningRatio * 100)});
+    }
+
+    public void update(Speculator speculator) {
+        this.speculator = speculator;
+
+        DefaultTableModel model = (DefaultTableModel) this.table.getModel();
+
+        if (model.getColumnCount() == 2) {
+            model.addColumn("Optimization");
+
+            TableColumnModel columnModel = this.table.getColumnModel();
+            rearrangeColumnSize(columnModel);
+        }
+
+        TheOracle theOracle = speculator.getTheOracle();
+        BarSeries series = theOracle.getSeries();
+        TradingRecord tradingRecord = theOracle.getBacktestRecord();
+        model.setValueAt(tradingRecord.getPositionCount(), 0, 2);
+
+        NumberOfBarsCriterion numberOfBarsCriterion = new NumberOfBarsCriterion();
+        int numOfBars = numberOfBarsCriterion.calculate(series, tradingRecord).intValue();
+        model.setValueAt(numOfBars, 1, 2);
+
+        GrossReturnCriterion returnCriterion = new GrossReturnCriterion();
+        double totalReturn = returnCriterion.calculate(series, tradingRecord).doubleValue();
+        model.setValueAt(RESULT_FORMAT.format(totalReturn), 2, 2);
+
+        BuyAndHoldReturnCriterion buyAndHoldReturnCriterion = new BuyAndHoldReturnCriterion();
+        double buyAndHold = buyAndHoldReturnCriterion.calculate(series, tradingRecord).doubleValue();
+        model.setValueAt(RESULT_FORMAT.format(buyAndHold), 3, 2);
+
+        VersusBuyAndHoldCriterion versusBuyAndHoldCriterion = new VersusBuyAndHoldCriterion(returnCriterion);
+        double versus = versusBuyAndHoldCriterion.calculate(series, tradingRecord).doubleValue();
+        model.setValueAt(RESULT_FORMAT.format(versus * 100), 4, 2);
+
+        WinningPositionsRatioCriterion winningRatioCriterion = new WinningPositionsRatioCriterion();
+        double winningRatio = winningRatioCriterion.calculate(series, tradingRecord).doubleValue();
+        model.setValueAt(RESULT_FORMAT.format(winningRatio * 100), 5, 2);
     }
 
     public void addOptimizeClickListener(Consumer<Speculator> operation) {

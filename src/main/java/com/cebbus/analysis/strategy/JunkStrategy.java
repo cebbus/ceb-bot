@@ -18,6 +18,7 @@ public class JunkStrategy extends BaseCebStrategy {
 
     public JunkStrategy(BarSeries series) {
         super(series, new Number[0]);
+        build();
     }
 
     @Override

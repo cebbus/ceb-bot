@@ -56,7 +56,7 @@ public class CryptoTestTabPanel {
 
     public void addResultDetailTable(Box box) {
         this.resultDetailTable.addOptimizeClickListener(this.chartPanel::recreate);
-        this.resultDetailTable.addOptimizeClickListener(this.resultDetailTable::reload);
+        this.resultDetailTable.addOptimizeClickListener(this.resultDetailTable::update);
 
         box.add(this.resultDetailTable.getTitle().getPanel());
         box.add(this.resultDetailTable.getPanel());

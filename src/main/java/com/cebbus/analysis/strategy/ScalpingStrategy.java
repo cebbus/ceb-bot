@@ -24,6 +24,7 @@ public class ScalpingStrategy extends BaseCebStrategy {
 
     public ScalpingStrategy(BarSeries series) {
         super(series, new Number[]{5, 8, 13});
+        build();
     }
 
     @Override

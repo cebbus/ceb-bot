@@ -18,7 +18,6 @@ public abstract class BaseCebStrategy implements CebStrategy {
     BaseCebStrategy(BarSeries series, Number[] parameters) {
         this.series = series;
         this.parameters = parameters;
-        build();
     }
 
     @Override

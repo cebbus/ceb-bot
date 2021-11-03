@@ -39,8 +39,12 @@ public class ChartListPanel {
     public JPanel create() {
         JFreeChart[] charts = createChartList();
 
-        JPanel chartListPanel = new JPanel(new FlowLayout());
-        chartListPanel.setPreferredSize(new Dimension(CENTER_WIDTH, (charts.length * CHART_HEIGHT) + 25));
+        JPanel jPanel = new JPanel();
+        jPanel.setBorder(BorderFactory.createEmptyBorder(8, 8, 0, 8));
+
+        BoxLayout layout = new BoxLayout(jPanel, BoxLayout.Y_AXIS);
+        jPanel.setLayout(layout);
+
         Arrays.stream(charts).forEach(c -> {
             ChartPanel panel = new ChartPanel(c);
             panel.setFillZoomRectangle(true);
@@ -48,10 +52,11 @@ public class ChartListPanel {
             panel.addChartMouseListener(new LegendClickListener());
             panel.setPreferredSize(new Dimension(CENTER_WIDTH - 10, CHART_HEIGHT));
 
-            chartListPanel.add(panel);
+            jPanel.add(panel);
+            jPanel.add(Box.createVerticalStrut(8));
         });
 
-        return chartListPanel;
+        return jPanel;
     }
 
     public void refresh() {

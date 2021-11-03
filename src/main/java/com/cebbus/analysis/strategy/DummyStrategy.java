@@ -22,6 +22,7 @@ public class DummyStrategy extends BaseCebStrategy {
 
     public DummyStrategy(BarSeries series) {
         super(series, new Number[]{50, 21});
+        build();
     }
 
     @Override

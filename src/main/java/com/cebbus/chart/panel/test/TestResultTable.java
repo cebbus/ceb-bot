@@ -9,6 +9,7 @@ import org.ta4j.core.num.Num;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,10 +49,9 @@ public class TestResultTable {
         JTable jTable = new JTable(tableModel);
         jTable.setFillsViewportHeight(true);
 
-        TableColumn valueColumn = jTable.getColumnModel().getColumn(1);
-        valueColumn.setWidth(10);
-        valueColumn.setMinWidth(10);
-        valueColumn.setPreferredWidth(10);
+        TableColumnModel columnModel = jTable.getColumnModel();
+        TableColumn valueColumn = columnModel.getColumn(1);
+        valueColumn.setMaxWidth(75);
 
         ListSelectionModel model = jTable.getSelectionModel();
         model.addListSelectionListener(e -> {

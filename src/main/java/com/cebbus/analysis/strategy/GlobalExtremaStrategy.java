@@ -21,6 +21,7 @@ public class GlobalExtremaStrategy extends BaseCebStrategy {
 
     public GlobalExtremaStrategy(BarSeries series) {
         super(series, new Number[]{7, 0.996D, 1.004D});
+        build();
     }
 
     @Override

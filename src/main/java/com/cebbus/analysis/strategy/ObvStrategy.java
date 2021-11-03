@@ -25,6 +25,7 @@ public class ObvStrategy extends BaseCebStrategy {
 
     public ObvStrategy(BarSeries series) {
         super(series, new Number[]{21});
+        build();
     }
 
     @Override

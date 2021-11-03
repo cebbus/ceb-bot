@@ -22,6 +22,7 @@ public class MacdStrategy extends BaseCebStrategy {
 
     public MacdStrategy(BarSeries series) {
         super(series, new Number[]{9, 0});
+        build();
     }
 
     @Override

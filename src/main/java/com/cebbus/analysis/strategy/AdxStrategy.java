@@ -24,6 +24,7 @@ public class AdxStrategy extends BaseCebStrategy {
 
     public AdxStrategy(BarSeries series) {
         super(series, new Number[]{50, 14, 20});
+        build();
     }
 
     @Override

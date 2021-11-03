@@ -21,6 +21,7 @@ public class GoldenCrossStrategy extends BaseCebStrategy {
 
     public GoldenCrossStrategy(BarSeries series) {
         super(series, new Number[]{50, 200});
+        build();
     }
 
     @Override
