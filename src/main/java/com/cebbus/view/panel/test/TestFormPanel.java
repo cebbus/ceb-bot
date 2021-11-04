@@ -1,4 +1,4 @@
-package com.cebbus.chart.panel.test;
+package com.cebbus.view.panel.test;
 
 import com.binance.api.client.domain.market.CandlestickInterval;
 import com.cebbus.analysis.Symbol;
@@ -13,8 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static com.cebbus.chart.panel.test.CryptoTestTabPanel.WEST_ITEM_WIDTH;
-import static com.cebbus.chart.panel.test.TestTabPanelDataFactory.*;
+import static com.cebbus.view.panel.test.CryptoTestTabPanel.WEST_ITEM_WIDTH;
+import static com.cebbus.view.panel.test.TestTabPanelDataFactory.*;
 
 public class TestFormPanel {
 

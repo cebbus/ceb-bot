@@ -1,4 +1,4 @@
-package com.cebbus.chart.panel;
+package com.cebbus.view.panel;
 
 import com.cebbus.binance.Speculator;
 import com.cebbus.util.PropertyReader;

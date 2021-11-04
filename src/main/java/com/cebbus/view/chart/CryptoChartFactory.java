@@ -1,4 +1,4 @@
-package com.cebbus.chart;
+package com.cebbus.view.chart;
 
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.TradingRecord;

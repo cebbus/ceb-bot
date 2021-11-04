@@ -1,4 +1,4 @@
-package com.cebbus.chart.panel.test;
+package com.cebbus.view.panel.test;
 
 import javax.swing.*;
 import java.awt.*;

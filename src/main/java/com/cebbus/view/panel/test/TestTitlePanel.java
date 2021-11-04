@@ -1,6 +1,6 @@
-package com.cebbus.chart.panel.test;
+package com.cebbus.view.panel.test;
 
-import com.cebbus.chart.ColorPalette;
+import com.cebbus.view.chart.ColorPalette;
 
 import javax.swing.*;
 import java.awt.*;

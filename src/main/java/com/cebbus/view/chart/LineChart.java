@@ -1,4 +1,4 @@
-package com.cebbus.chart;
+package com.cebbus.view.chart;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;

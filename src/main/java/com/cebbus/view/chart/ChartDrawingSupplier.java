@@ -1,10 +1,10 @@
-package com.cebbus.chart;
+package com.cebbus.view.chart;
 
 import org.jfree.chart.plot.DefaultDrawingSupplier;
 
 import java.awt.*;
 
-import static com.cebbus.chart.ColorPalette.COLORS;
+import static com.cebbus.view.chart.ColorPalette.COLORS;
 
 public class ChartDrawingSupplier extends DefaultDrawingSupplier {
 

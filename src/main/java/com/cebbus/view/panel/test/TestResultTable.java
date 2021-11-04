@@ -1,4 +1,4 @@
-package com.cebbus.chart.panel.test;
+package com.cebbus.view.panel.test;
 
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.binance.Speculator;
@@ -17,8 +17,8 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static com.cebbus.chart.panel.test.CryptoTestTabPanel.RESULT_FORMAT;
-import static com.cebbus.chart.panel.test.CryptoTestTabPanel.WEST_ITEM_WIDTH;
+import static com.cebbus.view.panel.test.CryptoTestTabPanel.RESULT_FORMAT;
+import static com.cebbus.view.panel.test.CryptoTestTabPanel.WEST_ITEM_WIDTH;
 
 public class TestResultTable {
 

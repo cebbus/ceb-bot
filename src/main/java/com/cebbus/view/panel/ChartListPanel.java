@@ -1,9 +1,9 @@
-package com.cebbus.chart.panel;
+package com.cebbus.view.panel;
 
 import com.cebbus.analysis.TheOracle;
-import com.cebbus.chart.CryptoChart;
-import com.cebbus.chart.CryptoChartFactory;
-import com.cebbus.chart.LegendClickListener;
+import com.cebbus.view.chart.CryptoChart;
+import com.cebbus.view.chart.CryptoChartFactory;
+import com.cebbus.view.chart.LegendClickListener;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.ta4j.core.BarSeries;

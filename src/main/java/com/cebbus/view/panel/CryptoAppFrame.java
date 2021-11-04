@@ -1,7 +1,7 @@
-package com.cebbus.chart.panel;
+package com.cebbus.view.panel;
 
 import com.cebbus.binance.Speculator;
-import com.cebbus.chart.panel.test.CryptoTestTabPanel;
+import com.cebbus.view.panel.test.CryptoTestTabPanel;
 import org.jfree.chart.ui.ApplicationFrame;
 
 import javax.swing.*;

@@ -1,4 +1,4 @@
-package com.cebbus.chart.panel.test;
+package com.cebbus.view.panel.test;
 
 import com.binance.api.client.domain.market.CandlestickInterval;
 

@@ -1,4 +1,4 @@
-package com.cebbus.chart.panel;
+package com.cebbus.view.panel;
 
 import org.jfree.chart.ui.ApplicationFrame;
 

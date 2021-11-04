@@ -1,7 +1,7 @@
-package com.cebbus.chart.panel;
+package com.cebbus.view.panel;
 
 import com.cebbus.analysis.TheOracle;
-import com.cebbus.chart.ColorPalette;
+import com.cebbus.view.chart.ColorPalette;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.Position;
 import org.ta4j.core.Trade;

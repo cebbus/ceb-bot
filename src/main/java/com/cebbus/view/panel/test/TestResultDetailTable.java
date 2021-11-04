@@ -1,10 +1,10 @@
-package com.cebbus.chart.panel.test;
+package com.cebbus.view.panel.test;
 
 import com.cebbus.analysis.OptimizeTask;
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.binance.Speculator;
-import com.cebbus.chart.ColorPalette;
-import com.cebbus.chart.panel.WaitDialog;
+import com.cebbus.view.chart.ColorPalette;
+import com.cebbus.view.panel.WaitDialog;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.TradingRecord;
 import org.ta4j.core.analysis.criteria.BuyAndHoldReturnCriterion;
@@ -22,8 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static com.cebbus.chart.panel.test.CryptoTestTabPanel.RESULT_FORMAT;
-import static com.cebbus.chart.panel.test.CryptoTestTabPanel.WEST_ITEM_WIDTH;
+import static com.cebbus.view.panel.test.CryptoTestTabPanel.RESULT_FORMAT;
+import static com.cebbus.view.panel.test.CryptoTestTabPanel.WEST_ITEM_WIDTH;
 
 public class TestResultDetailTable {
 

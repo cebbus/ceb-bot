@@ -1,4 +1,4 @@
-package com.cebbus.chart.panel;
+package com.cebbus.view.panel;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;

@@ -1,9 +1,9 @@
-package com.cebbus.chart.panel;
+package com.cebbus.view.panel;
 
 import com.cebbus.analysis.Symbol;
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.binance.Speculator;
-import com.cebbus.chart.ColorPalette;
+import com.cebbus.view.chart.ColorPalette;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.ta4j.core.BarSeries;
@@ -23,7 +23,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static com.cebbus.chart.ColorPalette.*;
+import static com.cebbus.view.chart.ColorPalette.*;
 
 public class PerformancePanel {
 

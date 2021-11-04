@@ -1,8 +1,8 @@
-package com.cebbus.chart.panel;
+package com.cebbus.view.panel;
 
 import com.cebbus.binance.Speculator;
 import com.cebbus.binance.order.TradeStatus;
-import com.cebbus.chart.ColorPalette;
+import com.cebbus.view.chart.ColorPalette;
 
 import javax.swing.*;
 import java.awt.*;
