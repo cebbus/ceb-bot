@@ -7,22 +7,24 @@ import com.cebbus.util.PropertyReader;
 
 public class ClientFactory {
 
+    private static final BinanceApiRestClient REST_CLIENT;
     private static final BinanceApiClientFactory CLIENT_FACTORY;
 
     static {
         String key = PropertyReader.getApiKey();
         String secret = PropertyReader.getApiSecret();
         CLIENT_FACTORY = BinanceApiClientFactory.newInstance((key.equals("") ? null : key), (secret.equals("") ? null : secret));
+        REST_CLIENT = CLIENT_FACTORY.newRestClient();
     }
 
     private ClientFactory() {
     }
 
-    public static BinanceApiRestClient restClient() {
-        return CLIENT_FACTORY.newRestClient();
+    public static BinanceApiRestClient getRestClient() {
+        return REST_CLIENT;
     }
 
-    public static BinanceApiWebSocketClient webSocketClient() {
+    public static BinanceApiWebSocketClient newWebSocketClient() {
         return CLIENT_FACTORY.newWebSocketClient();
     }
 

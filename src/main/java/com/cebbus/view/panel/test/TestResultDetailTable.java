@@ -4,6 +4,7 @@ import com.cebbus.analysis.OptimizeTask;
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.binance.Speculator;
 import com.cebbus.view.chart.ColorPalette;
+import com.cebbus.view.panel.BoxTitlePanel;
 import com.cebbus.view.panel.WaitDialog;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.TradingRecord;
@@ -30,7 +31,7 @@ public class TestResultDetailTable {
     private final Box panel;
     private final JTable table;
     private final JButton optBtn;
-    private final TestTitlePanel title;
+    private final BoxTitlePanel title;
     private final List<Consumer<Speculator>> onOptimizeClickListeners = new ArrayList<>();
 
     private Speculator speculator;
@@ -42,7 +43,7 @@ public class TestResultDetailTable {
 
         this.table = createTable();
         this.optBtn = createOptimizeButton();
-        this.title = new TestTitlePanel("Result Details", false);
+        this.title = new BoxTitlePanel("Result Details", false);
     }
 
     private JTable createTable() {
@@ -209,7 +210,7 @@ public class TestResultDetailTable {
         return panel;
     }
 
-    public TestTitlePanel getTitle() {
-        return title;
+    public JPanel getTitlePanel() {
+        return title.getPanel();
     }
 }

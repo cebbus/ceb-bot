@@ -2,6 +2,7 @@ package com.cebbus.view.panel.test;
 
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.binance.Speculator;
+import com.cebbus.view.panel.BoxTitlePanel;
 import org.apache.commons.lang3.tuple.Pair;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.num.Num;
@@ -25,7 +26,7 @@ public class TestResultTable {
     private final Box panel;
     private final JTable table;
     private final JButton showBtn;
-    private final TestTitlePanel title;
+    private final BoxTitlePanel title;
     private final List<Consumer<Speculator>> onDetailClickListeners = new ArrayList<>();
 
     private Speculator speculator;
@@ -38,7 +39,7 @@ public class TestResultTable {
 
         this.table = createTable();
         this.showBtn = createShowButton();
-        this.title = new TestTitlePanel("Strategy Results", false);
+        this.title = new BoxTitlePanel("Strategy Results", false);
     }
 
     private JTable createTable() {
@@ -131,7 +132,7 @@ public class TestResultTable {
         return panel;
     }
 
-    public TestTitlePanel getTitle() {
-        return title;
+    public JPanel getTitlePanel() {
+        return title.getPanel();
     }
 }

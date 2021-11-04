@@ -48,6 +48,7 @@ public class CebBot {
         }
 
         appFrame.addTestTab();
+        appFrame.addWalkForwardTab();
 
         splashFrame.hide();
         appFrame.show();

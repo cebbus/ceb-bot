@@ -40,7 +40,7 @@ public class CryptoTestTabPanel {
     public void addForm(Box box) {
         this.formPanel.addRunClickListeners(this.resultTable::reload);
 
-        box.add(this.formPanel.getTitle().getPanel());
+        box.add(this.formPanel.getTitlePanel());
         box.add(this.formPanel.getPanel());
     }
 
@@ -48,7 +48,7 @@ public class CryptoTestTabPanel {
         this.resultTable.addDetailClickListener(this.chartPanel::recreate);
         this.resultTable.addDetailClickListener(this.resultDetailTable::reload);
 
-        box.add(this.resultTable.getTitle().getPanel());
+        box.add(this.resultTable.getTitlePanel());
         box.add(this.resultTable.getPanel());
     }
 
@@ -56,7 +56,7 @@ public class CryptoTestTabPanel {
         this.resultDetailTable.addOptimizeClickListener(this.chartPanel::recreate);
         this.resultDetailTable.addOptimizeClickListener(this.resultDetailTable::update);
 
-        box.add(this.resultDetailTable.getTitle().getPanel());
+        box.add(this.resultDetailTable.getTitlePanel());
         box.add(this.resultDetailTable.getPanel());
     }
 

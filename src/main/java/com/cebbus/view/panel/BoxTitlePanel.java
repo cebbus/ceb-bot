@@ -1,18 +1,18 @@
-package com.cebbus.view.panel.test;
+package com.cebbus.view.panel;
 
 import com.cebbus.view.chart.ColorPalette;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class TestTitlePanel {
+public class BoxTitlePanel {
     private final JPanel panel = new JPanel();
 
-    public TestTitlePanel(String titleText) {
+    public BoxTitlePanel(String titleText) {
         this(titleText, true);
     }
 
-    public TestTitlePanel(String titleText, boolean active) {
+    public BoxTitlePanel(String titleText, boolean active) {
         JLabel title = new JLabel();
         title.setText(titleText);
         title.setForeground(ColorPalette.SOFT_WIGHT);

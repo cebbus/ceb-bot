@@ -1,10 +1,10 @@
-package com.cebbus.view.panel.test;
+package com.cebbus.view.panel;
 
 import com.binance.api.client.domain.market.CandlestickInterval;
 
 import java.util.Arrays;
 
-public final class TestTabPanelDataFactory {
+public final class ConstantDataFactory {
 
     private static final Integer[] SIZES = {2, 4, 8, 16, 32, 64, 128, 256, 512, 1000};
 
@@ -49,7 +49,7 @@ public final class TestTabPanelDataFactory {
         Arrays.sort(SYMBOLS);
     }
 
-    private TestTabPanelDataFactory() {
+    private ConstantDataFactory() {
     }
 
     public static String[] getSymbols() {

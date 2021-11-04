@@ -1,34 +1,41 @@
-package com.cebbus.view.panel.test;
+package com.cebbus.view.panel.forward;
 
 import com.binance.api.client.domain.market.CandlestickInterval;
 import com.cebbus.analysis.Symbol;
 import com.cebbus.analysis.TheOracle;
+import com.cebbus.analysis.WalkForwardTask;
 import com.cebbus.binance.Speculator;
+import com.cebbus.util.ReflectionUtil;
 import com.cebbus.view.panel.BoxTitlePanel;
+import com.cebbus.view.panel.WaitDialog;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBarSeries;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
-import static com.cebbus.view.panel.test.CryptoTestTabPanel.WEST_ITEM_WIDTH;
-import static com.cebbus.view.panel.ConstantDataFactory.*;
+import static com.cebbus.view.panel.ConstantDataFactory.getIntervals;
+import static com.cebbus.view.panel.ConstantDataFactory.getSymbols;
+import static com.cebbus.view.panel.forward.CryptoWalkForwardTabPanel.WEST_ITEM_WIDTH;
 
-public class TestFormPanel {
+public class WalkForwardFormPanel {
 
     private final Box panel;
     private final BoxTitlePanel title;
     private final List<Consumer<Speculator>> onRunClickListeners = new ArrayList<>();
 
-    public TestFormPanel() {
+    public WalkForwardFormPanel() {
         this.panel = Box.createVerticalBox();
         this.panel.setAlignmentX(Component.LEFT_ALIGNMENT);
         this.panel.setBorder(BorderFactory.createEmptyBorder(4, 8, 10, 8));
 
-        this.title = new BoxTitlePanel("Test Form");
+        this.title = new BoxTitlePanel("Walk Forward Form");
 
         createForm();
     }
@@ -42,13 +49,40 @@ public class TestFormPanel {
         JComboBox<String> quoteBox = new JComboBox<>(getSymbols());
         quoteBox.setSelectedItem("USDT");
 
-        JLabel limitLabel = new JLabel("Bar Size: ");
-        JComboBox<Integer> limitBox = new JComboBox<>(getSizes());
-        limitBox.setSelectedItem(512);
-
         JLabel intervalLabel = new JLabel("Interval: ");
         JComboBox<String> intervalBox = new JComboBox<>(getIntervals());
         intervalBox.setSelectedItem("DAILY");
+
+        JLabel limitLabel = new JLabel("Limit (1000): ");
+        JSlider limitSlider = new JSlider(SwingConstants.HORIZONTAL, 10, 1000, 1000);
+        limitSlider.addChangeListener(e -> limitLabel.setText(String.format("Limit (%s):", limitSlider.getValue())));
+
+        JLabel optimizationPartLabel = new JLabel("Optim (60%):");
+        JSlider optimizationSlider = new JSlider(SwingConstants.HORIZONTAL, 10, 90, 60);
+        optimizationSlider.addChangeListener(e -> optimizationPartLabel.setText(String.format("Optim (%s%%):", optimizationSlider.getValue())));
+
+        JLabel stepLabel = new JLabel("Step (25%): ");
+        JSlider stepSlider = new JSlider(SwingConstants.HORIZONTAL, 10, 100, 25);
+        stepSlider.addChangeListener(e -> stepLabel.setText(String.format("Step (%s%%):", stepSlider.getValue())));
+
+        JLabel trainingPartLabel = new JLabel("Train (80%):");
+        JSlider trainingSlider = new JSlider(SwingConstants.HORIZONTAL, 10, 90, 80);
+        trainingSlider.addChangeListener(e -> trainingPartLabel.setText(String.format("Train (%s%%):", trainingSlider.getValue())));
+
+
+        Object[] strategies = ReflectionUtil.listStrategyClasses().stream()
+                .map(Class::getSimpleName)
+                .toArray();
+
+        DefaultTableModel tableModel = new DefaultTableModel();
+        tableModel.addColumn("Strategy", strategies);
+
+        JTable strategiesTable = new JTable(tableModel);
+        strategiesTable.setFillsViewportHeight(true);
+        strategiesTable.setRowSelectionInterval(0, 0);
+
+        JScrollPane strategiesPane = new JScrollPane(strategiesTable);
+        setSize(strategiesPane, WEST_ITEM_WIDTH, 150);
 
         JButton startButton = new JButton("Run");
         setSize(startButton, WEST_ITEM_WIDTH, 20);
@@ -60,21 +94,42 @@ public class TestFormPanel {
         startButton.addActionListener(e -> {
             String baseVal = baseBox.getItemAt(baseBox.getSelectedIndex());
             String quoteVal = quoteBox.getItemAt(quoteBox.getSelectedIndex());
-            Integer limit = limitBox.getItemAt(limitBox.getSelectedIndex());
-
             String interval = intervalBox.getItemAt(intervalBox.getSelectedIndex());
             CandlestickInterval csInterval = CandlestickInterval.valueOf(interval);
-
             Symbol symbol = new Symbol(-1, 0, baseVal, quoteVal, null, csInterval, null);
-            Speculator speculator = createSpeculator(symbol, limit);
 
-            this.onRunClickListeners.forEach(c -> c.accept(speculator));
+            int limitValue = limitSlider.getValue();
+            int optimizationValue = optimizationSlider.getValue();
+            int stepValue = stepSlider.getValue();
+            int trainingValue = trainingSlider.getValue();
+
+            int[] selectedIndices = strategiesTable.getSelectedRows();
+            List<String> strategyList = Arrays.stream(selectedIndices)
+                    .mapToObj(value -> tableModel.getValueAt(value, 0).toString())
+                    .collect(Collectors.toList());
+
+            WalkForwardTask task = new WalkForwardTask(symbol, limitValue,
+                    optimizationValue, stepValue, trainingValue, strategyList);
+
+            WaitDialog waitDialog = new WaitDialog(el -> task.cancel());
+
+            task.addOnDoneListener(this.onRunClickListeners);
+            task.addOnDoneListener(s -> waitDialog.hide());
+
+            Thread thread = new Thread(task);
+            thread.start();
+            waitDialog.show();
         });
 
         addToForm(baseLabel, baseBox);
         addToForm(quoteLabel, quoteBox);
-        addToForm(limitLabel, limitBox);
         addToForm(intervalLabel, intervalBox);
+        addToForm(limitLabel, limitSlider);
+        addToForm(optimizationPartLabel, optimizationSlider);
+        addToForm(stepLabel, stepSlider);
+        addToForm(trainingPartLabel, trainingSlider);
+        this.panel.add(strategiesPane);
+        this.panel.add(Box.createVerticalStrut(2));
         this.panel.add(startButtonBox);
     }
 
@@ -122,4 +177,5 @@ public class TestFormPanel {
     public JPanel getTitlePanel() {
         return title.getPanel();
     }
+
 }

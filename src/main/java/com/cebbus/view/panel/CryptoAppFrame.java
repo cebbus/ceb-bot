@@ -1,6 +1,7 @@
 package com.cebbus.view.panel;
 
 import com.cebbus.binance.Speculator;
+import com.cebbus.view.panel.forward.CryptoWalkForwardTabPanel;
 import com.cebbus.view.panel.test.CryptoTestTabPanel;
 import org.jfree.chart.ui.ApplicationFrame;
 
@@ -36,7 +37,7 @@ public class CryptoAppFrame {
         speculator.addCandlestickEventOperation(response -> tabPanel.refresh());
         speculator.addStatusChangeListener(tabPanel::changeStatus);
         speculator.addManualTradeListeners(success -> {
-            if (success) {
+            if (Boolean.TRUE.equals(success)) {
                 tabPanel.refresh();
             }
         });
@@ -44,7 +45,12 @@ public class CryptoAppFrame {
 
     public void addTestTab() {
         CryptoTestTabPanel tabPanel = new CryptoTestTabPanel();
-        this.tabPane.addTab("TEST", tabPanel.getContainer());
+        this.tabPane.addTab("BACKTEST", tabPanel.getContainer());
+    }
+
+    public void addWalkForwardTab() {
+        CryptoWalkForwardTabPanel tabPanel = new CryptoWalkForwardTabPanel();
+        this.tabPane.addTab("WALK FORWARD", tabPanel.getContainer());
     }
 
     public void show() {

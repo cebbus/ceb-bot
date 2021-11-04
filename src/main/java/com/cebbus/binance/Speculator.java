@@ -68,7 +68,7 @@ public class Speculator {
         this.symbol = symbol;
         this.status = symbol.getStatus();
         this.limit = PropertyReader.getCacheSize();
-        this.restClient = ClientFactory.restClient();
+        this.restClient = ClientFactory.getRestClient();
         this.candlestickCache = LimitedHashMap.create(this.limit);
     }
 
@@ -76,7 +76,7 @@ public class Speculator {
         this.limit = limit;
         this.symbol = symbol;
         this.status = symbol.getStatus();
-        this.restClient = ClientFactory.restClient();
+        this.restClient = ClientFactory.getRestClient();
         this.candlestickCache = LimitedHashMap.create(this.limit);
     }
 
@@ -117,7 +117,7 @@ public class Speculator {
         this.listener.addOperation(new UpdateSeriesOperation(this.theOracle.getSeries()));
         this.listener.addOperation(new TradeOperation(this));
 
-        try (BinanceApiWebSocketClient client = ClientFactory.webSocketClient()) {
+        try (BinanceApiWebSocketClient client = ClientFactory.newWebSocketClient()) {
             client.onCandlestickEvent(this.symbol.getName().toLowerCase(), this.symbol.getInterval(), this.listener);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
