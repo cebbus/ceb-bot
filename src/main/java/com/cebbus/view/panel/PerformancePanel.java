@@ -3,7 +3,6 @@ package com.cebbus.view.panel;
 import com.cebbus.analysis.Symbol;
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.binance.Speculator;
-import com.cebbus.view.chart.ColorPalette;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.ta4j.core.BarSeries;
@@ -15,7 +14,6 @@ import org.ta4j.core.analysis.criteria.WinningPositionsRatioCriterion;
 import org.ta4j.core.analysis.criteria.pnl.GrossReturnCriterion;
 
 import javax.swing.*;
-import javax.swing.plaf.basic.BasicIconFactory;
 import java.awt.*;
 import java.text.DecimalFormat;
 import java.util.List;
@@ -25,7 +23,7 @@ import java.util.stream.Collectors;
 
 import static com.cebbus.view.chart.ColorPalette.*;
 
-public class PerformancePanel {
+public class PerformancePanel extends FormFieldSet {
 
     private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#,###.0000");
 
@@ -130,14 +128,6 @@ public class PerformancePanel {
         });
     }
 
-    private JLabel createTitleLabel(String text) {
-        JLabel label = new JLabel(text);
-        label.setForeground(ColorPalette.BLUE);
-        label.setIcon(BasicIconFactory.getMenuArrowIcon());
-
-        return label;
-    }
-
     private GridBagConstraints createConst(AtomicInteger rowNum, int columnNum) {
         GridBagConstraints c = new GridBagConstraints();
         c.gridx = columnNum;
@@ -146,21 +136,6 @@ public class PerformancePanel {
         c.weightx = 0.5;
 
         return c;
-    }
-
-    private JLabel createThinLabel() {
-        JLabel label = new JLabel();
-
-        Font f = label.getFont();
-        label.setFont(f.deriveFont(f.getStyle() & ~Font.BOLD));
-        return label;
-    }
-
-    private JLabel createThinLabel(String text) {
-        JLabel label = createThinLabel();
-        label.setText(text);
-
-        return label;
     }
 
     private JLabel createValueLabel(CriterionResult result) {

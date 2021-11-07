@@ -102,6 +102,10 @@ public class TheOracle {
         return new Chromosome(conf, this.cebStrategy.createGene(conf));
     }
 
+    public Number[] getProphesyParameters() {
+        return this.cebStrategy.getParameters();
+    }
+
     public void changeProphesyParameters(Number... parameters) {
         this.cebStrategy.rebuild(parameters);
     }

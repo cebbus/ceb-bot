@@ -49,8 +49,6 @@ public class OptimizeTask implements Runnable {
             }
 
             IChromosome best = genotype.getFittestChromosome();
-            log.info(best.toString());
-
             theOracle.changeProphesyParameters(chromosomeToParameters(best));
             theOracle.backtest();
 

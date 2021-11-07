@@ -3,8 +3,7 @@ package com.cebbus.view.panel.test;
 import com.cebbus.analysis.OptimizeTask;
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.binance.Speculator;
-import com.cebbus.view.chart.ColorPalette;
-import com.cebbus.view.panel.BoxTitlePanel;
+import com.cebbus.view.panel.FormFieldSet;
 import com.cebbus.view.panel.WaitDialog;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.TradingRecord;
@@ -26,27 +25,25 @@ import java.util.function.Consumer;
 import static com.cebbus.view.panel.test.CryptoTestTabPanel.RESULT_FORMAT;
 import static com.cebbus.view.panel.test.CryptoTestTabPanel.WEST_ITEM_WIDTH;
 
-public class TestResultDetailTable {
+public class TestResultDetailTable extends FormFieldSet {
 
     private final Box panel;
     private final JTable table;
     private final JButton optBtn;
-    private final BoxTitlePanel title;
     private final List<Consumer<Speculator>> onOptimizeClickListeners = new ArrayList<>();
 
     private Speculator speculator;
 
     public TestResultDetailTable() {
         this.panel = Box.createVerticalBox();
-        this.panel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        this.panel.setBorder(BorderFactory.createEmptyBorder(4, 8, 10, 8));
 
         this.table = createTable();
         this.optBtn = createOptimizeButton();
-        this.title = new BoxTitlePanel("Result Details", false);
     }
 
     private JTable createTable() {
+        Box resultDetailLabel = createTitleLabelBox("Result Details", WEST_ITEM_WIDTH, 20);
+
         DefaultTableModel tableModel = new DefaultTableModel();
         tableModel.addColumn("Metric");
         tableModel.addColumn("Value");
@@ -62,6 +59,7 @@ public class TestResultDetailTable {
         JScrollPane scrollPane = new JScrollPane(jTable);
         setSize(scrollPane, WEST_ITEM_WIDTH, 150);
 
+        this.panel.add(resultDetailLabel);
         this.panel.add(scrollPane);
 
         return jTable;
@@ -105,24 +103,10 @@ public class TestResultDetailTable {
         }
     }
 
-    private void setSize(JComponent component, int width, int height) {
-        component.setMinimumSize(new Dimension(width, height));
-        component.setMaximumSize(new Dimension(width, height));
-        component.setPreferredSize(new Dimension(width, height));
-    }
-
-    private void setColumnSize(TableColumn column, int width) {
-        column.setWidth(width);
-        column.setMinWidth(width);
-        column.setMaxWidth(width);
-        column.setPreferredWidth(width);
-    }
-
     public void reload(Speculator speculator) {
         this.speculator = speculator;
 
         this.optBtn.setEnabled(true);
-        this.title.changeStatus(true);
 
         DefaultTableModel model = (DefaultTableModel) this.table.getModel();
 
@@ -165,8 +149,6 @@ public class TestResultDetailTable {
     public void update(Speculator speculator) {
         this.speculator = speculator;
 
-        this.title.changeColor(ColorPalette.ORANGE);
-
         DefaultTableModel model = (DefaultTableModel) this.table.getModel();
 
         if (model.getColumnCount() == 2) {
@@ -208,9 +190,5 @@ public class TestResultDetailTable {
 
     public Box getPanel() {
         return panel;
-    }
-
-    public JPanel getTitlePanel() {
-        return title.getPanel();
     }
 }

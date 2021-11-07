@@ -2,7 +2,7 @@ package com.cebbus.view.panel.test;
 
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.binance.Speculator;
-import com.cebbus.view.panel.BoxTitlePanel;
+import com.cebbus.view.panel.FormFieldSet;
 import org.apache.commons.lang3.tuple.Pair;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.num.Num;
@@ -11,7 +11,6 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -21,12 +20,11 @@ import java.util.stream.Collectors;
 import static com.cebbus.view.panel.test.CryptoTestTabPanel.RESULT_FORMAT;
 import static com.cebbus.view.panel.test.CryptoTestTabPanel.WEST_ITEM_WIDTH;
 
-public class TestResultTable {
+public class TestResultTable extends FormFieldSet {
 
     private final Box panel;
     private final JTable table;
     private final JButton showBtn;
-    private final BoxTitlePanel title;
     private final List<Consumer<Speculator>> onDetailClickListeners = new ArrayList<>();
 
     private Speculator speculator;
@@ -34,15 +32,14 @@ public class TestResultTable {
 
     public TestResultTable() {
         this.panel = Box.createVerticalBox();
-        this.panel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        this.panel.setBorder(BorderFactory.createEmptyBorder(4, 0, 10, 0));
 
         this.table = createTable();
         this.showBtn = createShowButton();
-        this.title = new BoxTitlePanel("Strategy Results", false);
     }
 
     private JTable createTable() {
+        Box resultLabel = createTitleLabelBox("Strategy Results", WEST_ITEM_WIDTH, 20);
+
         DefaultTableModel tableModel = new DefaultTableModel();
         tableModel.addColumn("Strategy");
         tableModel.addColumn("Result");
@@ -71,6 +68,7 @@ public class TestResultTable {
         JScrollPane scrollPane = new JScrollPane(jTable);
         setSize(scrollPane, WEST_ITEM_WIDTH, 200);
 
+        this.panel.add(resultLabel);
         this.panel.add(scrollPane);
 
         return jTable;
@@ -104,17 +102,10 @@ public class TestResultTable {
         return new Object[]{result.getKey(), RESULT_FORMAT.format(result.getValue().doubleValue())};
     }
 
-    private void setSize(JComponent component, int width, int height) {
-        component.setMinimumSize(new Dimension(width, height));
-        component.setMaximumSize(new Dimension(width, height));
-        component.setPreferredSize(new Dimension(width, height));
-    }
-
     public void reload(Speculator speculator) {
         this.speculator = speculator;
 
         this.showBtn.setEnabled(false);
-        this.title.changeStatus(true);
 
         DefaultTableModel model = (DefaultTableModel) this.table.getModel();
         model.setRowCount(0);
@@ -130,9 +121,5 @@ public class TestResultTable {
 
     public Box getPanel() {
         return panel;
-    }
-
-    public JPanel getTitlePanel() {
-        return title.getPanel();
     }
 }

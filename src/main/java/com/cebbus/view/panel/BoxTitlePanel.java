@@ -19,7 +19,6 @@ public class BoxTitlePanel {
 
         this.panel.add(title);
         this.panel.setBackground(getColor(active));
-        this.panel.setAlignmentX(Component.LEFT_ALIGNMENT);
         this.panel.setMaximumSize(new Dimension(250, 25));
         this.panel.setPreferredSize(new Dimension(250, 25));
     }

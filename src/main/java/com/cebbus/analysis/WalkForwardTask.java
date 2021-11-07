@@ -1,11 +1,14 @@
 package com.cebbus.analysis;
 
 import com.cebbus.binance.Speculator;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBarSeries;
+import org.ta4j.core.TradingRecord;
+import org.ta4j.core.analysis.criteria.BuyAndHoldReturnCriterion;
 import org.ta4j.core.num.DecimalNum;
 import org.ta4j.core.num.Num;
 
@@ -22,6 +25,7 @@ public class WalkForwardTask implements Runnable {
     private final int stepValue;
     private final int trainingValue;
     private final List<String> strategyList;
+    private final List<Consumer<StepResult>> stepDoneListeners = new ArrayList<>();
     private final List<Consumer<Speculator>> optimizeDoneListeners = new ArrayList<>();
 
     private boolean cancelled;
@@ -44,15 +48,18 @@ public class WalkForwardTask implements Runnable {
 
     @Override
     public void run() {
-        Speculator speculator = new Speculator(this.symbol, this.limitValue);
-        speculator.loadHistory();
+        Speculator loader = new Speculator(this.symbol, this.limitValue);
+        loader.loadHistory();
 
-        List<Bar> barList = speculator.convertToBarList();
+        List<Bar> barList = loader.convertToBarList();
 
         int barSize = barList.size();
         int optBarSize = barSize * this.optimizationValue / 100;
         List<Bar> optimizationBarList = barList.subList(0, optBarSize);
         List<Bar> backtestBarList = barList.subList(optBarSize, barSize);
+
+        log.info("optimization part: {}, backtest part: {}",
+                optimizationBarList.size(), backtestBarList.size());
 
         int step = 0;
         int slice = optBarSize * this.stepValue / 100;
@@ -70,6 +77,9 @@ public class WalkForwardTask implements Runnable {
             List<Bar> trainBarList = stepBarList.subList(0, split);
             List<Bar> testBarList = stepBarList.subList(split, stepBarList.size());
 
+            log.info("bar end: {}, remain: {}, step size: {}, train size: {}, test size: {}", barEnd,
+                    remainBarSize, stepBarList.size(), trainBarList.size(), testBarList.size());
+
             Pair<String, Number[]> bestStrategy = chooseBestOnStep(trainBarList, testBarList);
             bestStrategyList.add(bestStrategy);
 
@@ -80,48 +90,125 @@ public class WalkForwardTask implements Runnable {
             }
         }
 
-        for (Pair<String, Number[]> strategyParameterPair : bestStrategyList) {
-            //TODO
+        if (!this.cancelled) {
+            Speculator speculator = chooseBest(backtestBarList, bestStrategyList);
+            this.optimizeDoneListeners.forEach(l -> l.accept(speculator));
         }
     }
 
+    private Speculator chooseBest(List<Bar> backtestBarList, List<Pair<String, Number[]>> bestStrategyList) {
+        Num bestResult = DecimalNum.valueOf(0);
+
+        TheOracle theOracle = null;
+        BarSeries backtestSeries = new BaseBarSeries(backtestBarList);
+
+        for (Pair<String, Number[]> strategyParameterPair : bestStrategyList) {
+            String strategy = strategyParameterPair.getKey();
+            Number[] parameters = strategyParameterPair.getValue();
+
+            TheOracle backtestOracle = new TheOracle(backtestSeries, strategy);
+            Num defaultResult = backtestOracle.calculateProfit();
+            Num buyAndHoldResult = calculateBuyAndHold(backtestSeries, backtestOracle.getBacktestRecord());
+
+            backtestOracle.changeProphesyParameters(parameters);
+            Num result = backtestOracle.calculateProfit();
+
+            StepResult stepResult = new StepResult();
+            stepResult.setStrategy(strategy);
+            stepResult.setTestStartBar(backtestSeries.getFirstBar());
+            stepResult.setTestEndBar(backtestSeries.getLastBar());
+            stepResult.setTestDefaultResult(defaultResult);
+            stepResult.setTestResult(result);
+            stepResult.setTestBuyAndHoldResult(buyAndHoldResult);
+            stepResult.setParameters(parameters);
+            //this.stepResultList.add(stepResult);
+            this.stepDoneListeners.forEach(l -> l.accept(stepResult));
+
+            if (result.isGreaterThan(bestResult)) {
+                bestResult = result;
+                theOracle = backtestOracle;
+
+                theOracle.backtest();
+            }
+        }
+
+        Speculator speculator = new Speculator(this.symbol, backtestBarList.size());
+        speculator.setTheOracle(theOracle);
+
+        return speculator;
+    }
+
     private Pair<String, Number[]> chooseBestOnStep(List<Bar> trainBarList, List<Bar> testBarList) {
-        String bestResultStrategy = null;
-        Number[] bestResultParameters = null;
+        String bestStrategy = null;
+        Number[] bestParameters = null;
         Num bestResult = DecimalNum.valueOf(0.0);
 
-        Speculator optimizeSpec = new Speculator(this.symbol, trainBarList.size());
         BarSeries trainSeries = new BaseBarSeries(trainBarList);
         BarSeries testSeries = new BaseBarSeries(testBarList);
 
         for (String strategy : this.strategyList) {
             TheOracle trainOracle = new TheOracle(trainSeries, strategy);
-            optimizeSpec.setTheOracle(trainOracle);
+            Num trainDefaultResult = trainOracle.calculateProfit();
+            Num trainBuyAndHoldResult = calculateBuyAndHold(trainSeries, trainOracle.getBacktestRecord());
 
-            this.optimizeTask = new OptimizeTask(optimizeSpec);
-            this.optimizeTask.optimize();
-
+            optimize(trainOracle);
             Num trainResult = trainOracle.calculateProfit();
-            log.info("Step strategy: {} Train result: {}", strategy, trainResult);
-
-            Number[] parameters = new Number[]{1, 2}; //TODO get parameters from optimized oracle
 
             TheOracle testOracle = new TheOracle(testSeries, strategy);
-            testOracle.changeProphesyParameters(parameters);
+            Number[] testDefaultParameters = testOracle.getProphesyParameters();
+            Num testDefaultResult = testOracle.calculateProfit();
+            Num testBuyAndHoldResult = calculateBuyAndHold(testSeries, testOracle.getBacktestRecord());
+
+            Number[] testParameters = trainOracle.getProphesyParameters();
+            testOracle.changeProphesyParameters(testParameters);
             Num testResult = testOracle.calculateProfit();
 
-            log.info("Step strategy: {} Test result: {}", strategy, testResult);
+            Num result = testResult.max(testDefaultResult);
+            Number[] parameters = result.equals(testResult) ? testParameters : testDefaultParameters;
 
-            if (testResult.isGreaterThan(bestResult)) {
-                bestResult = testResult;
-                bestResultStrategy = strategy;
-                bestResultParameters = parameters;
+            if (result.isGreaterThan(bestResult)) {
+                bestResult = result;
+                bestStrategy = strategy;
+                bestParameters = parameters;
+            }
+
+            StepResult stepResult = new StepResult();
+            stepResult.setStrategy(strategy);
+            stepResult.setTrainStartBar(trainSeries.getFirstBar());
+            stepResult.setTrainEndBar(trainSeries.getLastBar());
+            stepResult.setTestStartBar(testSeries.getFirstBar());
+            stepResult.setTestEndBar(testSeries.getLastBar());
+            stepResult.setTrainDefaultResult(trainDefaultResult);
+            stepResult.setTrainResult(trainResult);
+            stepResult.setTrainBuyAndHoldResult(trainBuyAndHoldResult);
+            stepResult.setTestDefaultResult(testDefaultResult);
+            stepResult.setTestResult(testResult);
+            stepResult.setTestBuyAndHoldResult(testBuyAndHoldResult);
+            stepResult.setParameters(parameters);
+            //this.stepResultList.add(stepResult);
+            this.stepDoneListeners.forEach(l -> l.accept(stepResult));
+
+            if (this.cancelled) {
+                return Pair.of("", new Number[0]);
             }
         }
 
-        log.info("Best step strategy: {} Best result: {}", bestResultStrategy, bestResult);
+        log.info("best step strategy: {} best result: {}", bestStrategy, bestResult);
 
-        return Pair.of(bestResultStrategy, bestResultParameters);
+        return Pair.of(bestStrategy, bestParameters);
+    }
+
+    private void optimize(TheOracle trainOracle) {
+        Speculator spec = new Speculator(this.symbol);
+        spec.setTheOracle(trainOracle);
+
+        this.optimizeTask = new OptimizeTask(spec);
+        this.optimizeTask.optimize();
+    }
+
+    private Num calculateBuyAndHold(BarSeries series, TradingRecord tradingRecord) {
+        BuyAndHoldReturnCriterion criterion = new BuyAndHoldReturnCriterion();
+        return criterion.calculate(series, tradingRecord);
     }
 
     public void addOnDoneListener(List<Consumer<Speculator>> operations) {
@@ -132,11 +219,31 @@ public class WalkForwardTask implements Runnable {
         this.optimizeDoneListeners.add(operation);
     }
 
+    public void addOnStepDoneListener(List<Consumer<StepResult>> operation) {
+        this.stepDoneListeners.addAll(operation);
+    }
+
     public void cancel() {
         this.cancelled = true;
 
         if (this.optimizeTask != null) {
             this.optimizeTask.cancel();
         }
+    }
+
+    @Data
+    public static final class StepResult {
+        private String strategy;
+        private Bar trainStartBar;
+        private Bar trainEndBar;
+        private Bar testStartBar;
+        private Bar testEndBar;
+        private Num trainDefaultResult;
+        private Num trainResult;
+        private Num trainBuyAndHoldResult;
+        private Num testDefaultResult;
+        private Num testResult;
+        private Num testBuyAndHoldResult;
+        private Number[] parameters;
     }
 }

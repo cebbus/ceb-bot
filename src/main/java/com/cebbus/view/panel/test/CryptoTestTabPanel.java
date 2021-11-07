@@ -1,5 +1,7 @@
 package com.cebbus.view.panel.test;
 
+import com.cebbus.view.panel.BoxTitlePanel;
+
 import javax.swing.*;
 import java.awt.*;
 import java.text.DecimalFormat;
@@ -29,7 +31,11 @@ public class CryptoTestTabPanel {
     }
 
     public void addWestPanel() {
+        BoxTitlePanel titlePanel = new BoxTitlePanel("Test Form");
+
         Box box = Box.createVerticalBox();
+        box.add(titlePanel.getPanel());
+
         addForm(box);
         addResultTable(box);
         addResultDetailTable(box);
@@ -40,24 +46,24 @@ public class CryptoTestTabPanel {
     public void addForm(Box box) {
         this.formPanel.addRunClickListeners(this.resultTable::reload);
 
-        box.add(this.formPanel.getTitlePanel());
         box.add(this.formPanel.getPanel());
+        box.add(Box.createVerticalStrut(10));
     }
 
     public void addResultTable(Box box) {
         this.resultTable.addDetailClickListener(this.chartPanel::recreate);
         this.resultTable.addDetailClickListener(this.resultDetailTable::reload);
 
-        box.add(this.resultTable.getTitlePanel());
         box.add(this.resultTable.getPanel());
+        box.add(Box.createVerticalStrut(10));
     }
 
     public void addResultDetailTable(Box box) {
         this.resultDetailTable.addOptimizeClickListener(this.chartPanel::recreate);
         this.resultDetailTable.addOptimizeClickListener(this.resultDetailTable::update);
 
-        box.add(this.resultDetailTable.getTitlePanel());
         box.add(this.resultDetailTable.getPanel());
+        box.add(Box.createVerticalStrut(10));
     }
 
     private void addChartListPanel() {

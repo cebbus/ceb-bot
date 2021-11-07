@@ -2,18 +2,15 @@ package com.cebbus.view.panel.forward;
 
 import com.binance.api.client.domain.market.CandlestickInterval;
 import com.cebbus.analysis.Symbol;
-import com.cebbus.analysis.TheOracle;
 import com.cebbus.analysis.WalkForwardTask;
+import com.cebbus.analysis.WalkForwardTask.StepResult;
 import com.cebbus.binance.Speculator;
 import com.cebbus.util.ReflectionUtil;
-import com.cebbus.view.panel.BoxTitlePanel;
+import com.cebbus.view.panel.FormFieldSet;
 import com.cebbus.view.panel.WaitDialog;
-import org.ta4j.core.BarSeries;
-import org.ta4j.core.BaseBarSeries;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -24,48 +21,45 @@ import static com.cebbus.view.panel.ConstantDataFactory.getIntervals;
 import static com.cebbus.view.panel.ConstantDataFactory.getSymbols;
 import static com.cebbus.view.panel.forward.CryptoWalkForwardTabPanel.WEST_ITEM_WIDTH;
 
-public class WalkForwardFormPanel {
+public class WalkForwardFormPanel extends FormFieldSet {
 
     private final Box panel;
-    private final BoxTitlePanel title;
+    private final List<Consumer<StepResult>> stepDoneListeners = new ArrayList<>();
     private final List<Consumer<Speculator>> onRunClickListeners = new ArrayList<>();
 
     public WalkForwardFormPanel() {
         this.panel = Box.createVerticalBox();
-        this.panel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        this.panel.setBorder(BorderFactory.createEmptyBorder(4, 8, 10, 8));
-
-        this.title = new BoxTitlePanel("Walk Forward Form");
-
         createForm();
     }
 
     private void createForm() {
-        JLabel baseLabel = new JLabel("Base: ");
+        Box inputFormBox = createTitleLabelBox("Input Form", WEST_ITEM_WIDTH, 20);
+
+        JLabel baseLabel = createThinLabel("Base: ");
         JComboBox<String> baseBox = new JComboBox<>(getSymbols());
         baseBox.setSelectedItem("BTC");
 
-        JLabel quoteLabel = new JLabel("Quote: ");
+        JLabel quoteLabel = createThinLabel("Quote: ");
         JComboBox<String> quoteBox = new JComboBox<>(getSymbols());
         quoteBox.setSelectedItem("USDT");
 
-        JLabel intervalLabel = new JLabel("Interval: ");
+        JLabel intervalLabel = createThinLabel("Interval: ");
         JComboBox<String> intervalBox = new JComboBox<>(getIntervals());
         intervalBox.setSelectedItem("DAILY");
 
-        JLabel limitLabel = new JLabel("Limit (1000): ");
+        JLabel limitLabel = createThinLabel("Limit (1000): ");
         JSlider limitSlider = new JSlider(SwingConstants.HORIZONTAL, 10, 1000, 1000);
         limitSlider.addChangeListener(e -> limitLabel.setText(String.format("Limit (%s):", limitSlider.getValue())));
 
-        JLabel optimizationPartLabel = new JLabel("Optim (60%):");
+        JLabel optimizationPartLabel = createThinLabel("Optim (60%):");
         JSlider optimizationSlider = new JSlider(SwingConstants.HORIZONTAL, 10, 90, 60);
         optimizationSlider.addChangeListener(e -> optimizationPartLabel.setText(String.format("Optim (%s%%):", optimizationSlider.getValue())));
 
-        JLabel stepLabel = new JLabel("Step (25%): ");
+        JLabel stepLabel = createThinLabel("Step (25%): ");
         JSlider stepSlider = new JSlider(SwingConstants.HORIZONTAL, 10, 100, 25);
         stepSlider.addChangeListener(e -> stepLabel.setText(String.format("Step (%s%%):", stepSlider.getValue())));
 
-        JLabel trainingPartLabel = new JLabel("Train (80%):");
+        JLabel trainingPartLabel = createThinLabel("Train (80%):");
         JSlider trainingSlider = new JSlider(SwingConstants.HORIZONTAL, 10, 90, 80);
         trainingSlider.addChangeListener(e -> trainingPartLabel.setText(String.format("Train (%s%%):", trainingSlider.getValue())));
 
@@ -115,67 +109,36 @@ public class WalkForwardFormPanel {
 
             task.addOnDoneListener(this.onRunClickListeners);
             task.addOnDoneListener(s -> waitDialog.hide());
+            task.addOnStepDoneListener(this.stepDoneListeners);
 
             Thread thread = new Thread(task);
             thread.start();
             waitDialog.show();
         });
 
-        addToForm(baseLabel, baseBox);
-        addToForm(quoteLabel, quoteBox);
-        addToForm(intervalLabel, intervalBox);
-        addToForm(limitLabel, limitSlider);
-        addToForm(optimizationPartLabel, optimizationSlider);
-        addToForm(stepLabel, stepSlider);
-        addToForm(trainingPartLabel, trainingSlider);
+        this.panel.add(inputFormBox);
+        addToForm(this.panel, baseLabel, baseBox, WEST_ITEM_WIDTH);
+        addToForm(this.panel, quoteLabel, quoteBox, WEST_ITEM_WIDTH);
+        addToForm(this.panel, intervalLabel, intervalBox, WEST_ITEM_WIDTH);
+        addToForm(this.panel, limitLabel, limitSlider, WEST_ITEM_WIDTH);
+        addToForm(this.panel, optimizationPartLabel, optimizationSlider, WEST_ITEM_WIDTH);
+        addToForm(this.panel, stepLabel, stepSlider, WEST_ITEM_WIDTH);
+        addToForm(this.panel, trainingPartLabel, trainingSlider, WEST_ITEM_WIDTH);
         this.panel.add(strategiesPane);
         this.panel.add(Box.createVerticalStrut(2));
         this.panel.add(startButtonBox);
-    }
-
-    private void addToForm(JLabel label, JComponent component) {
-        setSize(label, 75, 20);
-        label.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        setSize(component, WEST_ITEM_WIDTH - 75, 20);
-        component.setAlignmentX(Component.RIGHT_ALIGNMENT);
-
-        Box box = Box.createHorizontalBox();
-        setSize(box, WEST_ITEM_WIDTH, 20);
-        box.add(label);
-        box.add(component);
-
-        this.panel.add(box);
-        this.panel.add(Box.createVerticalStrut(2));
-    }
-
-    private void setSize(JComponent component, int width, int height) {
-        component.setMinimumSize(new Dimension(width, height));
-        component.setMaximumSize(new Dimension(width, height));
-        component.setPreferredSize(new Dimension(width, height));
-    }
-
-    private Speculator createSpeculator(Symbol symbol, int limit) {
-        Speculator speculator = new Speculator(symbol, limit);
-        speculator.loadHistory();
-
-        BarSeries series = new BaseBarSeries(speculator.convertToBarList());
-        TheOracle theOracle = new TheOracle(series, "JunkStrategy");
-        speculator.setTheOracle(theOracle);
-
-        return speculator;
     }
 
     public void addRunClickListeners(Consumer<Speculator> operation) {
         this.onRunClickListeners.add(operation);
     }
 
-    public Box getPanel() {
-        return panel;
+    public void addOnStepDoneListener(Consumer<StepResult> operation) {
+        this.stepDoneListeners.add(operation);
     }
 
-    public JPanel getTitlePanel() {
-        return title.getPanel();
+    public Box getPanel() {
+        return panel;
     }
 
 }
