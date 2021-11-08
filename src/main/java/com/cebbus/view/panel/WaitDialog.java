@@ -56,7 +56,6 @@ public class WaitDialog {
         this.dialog.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
         this.dialog.setLocationRelativeTo(rootFrame);
-        this.dialog.setAlwaysOnTop(true);
         this.dialog.setResizable(false);
         this.dialog.add(box, BorderLayout.CENTER);
     }
