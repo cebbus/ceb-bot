@@ -11,6 +11,7 @@ import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.num.Num;
 import org.ta4j.core.rules.BooleanRule;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -40,5 +41,10 @@ public class JunkStrategy extends BaseCebStrategy {
     @Override
     public Gene[] createGene(Configuration conf) throws InvalidConfigurationException {
         return new Gene[0];
+    }
+
+    @Override
+    public Map<String, Number> getParameterMap() {
+        return Collections.emptyMap();
     }
 }

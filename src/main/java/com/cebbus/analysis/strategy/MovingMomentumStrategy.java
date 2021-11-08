@@ -84,4 +84,17 @@ public class MovingMomentumStrategy extends BaseCebStrategy {
         return new Gene[]{shortEmaBarCount, longEmaBarCount, stoBarCount, macdEmaBarCount, stocBuyThreshold, stocSellThreshold};
     }
 
+    @Override
+    public Map<String, Number> getParameterMap() {
+        Map<String, Number> map = new LinkedHashMap<>(this.parameters.length);
+        map.put("Short EMA Bar Count", this.parameters[0]);
+        map.put("Long EMA Bar Count", this.parameters[1]);
+        map.put("Stochastic Oscillator Bar Count", this.parameters[2]);
+        map.put("MACD EMA Bar Count", this.parameters[3]);
+        map.put("Stochastic Oscillator Buy Threshold", this.parameters[4]);
+        map.put("Stochastic Oscillator Sell Threshold", this.parameters[5]);
+
+        return map;
+    }
+
 }

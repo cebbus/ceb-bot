@@ -17,6 +17,7 @@ public class CryptoTestTabPanel {
     private final TestFormPanel formPanel;
     private final TestResultTable resultTable;
     private final TestResultDetailTable resultDetailTable;
+    private final TestParameterTable parameterTable;
     private final TestChartPanel chartPanel;
 
     public CryptoTestTabPanel() {
@@ -25,6 +26,7 @@ public class CryptoTestTabPanel {
         this.formPanel = new TestFormPanel();
         this.resultTable = new TestResultTable();
         this.resultDetailTable = new TestResultDetailTable();
+        this.parameterTable = new TestParameterTable();
         this.chartPanel = new TestChartPanel();
 
         addWestPanel();
@@ -40,6 +42,7 @@ public class CryptoTestTabPanel {
         addForm(box);
         addResultTable(box);
         addResultDetailTable(box);
+        addParameterTable(box);
 
         this.container.add(box, BorderLayout.WEST);
     }
@@ -54,6 +57,7 @@ public class CryptoTestTabPanel {
     public void addResultTable(Box box) {
         this.resultTable.addDetailClickListener(this.chartPanel::recreate);
         this.resultTable.addDetailClickListener(this.resultDetailTable::reload);
+        this.resultTable.addDetailClickListener(this.parameterTable::reload);
 
         box.add(this.resultTable.getPanel());
         box.add(Box.createVerticalStrut(10));
@@ -62,8 +66,17 @@ public class CryptoTestTabPanel {
     public void addResultDetailTable(Box box) {
         this.resultDetailTable.addOptimizeDoneListener(this.chartPanel::recreate);
         this.resultDetailTable.addOptimizeDoneListener(this.resultDetailTable::update);
+        this.resultDetailTable.addOptimizeDoneListener(this.parameterTable::reload);
 
         box.add(this.resultDetailTable.getPanel());
+        box.add(Box.createVerticalStrut(10));
+    }
+
+    public void addParameterTable(Box box) {
+        this.parameterTable.addApplyListener(this.chartPanel::recreate);
+        this.parameterTable.addApplyListener(this.resultDetailTable::update);
+
+        box.add(this.parameterTable.getPanel());
         box.add(Box.createVerticalStrut(10));
     }
 

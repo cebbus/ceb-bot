@@ -56,4 +56,13 @@ public class MacdStrategy extends BaseCebStrategy {
         IntegerGene emaThreshold = new IntegerGene(conf, -10, 10);
         return new Gene[]{emaBarCount, emaThreshold};
     }
+
+    @Override
+    public Map<String, Number> getParameterMap() {
+        Map<String, Number> map = new LinkedHashMap<>(this.parameters.length);
+        map.put("EMA Bar Count", this.parameters[0]);
+        map.put("EMA Threshold", this.parameters[1]);
+
+        return map;
+    }
 }

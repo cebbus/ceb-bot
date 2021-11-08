@@ -9,6 +9,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.text.DecimalFormat;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 
 public class WalkForwardStepResultTable {
 
@@ -23,14 +24,15 @@ public class WalkForwardStepResultTable {
         model.addColumn("Strategy");
         model.addColumn("Optimize Start");
         model.addColumn("Optimize End");
-        model.addColumn("Test Start");
-        model.addColumn("Test End");
         model.addColumn("Optimize Before Result");
         model.addColumn("Optimize After Result");
-        model.addColumn("Optimize Buy and Hold Result");
+        model.addColumn("Optimize HODL");
+        model.addColumn("Test Start");
+        model.addColumn("Test End");
         model.addColumn("Test Default Result");
         model.addColumn("Test Optimize Result");
-        model.addColumn("Test Buy and Hold Result");
+        model.addColumn("Test HODL");
+        model.addColumn("Parameters");
 
         this.table = new JTable(model);
         this.table.setFillsViewportHeight(true);
@@ -50,18 +52,19 @@ public class WalkForwardStepResultTable {
     }
 
     private Object[] resultToRow(StepResult result) {
-        Object[] row = new Object[11];
+        Object[] row = new Object[12];
         row[0] = result.getStrategy();
         row[1] = barToTime(result.getTrainStartBar());
         row[2] = barToTime(result.getTrainEndBar());
-        row[3] = barToTime(result.getTestStartBar());
-        row[4] = barToTime(result.getTestEndBar());
-        row[5] = numToFormattedResult(result.getTrainDefaultResult());
-        row[6] = numToFormattedResult(result.getTrainResult());
-        row[7] = numToFormattedResult(result.getTrainBuyAndHoldResult());
+        row[3] = numToFormattedResult(result.getTrainDefaultResult());
+        row[4] = numToFormattedResult(result.getTrainResult());
+        row[5] = numToFormattedResult(result.getTrainBuyAndHoldResult());
+        row[6] = barToTime(result.getTestStartBar());
+        row[7] = barToTime(result.getTestEndBar());
         row[8] = numToFormattedResult(result.getTestDefaultResult());
         row[9] = numToFormattedResult(result.getTestResult());
         row[10] = numToFormattedResult(result.getTestBuyAndHoldResult());
+        row[11] = Arrays.toString(result.getParameters());
 
         return row;
     }

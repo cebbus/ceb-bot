@@ -55,4 +55,14 @@ public class RsiStrategy extends BaseCebStrategy {
 
         return new Gene[]{rsiBarCount, entryThreshold, exitThreshold};
     }
+
+    @Override
+    public Map<String, Number> getParameterMap() {
+        Map<String, Number> map = new LinkedHashMap<>(this.parameters.length);
+        map.put("RSI Bar Count", this.parameters[0]);
+        map.put("RSI Buy Threshold", this.parameters[1]);
+        map.put("RSI Sell Threshold", this.parameters[2]);
+
+        return map;
+    }
 }

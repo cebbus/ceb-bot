@@ -47,7 +47,6 @@ public abstract class CryptoChart {
         ZonedDateTime dateTime = this.series.getBar(index).getEndTime();
         double barTime = convertToPeriod(dateTime).getFirstMillisecond();
 
-        Marker marker = new ValueMarker(barTime);
         Color color;
         if (backtest) {
             color = trade.isBuy() ? ColorPalette.ORANGE : ColorPalette.PURPLE;
@@ -55,6 +54,7 @@ public abstract class CryptoChart {
             color = trade.isBuy() ? ColorPalette.GREEN : ColorPalette.RED;
         }
 
+        Marker marker = new ValueMarker(barTime);
         marker.setLabel(trade.isBuy() ? "B" : "S");
         marker.setPaint(color);
         marker.setLabelBackgroundColor(color);

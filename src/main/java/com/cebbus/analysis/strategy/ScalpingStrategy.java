@@ -65,4 +65,14 @@ public class ScalpingStrategy extends BaseCebStrategy {
         return new Gene[]{shortBarCount, middleBarCount, longBarCount};
     }
 
+    @Override
+    public Map<String, Number> getParameterMap() {
+        Map<String, Number> map = new LinkedHashMap<>(this.parameters.length);
+        map.put("Short SMA Bar Count", this.parameters[0]);
+        map.put("Middle SMA Bar Count", this.parameters[1]);
+        map.put("Long SMA Bar Count", this.parameters[2]);
+
+        return map;
+    }
+
 }

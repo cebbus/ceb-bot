@@ -71,4 +71,14 @@ public class AdxStrategy extends BaseCebStrategy {
 
         return new Gene[]{smaBarCount, adxBarCount, adxThreshold};
     }
+
+    @Override
+    public Map<String, Number> getParameterMap() {
+        Map<String, Number> map = new LinkedHashMap<>(this.parameters.length);
+        map.put("SMA Bar Count", this.parameters[0]);
+        map.put("ADX Bar Count", this.parameters[1]);
+        map.put("ADX Threshold", this.parameters[2]);
+
+        return map;
+    }
 }

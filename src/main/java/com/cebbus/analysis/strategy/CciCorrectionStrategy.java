@@ -46,8 +46,11 @@ public class CciCorrectionStrategy extends BaseCebStrategy {
         Strategy strategy = new BaseStrategy("CCI", entryRule, exitRule, 5);
 
         Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
+
+        indicators.put("CPI", new LinkedHashMap<>());
+        indicators.get("CPI").put("CPI", closePrice);
+
         indicators.put("CCI", new LinkedHashMap<>());
-        indicators.get("CCI").put("CPI", closePrice);
         indicators.get("CCI").put(String.format("CCI (%s)", shortCciBarCount), shortCci);
         indicators.get("CCI").put(String.format("CCI (%s)", longCciBarCount), longCci);
 
@@ -60,6 +63,15 @@ public class CciCorrectionStrategy extends BaseCebStrategy {
         IntegerGene shortCciBarCount = new IntegerGene(conf, 1, 50);
 
         return new Gene[]{longCciBarCount, shortCciBarCount};
+    }
+
+    @Override
+    public Map<String, Number> getParameterMap() {
+        Map<String, Number> map = new LinkedHashMap<>(this.parameters.length);
+        map.put("Long CCI Bar Count", this.parameters[0]);
+        map.put("Short CCI Bar Count", this.parameters[1]);
+
+        return map;
     }
 
 }

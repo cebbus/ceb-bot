@@ -27,6 +27,8 @@ public interface CebStrategy {
 
     Number[] getParameters();
 
+    Map<String, Number> getParameterMap();
+
     @Data
     final class BuilderResult {
         private final Strategy strategy;

@@ -106,6 +106,10 @@ public class TheOracle {
         return this.cebStrategy.getParameters();
     }
 
+    public Map<String, Number> getProphesyParameterMap() {
+        return this.cebStrategy.getParameterMap();
+    }
+
     public void changeProphesyParameters(Number... parameters) {
         this.cebStrategy.rebuild(parameters);
     }

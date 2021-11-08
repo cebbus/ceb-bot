@@ -8,10 +8,7 @@ import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.CachedIndicator;
 import org.ta4j.core.num.Num;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class CombinedStrategy extends BaseCebStrategy {
@@ -71,6 +68,12 @@ public class CombinedStrategy extends BaseCebStrategy {
         return geneList.stream()
                 .flatMap(Stream::of)
                 .toArray(Gene[]::new);
+    }
+
+    //FIXME
+    @Override
+    public Map<String, Number> getParameterMap() {
+        return Collections.emptyMap();
     }
 
     public static CombinedStrategy combine(BarSeries series, List<CebStrategy> strategies, boolean and) {

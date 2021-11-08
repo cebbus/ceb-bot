@@ -63,4 +63,14 @@ public class GlobalExtremaStrategy extends BaseCebStrategy {
         return new Gene[]{priceBarCount, highCoefficient, lowCoefficient};
     }
 
+    @Override
+    public Map<String, Number> getParameterMap() {
+        Map<String, Number> map = new LinkedHashMap<>(this.parameters.length);
+        map.put("Price Bar Count", this.parameters[0]);
+        map.put("High Coefficient", this.parameters[1]);
+        map.put("Low Coefficient", this.parameters[2]);
+
+        return map;
+    }
+
 }
