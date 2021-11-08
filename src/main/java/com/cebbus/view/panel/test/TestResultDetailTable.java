@@ -30,7 +30,7 @@ public class TestResultDetailTable extends FormFieldSet {
     private final Box panel;
     private final JTable table;
     private final JButton optBtn;
-    private final List<Consumer<Speculator>> onOptimizeClickListeners = new ArrayList<>();
+    private final List<Consumer<Speculator>> onOptimizeDoneListeners = new ArrayList<>();
 
     private Speculator speculator;
 
@@ -75,7 +75,7 @@ public class TestResultDetailTable extends FormFieldSet {
 
             WaitDialog waitDialog = new WaitDialog(el -> task.cancel());
 
-            task.addOnDoneListener(this.onOptimizeClickListeners);
+            task.addOnDoneListener(this.onOptimizeDoneListeners);
             task.addOnDoneListener(s -> waitDialog.hide());
 
             Thread thread = new Thread(task);
@@ -184,8 +184,8 @@ public class TestResultDetailTable extends FormFieldSet {
         model.setValueAt(RESULT_FORMAT.format(winningRatio * 100), 5, 2);
     }
 
-    public void addOptimizeClickListener(Consumer<Speculator> operation) {
-        this.onOptimizeClickListeners.add(operation);
+    public void addOptimizeDoneListener(Consumer<Speculator> operation) {
+        this.onOptimizeDoneListeners.add(operation);
     }
 
     public Box getPanel() {

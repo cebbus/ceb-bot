@@ -1,5 +1,6 @@
 package com.cebbus.view.panel.test;
 
+import com.cebbus.view.chart.ColorPalette;
 import com.cebbus.view.panel.BoxTitlePanel;
 
 import javax.swing.*;
@@ -59,8 +60,8 @@ public class CryptoTestTabPanel {
     }
 
     public void addResultDetailTable(Box box) {
-        this.resultDetailTable.addOptimizeClickListener(this.chartPanel::recreate);
-        this.resultDetailTable.addOptimizeClickListener(this.resultDetailTable::update);
+        this.resultDetailTable.addOptimizeDoneListener(this.chartPanel::recreate);
+        this.resultDetailTable.addOptimizeDoneListener(this.resultDetailTable::update);
 
         box.add(this.resultDetailTable.getPanel());
         box.add(Box.createVerticalStrut(10));
@@ -68,6 +69,8 @@ public class CryptoTestTabPanel {
 
     private void addChartListPanel() {
         JPanel chart = this.chartPanel.getPanel();
+        chart.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 0, ColorPalette.DARK_GRAY));
+
         this.container.add(chart, BorderLayout.CENTER);
     }
 
