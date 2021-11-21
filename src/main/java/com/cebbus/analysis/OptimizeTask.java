@@ -49,8 +49,7 @@ public class OptimizeTask implements Runnable {
             }
 
             IChromosome best = genotype.getFittestChromosome();
-            theOracle.changeProphesyParameters(chromosomeToParameters(best));
-            theOracle.backtest();
+            this.speculator.changeParameters(chromosomeToParameters(best));
 
             this.optimizeDoneListeners.forEach(c -> c.accept(this.speculator));
         } catch (InvalidConfigurationException e) {

@@ -74,10 +74,7 @@ public class TestParameterTable extends FormFieldSet {
                 }
             }
 
-            TheOracle theOracle = this.speculator.getTheOracle();
-            theOracle.changeProphesyParameters(parameters);
-            theOracle.backtest();
-
+            this.speculator.changeParameters(parameters);
             this.onApplyListeners.forEach(l -> l.accept(this.speculator));
         });
 
