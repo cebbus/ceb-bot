@@ -34,6 +34,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -55,11 +56,15 @@ public class Speculator {
 
     @Getter(value = AccessLevel.NONE)
     @Setter(value = AccessLevel.NONE)
-    private final List<Consumer<Boolean>> manualTradeListeners = new ArrayList<>();
+    private final List<Consumer<Boolean>> manualTradeListeners = new CopyOnWriteArrayList<>();
 
     @Getter(value = AccessLevel.NONE)
     @Setter(value = AccessLevel.NONE)
-    private final List<Consumer<TradeStatus>> statusChangeListeners = new ArrayList<>();
+    private final List<Consumer<TradeStatus>> statusChangeListeners = new CopyOnWriteArrayList<>();
+
+    @Getter(value = AccessLevel.NONE)
+    @Setter(value = AccessLevel.NONE)
+    private final List<Consumer<Speculator>> parameterChangeListeners = new CopyOnWriteArrayList<>();
 
     private TradeStatus status;
     private TheOracle theOracle;
@@ -128,16 +133,38 @@ public class Speculator {
         return this.candlestickCache.values().stream().map(BarMapper::valueOf).collect(Collectors.toList());
     }
 
-    public void addCandlestickEventOperation(EventOperation operation) {
-        this.listener.addOperation(operation);
+    public int addCandlestickEventOperation(EventOperation operation) {
+        return this.listener.addOperation(operation);
     }
 
-    public void addStatusChangeListener(Consumer<TradeStatus> operation) {
+    public void removeCandlestickEventOperation(int index) {
+        this.listener.removeOperation(index);
+    }
+
+    public int addStatusChangeListener(Consumer<TradeStatus> operation) {
         this.statusChangeListeners.add(operation);
+        return this.statusChangeListeners.size() - 1;
     }
 
-    public void addManualTradeListeners(Consumer<Boolean> operation) {
+    public void removeStatusChangeListener(int index) {
+        this.statusChangeListeners.remove(index);
+    }
+
+    public void addParameterChangeListener(Consumer<Speculator> operation) {
+        this.parameterChangeListeners.add(operation);
+    }
+
+    public void clearParameterChangeListener() {
+        this.parameterChangeListeners.clear();
+    }
+
+    public int addManualTradeListeners(Consumer<Boolean> operation) {
         this.manualTradeListeners.add(operation);
+        return this.manualTradeListeners.size() - 1;
+    }
+
+    public void removeManualTradeListeners(int index) {
+        this.manualTradeListeners.remove(index);
     }
 
     public boolean buy() {
@@ -166,6 +193,13 @@ public class Speculator {
         Objects.requireNonNull(this.theOracle);
 
         return this.theOracle.calcStrategies();
+    }
+
+    public void changeParameters(Number... parameters) {
+        this.theOracle.changeProphesyParameters(parameters);
+        this.theOracle.backtest();
+
+        this.parameterChangeListeners.forEach(o -> o.accept(this));
     }
 
     private boolean trade(boolean isBuy) {

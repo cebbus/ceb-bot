@@ -89,7 +89,7 @@ public class PerformancePanel extends FormFieldSet {
         panel.add(createTitleLabel("Symbol Informations"), createConst(rowNum, 0));
         panel.add(new JLabel(""), createConst(rowNum, 1));
 
-        String name = capitalizeWord(this.symbol.getBase()) + " & " + capitalizeWord(this.symbol.getQuote());
+        String name = capitalizeWord(this.symbol.getBase()) + "/" + capitalizeWord(this.symbol.getQuote());
 
         this.infoLabelMap.put("Symbol", createThinLabel(name));
         this.infoLabelMap.put("Strategy", createThinLabel(this.symbol.getStrategy().replace("Strategy", "")));
