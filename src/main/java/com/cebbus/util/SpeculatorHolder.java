@@ -44,7 +44,7 @@ public class SpeculatorHolder {
         String quote = symbol.getQuote();
         double weight = symbol.getWeight();
         double totalWeight = SPECULATORS.stream()
-                .filter(s -> !inPosition(s))
+                .filter(s -> !isInPosition(s))
                 .filter(s -> s.getSymbol().getQuote().equals(quote))
                 .mapToDouble(s -> s.getSymbol().getWeight())
                 .sum();
@@ -108,9 +108,9 @@ public class SpeculatorHolder {
         return this.lockedBy != null;
     }
 
-    private boolean inPosition(Speculator speculator) {
+    private boolean isInPosition(Speculator speculator) {
         TradingRecord tradingRecord = speculator.getTheOracle().getTradingRecord();
         Trade lastTrade = tradingRecord.getLastTrade();
-        return lastTrade.isBuy();
+        return lastTrade != null && lastTrade.isBuy();
     }
 }
