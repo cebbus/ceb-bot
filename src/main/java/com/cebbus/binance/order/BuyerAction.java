@@ -3,6 +3,7 @@ package com.cebbus.binance.order;
 import com.binance.api.client.domain.account.AssetBalance;
 import com.binance.api.client.domain.account.NewOrder;
 import com.binance.api.client.domain.account.NewOrderResponse;
+import com.binance.api.client.domain.general.SymbolInfo;
 import com.cebbus.binance.Speculator;
 import com.cebbus.exception.ZeroWeightException;
 import com.cebbus.util.SpeculatorHolder;
@@ -12,6 +13,7 @@ import org.ta4j.core.Trade;
 import org.ta4j.core.TradingRecord;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 @Slf4j
 public class BuyerAction extends TraderAction {
@@ -69,9 +71,12 @@ public class BuyerAction extends TraderAction {
             throw new ZeroWeightException("weight must be greater than zero");
         }
 
+        SymbolInfo symbolInfo = getSymbolInfo();
+
         AssetBalance balance = getBalance(this.symbol.getQuote());
         BigDecimal quantity = new BigDecimal(balance.getFree())
-                .multiply(new BigDecimal(weight));
+                .multiply(new BigDecimal(weight))
+                .setScale(symbolInfo.getQuotePrecision(), RoundingMode.HALF_DOWN);
 
         NewOrder buyOrder = NewOrder
                 .marketBuy(this.symbol.getName(), null)

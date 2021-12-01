@@ -64,8 +64,12 @@ public abstract class TraderAction {
     }
 
     SymbolFilter getLotSizeFilter() {
-        SymbolInfo symbolInfo = this.restClient.getExchangeInfo().getSymbolInfo(this.symbol.getName());
+        SymbolInfo symbolInfo = getSymbolInfo();
         return symbolInfo.getSymbolFilter(FilterType.LOT_SIZE);
+    }
+
+    SymbolInfo getSymbolInfo() {
+        return this.restClient.getExchangeInfo().getSymbolInfo(this.symbol.getName());
     }
 
     Trade createBacktestRecord() {
