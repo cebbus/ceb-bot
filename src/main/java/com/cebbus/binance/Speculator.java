@@ -241,7 +241,7 @@ public class Speculator {
 
         int startIndex = Math.max(series.getRemovedBarsCount(), series.getBeginIndex());
         int endIndex = series.getEndIndex();
-        for (int i = startIndex; i < endIndex; i++) {
+        for (int i = startIndex; i <= endIndex; i++) {
             Bar bar = series.getBar(i);
 
             ZonedDateTime beginTime = bar.getBeginTime();

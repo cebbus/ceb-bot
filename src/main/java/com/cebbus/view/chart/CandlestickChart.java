@@ -63,7 +63,7 @@ public class CandlestickChart extends CryptoChart {
     private OHLCDataset createChartData() {
         int startIndex = getStartIndex();
         int endIndex = this.series.getEndIndex();
-        for (int i = startIndex; i < endIndex; i++) {
+        for (int i = startIndex; i <= endIndex; i++) {
             Bar bar = this.series.getBar(i);
             this.ohlcSeries.add(createItem(bar));
         }

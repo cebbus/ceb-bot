@@ -106,7 +106,7 @@ public class LineChart extends CryptoChart {
 
         int startIndex = getStartIndex();
         int endIndex = this.series.getEndIndex();
-        for (int i = startIndex; i < endIndex; i++) {
+        for (int i = startIndex; i <= endIndex; i++) {
             Bar bar = this.series.getBar(i);
 
             RegularTimePeriod period = convertToPeriod(bar.getEndTime());
