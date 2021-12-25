@@ -116,7 +116,7 @@ public class PerformancePanel extends FormFieldSet {
     }
 
     private void addTradingPart(JPanel panel, AtomicInteger rowNum) {
-        panel.add(createTitleLabel("Current Results"), createConst(rowNum, 0));
+        panel.add(createTitleLabel("Trade Results"), createConst(rowNum, 0));
         panel.add(new JLabel(""), createConst(rowNum, 1));
 
         List<CriterionResult> currentResultList = createCriterionMap(this.tradingRecord);

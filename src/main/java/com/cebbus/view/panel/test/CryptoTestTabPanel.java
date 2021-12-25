@@ -82,7 +82,7 @@ public class CryptoTestTabPanel {
 
     private void addChartListPanel() {
         JPanel chart = this.chartPanel.getPanel();
-        chart.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 0, ColorPalette.DARK_GRAY));
+        chart.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 0, ColorPalette.MIDDLE_GRAY));
 
         this.container.add(chart, BorderLayout.CENTER);
     }

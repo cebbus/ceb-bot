@@ -61,7 +61,7 @@ public class CryptoWalkForwardTabPanel {
 
     private void addChartListPanel() {
         JPanel panel = this.chartPanel.getPanel();
-        panel.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 0, ColorPalette.DARK_GRAY));
+        panel.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 0, ColorPalette.MIDDLE_GRAY));
 
         this.container.add(panel, BorderLayout.CENTER);
     }
@@ -70,7 +70,7 @@ public class CryptoWalkForwardTabPanel {
         JTable table = this.stepResultTable.getTable();
 
         JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, ColorPalette.DARK_GRAY));
+        scrollPane.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, ColorPalette.MIDDLE_GRAY));
         scrollPane.setPreferredSize(new Dimension(250, 200));
 
         this.container.add(scrollPane, BorderLayout.SOUTH);

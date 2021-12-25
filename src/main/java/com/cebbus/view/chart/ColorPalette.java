@@ -18,6 +18,7 @@ public class ColorPalette {
     public static final Color LIGHT_GRAY = new Color(230, 230, 230);
     public static final Color SOFT_WIGHT = new Color(250, 250, 250);
     public static final Color SOFT_GRAY = new Color(225, 225, 225);
+    public static final Color MIDDLE_GRAY = new Color(175, 175, 175);
     public static final Color DARK_GRAY = new Color(68, 68, 68);
 
     public static final Paint[] COLORS = new Paint[]{RED, BLUE, DARK_GREEN, ORANGE, GREEN, PURPLE, BROWN, DARK_RED};

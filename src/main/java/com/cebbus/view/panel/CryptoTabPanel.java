@@ -58,16 +58,16 @@ public class CryptoTabPanel {
     }
 
     private void addTradeHistory() {
-        JScrollPane scrollPane = new JScrollPane(this.tradeTable.create());
-        scrollPane.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, ColorPalette.DARK_GRAY));
-        scrollPane.setPreferredSize(new Dimension(250, 200));
+        JTabbedPane tabbedPane = this.tradeTable.create();
+        tabbedPane.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, ColorPalette.MIDDLE_GRAY));
+        tabbedPane.setPreferredSize(new Dimension(250, 200));
 
-        this.container.add(scrollPane, BorderLayout.SOUTH);
+        this.container.add(tabbedPane, BorderLayout.SOUTH);
     }
 
     private void addChartList() {
         JScrollPane scrollPane = new JScrollPane(this.chartListPanel.create());
-        scrollPane.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 0, ColorPalette.DARK_GRAY));
+        scrollPane.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 0, ColorPalette.MIDDLE_GRAY));
         this.container.add(scrollPane, BorderLayout.CENTER);
     }
 

@@ -22,7 +22,8 @@ public class TradeTable {
     private final BarSeries series;
     private final TradingRecord tradingRecord;
     private final TradingRecord backtestRecord;
-    private final DefaultTableModel model = new DefaultTableModel();
+    private final DefaultTableModel tradeModel = new DefaultTableModel();
+    private final DefaultTableModel backtestModel = new DefaultTableModel();
 
     private Trade lastTradeBuffer;
     private Trade lastBacktestBuffer;
@@ -36,46 +37,60 @@ public class TradeTable {
         this.lastBacktestBuffer = this.backtestRecord.getLastTrade();
     }
 
-    public JTable create() {
-        this.model.addColumn("#");
-        this.model.addColumn("Date");
-        this.model.addColumn("B/S");
-        this.model.addColumn("Amount");
-        this.model.addColumn("Price");
-        this.model.addColumn("Total");
+    public JTabbedPane create() {
+        JTabbedPane tabbedPane = new JTabbedPane();
+        tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
+        tabbedPane.addTab("Trade", createTable(this.tradeModel, this.tradingRecord));
+        tabbedPane.addTab("Backtest", createTable(this.backtestModel, this.backtestRecord));
 
-        List<Trade> tradeList = new ArrayList<>();
-
-        List<Position> positionList = this.backtestRecord.getPositions();
-        positionList.forEach(p -> tradeList.addAll(positionToTradeList(p)));
-
-        Trade lastEntry = this.tradingRecord.getLastEntry();
-        if (lastEntry != null) {
-            tradeList.add(lastEntry);
-        }
-
-        tradeList.sort(Comparator.comparingInt(Trade::getIndex));
-        tradeList.forEach(t -> this.model.addRow(tradeToRow(t)));
-
-        JTable table = new JTable(this.model);
-        table.setDefaultRenderer(Object.class, new BuySellRenderer());
-        table.setFillsViewportHeight(true);
-
-        return table;
+        return tabbedPane;
     }
 
     public void refresh() {
         Trade lastBacktest = this.backtestRecord.getLastTrade();
         if (lastBacktest != null && !lastBacktest.equals(this.lastBacktestBuffer)) {
-            this.model.addRow(tradeToRow(lastBacktest));
+            this.backtestModel.addRow(tradeToRow(lastBacktest));
             this.lastBacktestBuffer = lastBacktest;
         }
 
         Trade lastTrade = this.tradingRecord.getLastTrade();
         if (lastTrade != null && !lastTrade.equals(this.lastTradeBuffer)) {
-            this.model.addRow(tradeToRow(lastTrade));
+            this.tradeModel.addRow(tradeToRow(lastTrade));
             this.lastTradeBuffer = lastTrade;
         }
+    }
+
+    private JScrollPane createTable(DefaultTableModel model, TradingRecord record) {
+        model.addColumn("#");
+        model.addColumn("Date");
+        model.addColumn("B/S");
+        model.addColumn("Amount");
+        model.addColumn("Price");
+        model.addColumn("Total");
+
+        List<Trade> tradeList = new ArrayList<>();
+
+        List<Position> positionList = record.getPositions();
+        positionList.forEach(p -> tradeList.addAll(positionToTradeList(p)));
+
+        Trade lastTrade = record.getLastTrade();
+        Position lastPosition = record.getLastPosition();
+        if (lastTrade != null) {
+            if (tradeList.isEmpty()) {
+                tradeList.add(lastTrade);
+            } else if (lastPosition != null && !lastPosition.getExit().equals(lastTrade)){
+                tradeList.add(lastTrade);
+            }
+        }
+
+        tradeList.sort(Comparator.comparingInt(Trade::getIndex));
+        tradeList.forEach(t -> model.addRow(tradeToRow(t)));
+
+        JTable table = new JTable(model);
+        table.setDefaultRenderer(Object.class, new BuySellRenderer());
+        table.setFillsViewportHeight(true);
+
+        return new JScrollPane(table);
     }
 
     private Object[] tradeToRow(Trade trade) {
