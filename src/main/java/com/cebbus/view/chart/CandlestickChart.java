@@ -13,6 +13,10 @@ import org.jfree.data.xy.OHLCDataset;
 import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
 
+import javax.swing.*;
+import java.util.Collections;
+import java.util.List;
+
 public class CandlestickChart extends CryptoChart {
 
     private JFreeChart chart;
@@ -21,6 +25,11 @@ public class CandlestickChart extends CryptoChart {
 
     public CandlestickChart(BarSeries series) {
         super(series);
+    }
+
+    @Override
+    public List<JMenuItem> createMenuList() {
+        return Collections.emptyList();
     }
 
     @Override

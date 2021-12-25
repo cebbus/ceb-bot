@@ -13,7 +13,10 @@ import org.ta4j.core.TradingRecord;
 import org.ta4j.core.indicators.CachedIndicator;
 import org.ta4j.core.num.Num;
 
+import javax.swing.*;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class LineChart extends CryptoChart {
@@ -40,6 +43,24 @@ public class LineChart extends CryptoChart {
 
         this.lastTradeBuffer = this.tradingRecord.getLastTrade();
         this.lastBacktestBuffer = this.backtestRecord.getLastTrade();
+    }
+
+    @Override
+    public List<JMenuItem> createMenuList() {
+        XYPlot xyPlot = this.chart.getXYPlot();
+
+        JMenu markers = new JMenu("Markers");
+
+        JMenuItem toggleTradeMarkers = new JMenuItem("Hide Trade");
+        toggleTradeMarkers.addActionListener(new ToggleMarkerListener(xyPlot, false));
+
+        JMenuItem toggleBacktestMarkers = new JMenuItem("Hide Backtest");
+        toggleBacktestMarkers.addActionListener(new ToggleMarkerListener(xyPlot, true));
+
+        markers.add(toggleTradeMarkers);
+        markers.add(toggleBacktestMarkers);
+
+        return Collections.singletonList(markers);
     }
 
     @Override

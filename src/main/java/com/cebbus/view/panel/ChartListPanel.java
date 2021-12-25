@@ -14,7 +14,6 @@ import org.ta4j.core.num.Num;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -37,7 +36,7 @@ public class ChartListPanel {
     }
 
     public JPanel create() {
-        JFreeChart[] charts = createChartList();
+        fillChartList();
 
         JPanel jPanel = new JPanel();
         jPanel.setBorder(BorderFactory.createEmptyBorder(8, 8, 0, 8));
@@ -45,12 +44,21 @@ public class ChartListPanel {
         BoxLayout layout = new BoxLayout(jPanel, BoxLayout.Y_AXIS);
         jPanel.setLayout(layout);
 
-        Arrays.stream(charts).forEach(c -> {
-            ChartPanel panel = new ChartPanel(c);
+        this.chartList.forEach(cryptoChart -> {
+            JFreeChart chart = cryptoChart.create();
+            List<JMenuItem> menuItemList = cryptoChart.createMenuList();
+
+            ChartPanel panel = new ChartPanel(chart);
             panel.setFillZoomRectangle(true);
             panel.setMouseWheelEnabled(true);
             panel.addChartMouseListener(new LegendClickListener());
             panel.setPreferredSize(new Dimension(CENTER_WIDTH - 10, CHART_HEIGHT));
+
+            JPopupMenu menu = panel.getPopupMenu();
+            for (JMenuItem item : menuItemList) {
+                menu.addSeparator();
+                menu.add(item);
+            }
 
             jPanel.add(panel);
             jPanel.add(Box.createVerticalStrut(8));
@@ -63,14 +71,10 @@ public class ChartListPanel {
         this.chartList.forEach(CryptoChart::refresh);
     }
 
-    private JFreeChart[] createChartList() {
+    private void fillChartList() {
         CryptoChartFactory factory = new CryptoChartFactory(this.series, this.tradingRecord, this.backtestRecord);
         this.chartList.add(factory.newCandlestickChart());
 
         this.indicators.forEach((key, indicatorMap) -> this.chartList.add(factory.newLineChart(indicatorMap)));
-
-        return this.chartList.stream()
-                .map(CryptoChart::create)
-                .toArray(JFreeChart[]::new);
     }
 }

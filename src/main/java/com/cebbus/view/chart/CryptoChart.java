@@ -1,8 +1,6 @@
 package com.cebbus.view.chart;
 
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.plot.Marker;
-import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.time.Millisecond;
 import org.jfree.data.time.RegularTimePeriod;
@@ -10,9 +8,10 @@ import org.ta4j.core.BarSeries;
 import org.ta4j.core.Trade;
 import org.ta4j.core.TradingRecord;
 
-import java.awt.*;
+import javax.swing.*;
 import java.sql.Timestamp;
 import java.time.ZonedDateTime;
+import java.util.List;
 
 public abstract class CryptoChart {
 
@@ -21,6 +20,8 @@ public abstract class CryptoChart {
     CryptoChart(BarSeries series) {
         this.series = series;
     }
+
+    public abstract List<JMenuItem> createMenuList();
 
     public abstract JFreeChart create();
 
@@ -47,18 +48,7 @@ public abstract class CryptoChart {
         ZonedDateTime dateTime = this.series.getBar(index).getEndTime();
         double barTime = convertToPeriod(dateTime).getFirstMillisecond();
 
-        Color color;
-        if (backtest) {
-            color = trade.isBuy() ? ColorPalette.ORANGE : ColorPalette.PURPLE;
-        } else {
-            color = trade.isBuy() ? ColorPalette.GREEN : ColorPalette.RED;
-        }
-
-        Marker marker = new ValueMarker(barTime);
-        marker.setLabel(trade.isBuy() ? "B" : "S");
-        marker.setPaint(color);
-        marker.setLabelBackgroundColor(color);
-        plot.addDomainMarker(marker);
+        plot.addDomainMarker(new CryptoMarker(barTime, trade.isBuy(), backtest));
     }
 
     int getStartIndex() {
