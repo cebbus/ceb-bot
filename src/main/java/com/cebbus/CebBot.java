@@ -38,7 +38,7 @@ public class CebBot {
 
             TheOracle theOracle = new TheOracle(series, symbol.getStrategy());
             speculator.setTheOracle(theOracle);
-            speculator.recordOpenPosition();
+            speculator.loadTradeHistory();
             speculator.startSpec();
 
             appFrame.addTab(speculator);

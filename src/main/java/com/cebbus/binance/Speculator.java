@@ -2,10 +2,7 @@ package com.cebbus.binance;
 
 import com.binance.api.client.BinanceApiRestClient;
 import com.binance.api.client.BinanceApiWebSocketClient;
-import com.binance.api.client.domain.OrderSide;
-import com.binance.api.client.domain.account.Order;
 import com.binance.api.client.domain.account.Trade;
-import com.binance.api.client.domain.account.request.AllOrdersRequest;
 import com.binance.api.client.domain.market.Candlestick;
 import com.binance.api.client.domain.market.CandlestickInterval;
 import com.cebbus.analysis.Symbol;
@@ -16,6 +13,7 @@ import com.cebbus.binance.listener.operation.EventOperation;
 import com.cebbus.binance.listener.operation.TradeOperation;
 import com.cebbus.binance.listener.operation.UpdateCacheOperation;
 import com.cebbus.binance.listener.operation.UpdateSeriesOperation;
+import com.cebbus.binance.mapper.TradeMapper;
 import com.cebbus.binance.order.TradeStatus;
 import com.cebbus.util.LimitedHashMap;
 import com.cebbus.util.PropertyReader;
@@ -27,13 +25,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
+import org.ta4j.core.TradingRecord;
 import org.ta4j.core.num.DecimalNum;
 import org.ta4j.core.num.Num;
 
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -93,26 +91,31 @@ public class Speculator {
         bars.forEach(candlestick -> this.candlestickCache.put(candlestick.getCloseTime(), candlestick));
     }
 
-    public void recordOpenPosition() {
-        Pair<Optional<Trade>, Optional<Order>> lastTradeAndOrder = getLastTradeAndOrder();
-        if (lastTradeAndOrder.getKey().isEmpty() || lastTradeAndOrder.getValue().isEmpty()) {
-            return;
+    public void loadTradeHistory() {
+        Objects.requireNonNull(this.theOracle);
+        if (!PropertyReader.isCredentialsExist()) {
+            log.warn("needs credentials!");
         }
 
-        Order order = lastTradeAndOrder.getValue().get();
-        Trade trade = lastTradeAndOrder.getKey().get();
-        if (order.getSide() == OrderSide.SELL) {
-            return;
-        }
+        BarSeries series = this.theOracle.getSeries();
+        TradingRecord record = this.theOracle.getTradingRecord();
+        List<Trade> tradeList = this.restClient.getMyTrades(this.symbol.getName());
 
-        int index = getSeriesIndex(order.getTime());
-        if (index == -1) {
-            return;
-        }
+        TradeMapper tradeMapper = new TradeMapper(series, tradeList);
+        Map<Integer, List<Trade>> tradeMap = tradeMapper.getTradeMap();
 
-        Num price = DecimalNum.valueOf(trade.getPrice());
-        Num amount = DecimalNum.valueOf(order.getExecutedQty());
-        this.theOracle.getTradingRecord().enter(index, price, amount);
+        tradeMap.forEach((index, trades) -> {
+            for (Trade trade : trades) {
+                Num price = DecimalNum.valueOf(trade.getPrice());
+                Num amount = DecimalNum.valueOf(trade.getQty());
+
+                if (trade.isBuyer()) {
+                    record.enter(index, price, amount);
+                } else {
+                    record.exit(index, price, amount);
+                }
+            }
+        });
     }
 
     public void startSpec() {
@@ -208,50 +211,5 @@ public class Speculator {
 
         this.manualTradeListeners.forEach(o -> o.accept(success));
         return success;
-    }
-
-    private Pair<Optional<Trade>, Optional<Order>> getLastTradeAndOrder() {
-        Objects.requireNonNull(this.theOracle);
-        if (!PropertyReader.isCredentialsExist()) {
-            log.warn("needs credentials!");
-            return Pair.of(Optional.empty(), Optional.empty());
-        }
-
-        Optional<Trade> optTrade = getLastTrade();
-        Optional<Order> optOrder = optTrade.isEmpty() ? Optional.empty() : getOrder(optTrade.get().getOrderId());
-        return Pair.of(optTrade, optOrder);
-    }
-
-    private Optional<Trade> getLastTrade() {
-        List<Trade> trades = this.restClient.getMyTrades(this.symbol.getName());
-        trades.sort((o1, o2) -> Long.compare(o2.getTime(), o1.getTime()));
-        return trades.isEmpty() ? Optional.empty() : Optional.of(trades.get(0));
-    }
-
-    private Optional<Order> getOrder(String orderId) {
-        List<Order> orders = this.restClient.getAllOrders(new AllOrdersRequest(this.symbol.getName()));
-        return orders.stream().filter(o -> o.getOrderId().toString().equals(orderId)).findFirst();
-    }
-
-    private int getSeriesIndex(long time) {
-        Instant instant = Instant.ofEpochMilli(time);
-        ZonedDateTime entryTime = ZonedDateTime.ofInstant(instant, ZoneId.of("GMT+3"));
-
-        BarSeries series = this.theOracle.getSeries();
-
-        int startIndex = Math.max(series.getRemovedBarsCount(), series.getBeginIndex());
-        int endIndex = series.getEndIndex();
-        for (int i = startIndex; i <= endIndex; i++) {
-            Bar bar = series.getBar(i);
-
-            ZonedDateTime beginTime = bar.getBeginTime();
-            ZonedDateTime endTime = bar.getEndTime();
-            if ((beginTime.isBefore(entryTime) || beginTime.isEqual(entryTime))
-                    && (endTime.isAfter(entryTime) || endTime.isEqual(entryTime))) {
-                return i;
-            }
-        }
-
-        return -1;
     }
 }
