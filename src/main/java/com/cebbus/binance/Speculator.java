@@ -98,21 +98,21 @@ public class Speculator {
         }
 
         BarSeries series = this.theOracle.getSeries();
-        TradingRecord record = this.theOracle.getTradingRecord();
         List<Trade> tradeList = this.restClient.getMyTrades(this.symbol.getName());
 
         TradeMapper tradeMapper = new TradeMapper(series, tradeList);
         Map<Integer, List<Trade>> tradeMap = tradeMapper.getTradeMap();
 
+        TradingRecord tradingRecord = this.theOracle.getTradingRecord();
         tradeMap.forEach((index, trades) -> {
             for (Trade trade : trades) {
                 Num price = DecimalNum.valueOf(trade.getPrice());
                 Num amount = DecimalNum.valueOf(trade.getQty());
 
                 if (trade.isBuyer()) {
-                    record.enter(index, price, amount);
+                    tradingRecord.enter(index, price, amount);
                 } else {
-                    record.exit(index, price, amount);
+                    tradingRecord.exit(index, price, amount);
                 }
             }
         });
@@ -121,19 +121,24 @@ public class Speculator {
     public void startSpec() {
         Objects.requireNonNull(this.theOracle);
 
+        CandlestickInterval interval = this.symbol.getInterval();
+
         this.listener.addOperation(new UpdateCacheOperation(this.candlestickCache));
-        this.listener.addOperation(new UpdateSeriesOperation(this.theOracle.getSeries()));
+        this.listener.addOperation(new UpdateSeriesOperation(this.theOracle.getSeries(), interval));
         this.listener.addOperation(new TradeOperation(this));
 
         try (BinanceApiWebSocketClient client = ClientFactory.newWebSocketClient()) {
-            client.onCandlestickEvent(this.symbol.getName().toLowerCase(), this.symbol.getInterval(), this.listener);
+            client.onCandlestickEvent(this.symbol.getName().toLowerCase(), interval, this.listener);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
+            startSpec();
         }
     }
 
     public List<Bar> convertToBarList() {
-        return this.candlestickCache.values().stream().map(BarMapper::valueOf).collect(Collectors.toList());
+        return this.candlestickCache.values().stream()
+                .map(c -> BarMapper.valueOf(c, this.symbol.getInterval()))
+                .collect(Collectors.toList());
     }
 
     public int addCandlestickEventOperation(EventOperation operation) {

@@ -1,13 +1,12 @@
 package com.cebbus.binance.mapper;
 
 import com.binance.api.client.domain.account.Trade;
+import com.cebbus.util.DateTimeUtil;
 import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.Instant;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
 
@@ -137,8 +136,7 @@ public class TradeMapper {
     }
 
     private int getSeriesIndex(long time) {
-        Instant instant = Instant.ofEpochMilli(time);
-        ZonedDateTime entryTime = ZonedDateTime.ofInstant(instant, ZoneId.of("GMT+3"));
+        ZonedDateTime entryTime = DateTimeUtil.millisToZonedTime(time);
 
         int startIndex = Math.max(this.series.getRemovedBarsCount(), this.series.getBeginIndex());
         int endIndex = this.series.getEndIndex();

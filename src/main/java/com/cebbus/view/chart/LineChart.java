@@ -1,5 +1,6 @@
 package com.cebbus.view.chart;
 
+import com.cebbus.util.DateTimeUtil;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.XYPlot;
@@ -96,12 +97,15 @@ public class LineChart extends CryptoChart {
         this.indicatorMap.forEach((name, indicator) -> {
             int endIndex = this.series.getEndIndex();
             Bar bar = this.series.getBar(endIndex);
-            RegularTimePeriod period = convertToPeriod(bar.getEndTime());
+            RegularTimePeriod period = DateTimeUtil.getBarPeriod(bar);
 
             TimeSeries timeSeries = this.timeSeriesMap.get(name);
+
+            double value = indicator.getValue(endIndex).doubleValue();
             if (!itemExist(timeSeries, period)) {
-                double value = indicator.getValue(endIndex).doubleValue();
                 timeSeries.add(period, value);
+            } else {
+                timeSeries.update(period, value);
             }
         });
 
@@ -130,7 +134,7 @@ public class LineChart extends CryptoChart {
         for (int i = startIndex; i <= endIndex; i++) {
             Bar bar = this.series.getBar(i);
 
-            RegularTimePeriod period = convertToPeriod(bar.getEndTime());
+            RegularTimePeriod period = DateTimeUtil.getBarPeriod(bar);
             double value = indicator.getValue(i).doubleValue();
 
             timeSeries.add(period, value);

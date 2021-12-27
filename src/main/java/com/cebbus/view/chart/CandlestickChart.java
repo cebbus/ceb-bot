@@ -1,5 +1,6 @@
 package com.cebbus.view.chart;
 
+import com.cebbus.util.DateTimeUtil;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -62,11 +63,14 @@ public class CandlestickChart extends CryptoChart {
 
         int endIndex = this.series.getEndIndex();
         Bar bar = this.series.getBar(endIndex);
-        RegularTimePeriod period = convertToPeriod(bar.getEndTime());
+        RegularTimePeriod period = DateTimeUtil.getBarPeriod(bar);
 
-        if (!itemExist(period)) {
-            this.ohlcSeries.add(createItem(bar));
+        if (itemExist(period)) {
+            int count = this.ohlcSeries.getItemCount();
+            this.ohlcSeries.remove(count - 1);
         }
+
+        this.ohlcSeries.add(createItem(bar));
     }
 
     private OHLCDataset createChartData() {
@@ -84,7 +88,7 @@ public class CandlestickChart extends CryptoChart {
     }
 
     private OHLCItem createItem(Bar bar) {
-        RegularTimePeriod period = convertToPeriod(bar.getEndTime());
+        RegularTimePeriod period = DateTimeUtil.getBarPeriod(bar);
 
         double open = bar.getOpenPrice().doubleValue();
         double high = bar.getHighPrice().doubleValue();
