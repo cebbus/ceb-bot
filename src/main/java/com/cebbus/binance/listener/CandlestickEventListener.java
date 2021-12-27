@@ -20,7 +20,7 @@ public class CandlestickEventListener implements BinanceApiCallback<CandlestickE
     public void onResponse(CandlestickEvent response) {
 
         if (!Boolean.TRUE.equals(response.getBarFinal())) {
-            if (count.incrementAndGet() >= 1000) {
+            if (count.incrementAndGet() >= 10000) {
                 log.info("stick response! symbol: {}", response.getSymbol());
                 count.set(0);
             }

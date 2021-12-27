@@ -119,19 +119,25 @@ public class Speculator {
     }
 
     public void startSpec() {
+        startSpec(true);
+    }
+
+    public void startSpec(boolean initListener) {
         Objects.requireNonNull(this.theOracle);
 
         CandlestickInterval interval = this.symbol.getInterval();
 
-        this.listener.addOperation(new UpdateCacheOperation(this.candlestickCache));
-        this.listener.addOperation(new UpdateSeriesOperation(this.theOracle.getSeries(), interval));
-        this.listener.addOperation(new TradeOperation(this));
+        if (initListener) {
+            this.listener.addOperation(new UpdateCacheOperation(this.candlestickCache));
+            this.listener.addOperation(new UpdateSeriesOperation(this.theOracle.getSeries(), interval));
+            this.listener.addOperation(new TradeOperation(this));
+        }
 
         try (BinanceApiWebSocketClient client = ClientFactory.newWebSocketClient()) {
             client.onCandlestickEvent(this.symbol.getName().toLowerCase(), interval, this.listener);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            startSpec();
+            startSpec(false);
         }
     }
 

@@ -10,11 +10,12 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 
 @Slf4j
 public class DateTimeUtil {
 
-    private static final ZoneId ZONE = ZoneId.of("GMT+3");
+    private static final ZoneId ZONE = ZoneId.of("GMT");
 
     private DateTimeUtil() {
     }
@@ -25,13 +26,9 @@ public class DateTimeUtil {
     }
 
     public static RegularTimePeriod getBarPeriod(Bar bar) {
-        return zonedTimeToPeriod(bar.getEndTime());
-    }
-
-    private static RegularTimePeriod zonedTimeToPeriod(ZonedDateTime dateTime) {
-        LocalDateTime localDateTime = dateTime.toLocalDateTime();
+        ZonedDateTime beginTime = bar.getBeginTime();
+        LocalDateTime localDateTime = beginTime.toLocalDateTime().plus(1, ChronoUnit.MILLIS);
         Timestamp timestamp = Timestamp.valueOf(localDateTime);
         return new Millisecond(timestamp);
     }
-
 }
