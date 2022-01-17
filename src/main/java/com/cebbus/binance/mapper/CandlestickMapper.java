@@ -26,4 +26,23 @@ public class CandlestickMapper {
         return candlestick;
     }
 
+    public static CandlestickEvent valueOf(Candlestick candlestick) {
+        CandlestickEvent event = new CandlestickEvent();
+
+        event.setOpenTime(candlestick.getOpenTime());
+        event.setOpen(candlestick.getOpen());
+        event.setLow(candlestick.getLow());
+        event.setHigh(candlestick.getHigh());
+        event.setClose(candlestick.getClose());
+        event.setCloseTime(candlestick.getCloseTime());
+        event.setVolume(candlestick.getVolume());
+        event.setNumberOfTrades(candlestick.getNumberOfTrades());
+        event.setQuoteAssetVolume(candlestick.getQuoteAssetVolume());
+        event.setTakerBuyQuoteAssetVolume(candlestick.getTakerBuyQuoteAssetVolume());
+        event.setTakerBuyBaseAssetVolume(candlestick.getTakerBuyQuoteAssetVolume());
+        event.setBarFinal(true);
+
+        return event;
+    }
+
 }

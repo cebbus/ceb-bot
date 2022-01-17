@@ -1,8 +1,8 @@
 package com.cebbus.binance;
 
 import com.binance.api.client.BinanceApiRestClient;
-import com.binance.api.client.BinanceApiWebSocketClient;
 import com.binance.api.client.domain.account.Trade;
+import com.binance.api.client.domain.event.CandlestickEvent;
 import com.binance.api.client.domain.market.Candlestick;
 import com.binance.api.client.domain.market.CandlestickInterval;
 import com.cebbus.analysis.Symbol;
@@ -17,6 +17,7 @@ import com.cebbus.binance.mapper.TradeMapper;
 import com.cebbus.binance.order.TradeStatus;
 import com.cebbus.util.LimitedHashMap;
 import com.cebbus.util.PropertyReader;
+import com.cebbus.util.ScheduleUtil;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
@@ -119,26 +120,17 @@ public class Speculator {
     }
 
     public void startSpec() {
-        startSpec(true);
-    }
-
-    public void startSpec(boolean initListener) {
         Objects.requireNonNull(this.theOracle);
 
-        CandlestickInterval interval = this.symbol.getInterval();
+        this.listener.addOperation(new UpdateCacheOperation(this.candlestickCache));
+        this.listener.addOperation(new UpdateSeriesOperation(this.theOracle.getSeries(), this.symbol.getInterval()));
+        this.listener.addOperation(new TradeOperation(this));
 
-        if (initListener) {
-            this.listener.addOperation(new UpdateCacheOperation(this.candlestickCache));
-            this.listener.addOperation(new UpdateSeriesOperation(this.theOracle.getSeries(), interval));
-            this.listener.addOperation(new TradeOperation(this));
-        }
+        ScheduleUtil.schedule(this);
+    }
 
-        try (BinanceApiWebSocketClient client = ClientFactory.newWebSocketClient()) {
-            client.onCandlestickEvent(this.symbol.getName().toLowerCase(), interval, this.listener);
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            startSpec(false);
-        }
+    public void triggerListener(CandlestickEvent event) {
+        this.listener.onResponse(event);
     }
 
     public List<Bar> convertToBarList() {

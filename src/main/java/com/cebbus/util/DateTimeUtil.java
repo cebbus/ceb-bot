@@ -15,7 +15,7 @@ import java.time.temporal.ChronoUnit;
 @Slf4j
 public class DateTimeUtil {
 
-    private static final ZoneId ZONE = ZoneId.of("GMT");
+    public static final ZoneId ZONE = ZoneId.of("GMT");
 
     private DateTimeUtil() {
     }
