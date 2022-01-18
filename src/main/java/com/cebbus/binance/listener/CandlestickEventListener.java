@@ -28,7 +28,7 @@ public class CandlestickEventListener implements BinanceApiCallback<CandlestickE
             return;
         }
 
-        log.info("stick closed! symbol: {}", response.getSymbol());
+        log.info("stick closed! candle: {}", response);
 
         try {
             for (EventOperation operation : this.operationList) {

@@ -26,7 +26,7 @@ public class CandlestickMapper {
         return candlestick;
     }
 
-    public static CandlestickEvent valueOf(Candlestick candlestick) {
+    public static CandlestickEvent valueOf(Candlestick candlestick, String symbol) {
         CandlestickEvent event = new CandlestickEvent();
 
         event.setOpenTime(candlestick.getOpenTime());
@@ -40,6 +40,7 @@ public class CandlestickMapper {
         event.setQuoteAssetVolume(candlestick.getQuoteAssetVolume());
         event.setTakerBuyQuoteAssetVolume(candlestick.getTakerBuyQuoteAssetVolume());
         event.setTakerBuyBaseAssetVolume(candlestick.getTakerBuyQuoteAssetVolume());
+        event.setSymbol(symbol);
         event.setBarFinal(true);
 
         return event;

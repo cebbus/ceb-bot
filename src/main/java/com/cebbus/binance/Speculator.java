@@ -88,6 +88,7 @@ public class Speculator {
         String symName = this.symbol.getName();
         CandlestickInterval interval = this.symbol.getInterval();
         List<Candlestick> bars = this.restClient.getCandlestickBars(symName, interval, this.limit, null, null);
+        bars.remove(bars.size() - 1);
 
         bars.forEach(candlestick -> this.candlestickCache.put(candlestick.getCloseTime(), candlestick));
     }

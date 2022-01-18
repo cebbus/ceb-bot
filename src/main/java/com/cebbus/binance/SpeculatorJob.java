@@ -22,8 +22,8 @@ public class SpeculatorJob implements Job {
         String name = symbol.getName();
         CandlestickInterval interval = symbol.getInterval();
 
-        List<Candlestick> bars = speculator.getRestClient().getCandlestickBars(name, interval, 1, null, null);
-        CandlestickEvent event = CandlestickMapper.valueOf(bars.get(0));
+        List<Candlestick> bars = speculator.getRestClient().getCandlestickBars(name, interval, 2, null, null);
+        CandlestickEvent event = CandlestickMapper.valueOf(bars.get(0), name);
         speculator.triggerListener(event);
     }
 }
