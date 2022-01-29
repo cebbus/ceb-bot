@@ -1,5 +1,7 @@
 package com.cebbus.analysis;
 
+import com.cebbus.analysis.strategy.CebStrategy;
+import com.cebbus.analysis.strategy.StrategyFactory;
 import com.cebbus.binance.Speculator;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -7,8 +9,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBarSeries;
-import org.ta4j.core.TradingRecord;
-import org.ta4j.core.analysis.criteria.BuyAndHoldReturnCriterion;
 import org.ta4j.core.num.DecimalNum;
 import org.ta4j.core.num.Num;
 
@@ -106,9 +106,10 @@ public class WalkForwardTask implements Runnable {
             String strategy = strategyParameterPair.getKey();
             Number[] parameters = strategyParameterPair.getValue();
 
-            TheOracle backtestOracle = new TheOracle(backtestSeries, strategy);
+            CebStrategy cebStrategy = StrategyFactory.create(backtestSeries, strategy);
+            TheOracle backtestOracle = new TheOracle(cebStrategy);
             Num defaultResult = backtestOracle.calculateProfit();
-            Num buyAndHoldResult = calculateBuyAndHold(backtestSeries, backtestOracle.getBacktestRecord());
+            Num buyAndHoldResult = backtestOracle.calculateBuyAndHold();
 
             backtestOracle.changeProphesyParameters(parameters);
             Num result = backtestOracle.calculateProfit();
@@ -127,8 +128,6 @@ public class WalkForwardTask implements Runnable {
             if (result.isGreaterThan(bestResult)) {
                 bestResult = result;
                 theOracle = backtestOracle;
-
-                theOracle.backtest();
             }
         }
 
@@ -147,17 +146,19 @@ public class WalkForwardTask implements Runnable {
         BarSeries testSeries = new BaseBarSeries(testBarList);
 
         for (String strategy : this.strategyList) {
-            TheOracle trainOracle = new TheOracle(trainSeries, strategy);
+            CebStrategy trainsStrategy = StrategyFactory.create(trainSeries, strategy);
+            TheOracle trainOracle = new TheOracle(trainsStrategy);
             Num trainDefaultResult = trainOracle.calculateProfit();
-            Num trainBuyAndHoldResult = calculateBuyAndHold(trainSeries, trainOracle.getBacktestRecord());
+            Num trainBuyAndHoldResult = trainOracle.calculateBuyAndHold();
 
             optimize(trainOracle);
             Num trainResult = trainOracle.calculateProfit();
 
-            TheOracle testOracle = new TheOracle(testSeries, strategy);
+            CebStrategy testStrategy = StrategyFactory.create(testSeries, strategy);
+            TheOracle testOracle = new TheOracle(testStrategy);
             Number[] testDefaultParameters = testOracle.getProphesyParameters();
             Num testDefaultResult = testOracle.calculateProfit();
-            Num testBuyAndHoldResult = calculateBuyAndHold(testSeries, testOracle.getBacktestRecord());
+            Num testBuyAndHoldResult = testOracle.calculateBuyAndHold();
 
             Number[] testParameters = trainOracle.getProphesyParameters();
             testOracle.changeProphesyParameters(testParameters);
@@ -204,11 +205,6 @@ public class WalkForwardTask implements Runnable {
 
         this.optimizeTask = new OptimizeTask(spec);
         this.optimizeTask.optimize();
-    }
-
-    private Num calculateBuyAndHold(BarSeries series, TradingRecord tradingRecord) {
-        BuyAndHoldReturnCriterion criterion = new BuyAndHoldReturnCriterion();
-        return criterion.calculate(series, tradingRecord);
     }
 
     public void addOnDoneListener(List<Consumer<Speculator>> operations) {

@@ -1,6 +1,8 @@
 package com.cebbus.view.panel.test;
 
 import com.cebbus.analysis.TheOracle;
+import com.cebbus.analysis.strategy.CebStrategy;
+import com.cebbus.analysis.strategy.StrategyFactory;
 import com.cebbus.binance.Speculator;
 import com.cebbus.view.panel.FormFieldSet;
 import org.apache.commons.lang3.tuple.Pair;
@@ -81,9 +83,9 @@ public class TestResultTable extends FormFieldSet {
         jButton.addActionListener(e -> {
             BarSeries series = this.speculator.getTheOracle().getSeries();
             String strategy = String.join(" & ", this.strategies);
+            CebStrategy cebStrategy = StrategyFactory.create(series, strategy);
 
-            TheOracle theOracle = new TheOracle(series, strategy);
-            this.speculator.setTheOracle(theOracle);
+            this.speculator.setTheOracle(new TheOracle(cebStrategy));
 
             this.onDetailClickListeners.forEach(action -> action.accept(this.speculator));
         });

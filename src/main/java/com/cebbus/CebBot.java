@@ -2,6 +2,8 @@ package com.cebbus;
 
 import com.cebbus.analysis.Symbol;
 import com.cebbus.analysis.TheOracle;
+import com.cebbus.analysis.strategy.CebStrategy;
+import com.cebbus.analysis.strategy.StrategyFactory;
 import com.cebbus.binance.Speculator;
 import com.cebbus.view.panel.CryptoAppFrame;
 import com.cebbus.view.panel.CryptoSplashFrame;
@@ -36,8 +38,8 @@ public class CebBot {
                     .withMaxBarCount(PropertyReader.getCacheSize())
                     .build();
 
-            TheOracle theOracle = new TheOracle(series, symbol.getStrategy());
-            speculator.setTheOracle(theOracle);
+            CebStrategy cebStrategy = StrategyFactory.create(series, symbol.getStrategy());
+            speculator.setTheOracle(new TheOracle(cebStrategy));
             speculator.loadTradeHistory();
             speculator.startSpec();
 

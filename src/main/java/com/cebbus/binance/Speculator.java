@@ -8,6 +8,9 @@ import com.binance.api.client.domain.market.CandlestickInterval;
 import com.cebbus.analysis.Symbol;
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.analysis.mapper.BarMapper;
+import com.cebbus.analysis.strategy.BaseCebStrategy;
+import com.cebbus.analysis.strategy.CebStrategy;
+import com.cebbus.analysis.strategy.StrategyFactory;
 import com.cebbus.binance.listener.CandlestickEventListener;
 import com.cebbus.binance.listener.operation.EventOperation;
 import com.cebbus.binance.listener.operation.TradeOperation;
@@ -17,6 +20,7 @@ import com.cebbus.binance.mapper.TradeMapper;
 import com.cebbus.binance.order.TradeStatus;
 import com.cebbus.util.LimitedHashMap;
 import com.cebbus.util.PropertyReader;
+import com.cebbus.util.ReflectionUtil;
 import com.cebbus.util.ScheduleUtil;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -199,13 +203,19 @@ public class Speculator {
     public List<Pair<String, Num>> calcStrategies() {
         Objects.requireNonNull(this.theOracle);
 
-        return this.theOracle.calcStrategies();
+        BarSeries series = this.theOracle.getSeries();
+        List<Class<? extends BaseCebStrategy>> strategies = ReflectionUtil.listStrategyClasses();
+
+        return strategies.stream().map(clazz -> {
+            CebStrategy cs = StrategyFactory.create(series, clazz);
+            TheOracle testOracle = new TheOracle(cs);
+
+            return Pair.of(clazz.getSimpleName(), testOracle.calculateProfit());
+        }).collect(Collectors.toList());
     }
 
     public void changeParameters(Number... parameters) {
         this.theOracle.changeProphesyParameters(parameters);
-        this.theOracle.backtest();
-
         this.parameterChangeListeners.forEach(o -> o.accept(this));
     }
 

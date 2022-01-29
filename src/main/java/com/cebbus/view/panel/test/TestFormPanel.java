@@ -3,6 +3,8 @@ package com.cebbus.view.panel.test;
 import com.binance.api.client.domain.market.CandlestickInterval;
 import com.cebbus.analysis.Symbol;
 import com.cebbus.analysis.TheOracle;
+import com.cebbus.analysis.strategy.CebStrategy;
+import com.cebbus.analysis.strategy.StrategyFactory;
 import com.cebbus.binance.Speculator;
 import com.cebbus.view.panel.FormFieldSet;
 import org.ta4j.core.BarSeries;
@@ -79,9 +81,9 @@ public class TestFormPanel extends FormFieldSet {
         speculator.loadHistory();
 
         BarSeries series = new BaseBarSeries(speculator.convertToBarList());
-        TheOracle theOracle = new TheOracle(series, "JunkStrategy");
-        speculator.setTheOracle(theOracle);
+        CebStrategy junkStrategy = StrategyFactory.create(series, "JunkStrategy");
 
+        speculator.setTheOracle(new TheOracle(junkStrategy));
         return speculator;
     }
 

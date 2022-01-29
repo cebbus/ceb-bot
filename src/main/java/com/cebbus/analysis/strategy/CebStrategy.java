@@ -4,6 +4,7 @@ import lombok.Data;
 import org.jgap.Configuration;
 import org.jgap.Gene;
 import org.jgap.InvalidConfigurationException;
+import org.ta4j.core.BarSeries;
 import org.ta4j.core.Strategy;
 import org.ta4j.core.indicators.CachedIndicator;
 import org.ta4j.core.num.Num;
@@ -18,6 +19,8 @@ public interface CebStrategy {
     CebStrategy and(CebStrategy other);
 
     CebStrategy or(CebStrategy other);
+
+    BarSeries getSeries();
 
     Strategy getStrategy();
 

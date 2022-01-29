@@ -37,6 +37,11 @@ public abstract class BaseCebStrategy implements CebStrategy {
     }
 
     @Override
+    public BarSeries getSeries() {
+        return this.series;
+    }
+
+    @Override
     public Strategy getStrategy() {
         return this.builderResult.getStrategy();
     }
