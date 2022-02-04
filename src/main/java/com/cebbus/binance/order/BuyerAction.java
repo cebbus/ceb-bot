@@ -55,11 +55,9 @@ public class BuyerAction extends TraderAction {
             return false;
         }
 
-        if (this.speculator.isActive()) {
-            if (noBalance(this.symbol.getQuote(), false)) {
-                log.info("you have no balance!");
-                return false;
-            }
+        if (this.speculator.isActive() && noBalance(this.symbol.getQuote(), false)) {
+            log.info("you have no balance!");
+            return false;
         }
 
         return true;

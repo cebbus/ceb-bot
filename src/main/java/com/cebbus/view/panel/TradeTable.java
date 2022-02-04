@@ -60,7 +60,7 @@ public class TradeTable {
         }
     }
 
-    private JScrollPane createTable(DefaultTableModel model, TradingRecord record) {
+    private JScrollPane createTable(DefaultTableModel model, TradingRecord tradingRecord) {
         model.addColumn("#");
         model.addColumn("Date");
         model.addColumn("B/S");
@@ -70,17 +70,13 @@ public class TradeTable {
 
         List<Trade> tradeList = new ArrayList<>();
 
-        List<Position> positionList = record.getPositions();
+        List<Position> positionList = tradingRecord.getPositions();
         positionList.forEach(p -> tradeList.addAll(positionToTradeList(p)));
 
-        Trade lastTrade = record.getLastTrade();
-        Position lastPosition = record.getLastPosition();
-        if (lastTrade != null) {
-            if (tradeList.isEmpty()) {
-                tradeList.add(lastTrade);
-            } else if (lastPosition != null && !lastPosition.getExit().equals(lastTrade)){
-                tradeList.add(lastTrade);
-            }
+        Trade lastTrade = tradingRecord.getLastTrade();
+        Position lastPosition = tradingRecord.getLastPosition();
+        if (lastTrade != null && (tradeList.isEmpty() || (lastPosition != null && !lastPosition.getExit().equals(lastTrade)))) {
+            tradeList.add(lastTrade);
         }
 
         tradeList.sort(Comparator.comparingInt(Trade::getIndex));

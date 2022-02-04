@@ -10,7 +10,6 @@ import org.jfree.data.xy.XYDataset;
 
 public class LegendClickListener implements ChartMouseListener {
 
-
     @Override
     public void chartMouseClicked(ChartMouseEvent chartMouseEvent) {
         ChartEntity entity = chartMouseEvent.getEntity();
@@ -30,5 +29,6 @@ public class LegendClickListener implements ChartMouseListener {
 
     @Override
     public void chartMouseMoved(ChartMouseEvent chartMouseEvent) {
+        //irrelevant event
     }
 }

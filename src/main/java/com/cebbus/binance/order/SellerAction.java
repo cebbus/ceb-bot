@@ -45,11 +45,9 @@ public class SellerAction extends TraderAction {
             return false;
         }
 
-        if (this.speculator.isActive()) {
-            if (noBalance(this.symbol.getBase(), true)) {
-                log.info("you have no coin!");
-                return false;
-            }
+        if (this.speculator.isActive() && noBalance(this.symbol.getBase(), true)) {
+            log.info("you have no coin!");
+            return false;
         }
 
         return true;

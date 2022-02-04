@@ -3,6 +3,7 @@ package com.cebbus.view.chart;
 import org.jfree.chart.plot.ValueMarker;
 
 import java.awt.*;
+import java.util.Objects;
 
 public class CryptoMarker extends ValueMarker {
 
@@ -29,5 +30,19 @@ public class CryptoMarker extends ValueMarker {
         } else {
             return buy ? ColorPalette.GREEN : ColorPalette.RED;
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        CryptoMarker that = (CryptoMarker) o;
+        return backtest == that.backtest;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(backtest);
     }
 }
