@@ -57,17 +57,17 @@ public class MovingMomentumStrategy extends BaseCebStrategy {
         BaseStrategy strategy = new BaseStrategy("Moving Momentum", entryRule, exitRule);
 
         Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
-        indicators.put("CPI", new LinkedHashMap<>());
-        indicators.get("CPI").put("CPI", closePrice);
-        indicators.get("CPI").put(String.format("EMA (%s)", shortEmaBarCount), shortEma);
-        indicators.get("CPI").put(String.format("EMA (%s)", longEmaBarCount), longEma);
+        indicators.put(CPI_KEY, new LinkedHashMap<>());
+        indicators.get(CPI_KEY).put(CPI_KEY, closePrice);
+        indicators.get(CPI_KEY).put(String.format(EMA_PARAM_KEY, shortEmaBarCount), shortEma);
+        indicators.get(CPI_KEY).put(String.format(EMA_PARAM_KEY, longEmaBarCount), longEma);
 
-        indicators.put("MACD", new LinkedHashMap<>());
-        indicators.get("MACD").put("MACD", macd);
-        indicators.get("MACD").put(String.format("EMA (%s)", macdEmaBarCount), emaMacd);
+        indicators.put(MACD_KEY, new LinkedHashMap<>());
+        indicators.get(MACD_KEY).put(MACD_KEY, macd);
+        indicators.get(MACD_KEY).put(String.format(EMA_PARAM_KEY, macdEmaBarCount), emaMacd);
 
-        indicators.put("STO", new LinkedHashMap<>());
-        indicators.get("STO").put("STO", stochasticOscillK);
+        indicators.put(STO_KEY, new LinkedHashMap<>());
+        indicators.get(STO_KEY).put(STO_KEY, stochasticOscillK);
 
         this.builderResult = new BuilderResult(strategy, indicators);
     }

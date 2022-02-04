@@ -48,17 +48,17 @@ public class AdxStrategy extends BaseCebStrategy {
                 .and(new UnderIndicatorRule(plusDIIndicator, minusDIIndicator))
                 .and(new UnderIndicatorRule(closePrice, sma));
 
-        BaseStrategy strategy = new BaseStrategy("ADX", entryRule, exitRule, adxBarCount);
+        BaseStrategy strategy = new BaseStrategy(ADX_KEY, entryRule, exitRule, adxBarCount);
 
         Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
-        indicators.put("ADX", new LinkedHashMap<>());
-        indicators.get("ADX").put(String.format("ADX (%s)", adxBarCount), adxIndicator);
-        indicators.get("ADX").put(String.format("Minus DI (%s)", adxBarCount), minusDIIndicator);
-        indicators.get("ADX").put(String.format("Plus DI (%s)", adxBarCount), plusDIIndicator);
+        indicators.put(ADX_KEY, new LinkedHashMap<>());
+        indicators.get(ADX_KEY).put(String.format(ADX_PARAM_KEY, adxBarCount), adxIndicator);
+        indicators.get(ADX_KEY).put(String.format("Minus DI (%s)", adxBarCount), minusDIIndicator);
+        indicators.get(ADX_KEY).put(String.format("Plus DI (%s)", adxBarCount), plusDIIndicator);
 
-        indicators.put("CPI", new LinkedHashMap<>());
-        indicators.get("CPI").put("CPI", closePrice);
-        indicators.get("CPI").put(String.format("SMA (%s)", smaBarCount), sma);
+        indicators.put(CPI_KEY, new LinkedHashMap<>());
+        indicators.get(CPI_KEY).put(CPI_KEY, closePrice);
+        indicators.get(CPI_KEY).put(String.format(SMA_PARAM_KEY, smaBarCount), sma);
 
         this.builderResult = new BuilderResult(strategy, indicators);
     }

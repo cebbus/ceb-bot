@@ -43,16 +43,16 @@ public class CciCorrectionStrategy extends BaseCebStrategy {
         Rule exitRule = new UnderIndicatorRule(longCci, minus100)
                 .and(new OverIndicatorRule(shortCci, plus100));
 
-        Strategy strategy = new BaseStrategy("CCI", entryRule, exitRule, 5);
+        Strategy strategy = new BaseStrategy(CCI_KEY, entryRule, exitRule, 5);
 
         Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
 
-        indicators.put("CPI", new LinkedHashMap<>());
-        indicators.get("CPI").put("CPI", closePrice);
+        indicators.put(CPI_KEY, new LinkedHashMap<>());
+        indicators.get(CPI_KEY).put(CPI_KEY, closePrice);
 
-        indicators.put("CCI", new LinkedHashMap<>());
-        indicators.get("CCI").put(String.format("CCI (%s)", shortCciBarCount), shortCci);
-        indicators.get("CCI").put(String.format("CCI (%s)", longCciBarCount), longCci);
+        indicators.put(CCI_KEY, new LinkedHashMap<>());
+        indicators.get(CCI_KEY).put(String.format(CCI_PARAM_KEY, shortCciBarCount), shortCci);
+        indicators.get(CCI_KEY).put(String.format(CCI_PARAM_KEY, longCciBarCount), longCci);
 
         this.builderResult = new BuilderResult(strategy, indicators);
     }

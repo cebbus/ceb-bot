@@ -46,10 +46,10 @@ public class GlobalExtremaStrategy extends BaseCebStrategy {
         BaseStrategy strategy = new BaseStrategy("Global Extrema", entryRule, exitRule);
 
         Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
-        indicators.put("CPI", new LinkedHashMap<>());
-        indicators.get("CPI").put("CPI", closePrice);
-        indicators.get("CPI").put("Up Week", upWeek);
-        indicators.get("CPI").put("Down Week", downWeek);
+        indicators.put(CPI_KEY, new LinkedHashMap<>());
+        indicators.get(CPI_KEY).put(CPI_KEY, closePrice);
+        indicators.get(CPI_KEY).put("Up Week", upWeek);
+        indicators.get(CPI_KEY).put("Down Week", downWeek);
 
         this.builderResult = new BuilderResult(strategy, indicators);
     }

@@ -10,6 +10,19 @@ import java.util.Map;
 
 public abstract class BaseCebStrategy implements CebStrategy {
 
+    static final String CPI_KEY = "CPI";
+    static final String CCI_KEY = "CCI";
+    static final String ADX_KEY = "ADX";
+    static final String MACD_KEY = "MACD";
+    static final String STO_KEY = "STO";
+    static final String OBV_KEY = "OBV";
+    static final String RSI_KEY = "RSI";
+    static final String ADX_PARAM_KEY = "ADX (%s)";
+    static final String EMA_PARAM_KEY = "EMA (%s)";
+    static final String SMA_PARAM_KEY = "SMA (%s)";
+    static final String CCI_PARAM_KEY = "CCI (%s)";
+    static final String RSI_PARAM_KEY = "RSI (%s)";
+
     final BarSeries series;
 
     Number[] parameters;

@@ -32,8 +32,8 @@ public class JunkStrategy extends BaseCebStrategy {
         BaseStrategy strategy = new BaseStrategy("JUNK", entryRule, exitRule);
 
         Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
-        indicators.put("CPI", new LinkedHashMap<>());
-        indicators.get("CPI").put("CPI", closePrice);
+        indicators.put(CPI_KEY, new LinkedHashMap<>());
+        indicators.get(CPI_KEY).put(CPI_KEY, closePrice);
 
         this.builderResult = new BuilderResult(strategy, indicators);
     }

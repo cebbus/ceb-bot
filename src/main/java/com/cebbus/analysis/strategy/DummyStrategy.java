@@ -41,9 +41,9 @@ public class DummyStrategy extends BaseCebStrategy {
         BaseStrategy strategy = new BaseStrategy("Dummy", entryRule, exitRule);
 
         Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
-        indicators.put("CPI", new LinkedHashMap<>());
-        indicators.get("CPI").put("CPI", closePrice);
-        indicators.get("CPI").put(String.format("SMA (%s)", smaBarCount), sma);
+        indicators.put(CPI_KEY, new LinkedHashMap<>());
+        indicators.get(CPI_KEY).put(CPI_KEY, closePrice);
+        indicators.get(CPI_KEY).put(String.format(SMA_PARAM_KEY, smaBarCount), sma);
 
         this.builderResult = new BuilderResult(strategy, indicators);
     }

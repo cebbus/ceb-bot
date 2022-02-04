@@ -75,7 +75,7 @@ public class BuyerAction extends TraderAction {
 
         AssetBalance balance = getBalance(this.symbol.getQuote());
         BigDecimal quantity = new BigDecimal(balance.getFree())
-                .multiply(new BigDecimal(weight))
+                .multiply(BigDecimal.valueOf(weight))
                 .setScale(symbolInfo.getQuotePrecision(), RoundingMode.HALF_DOWN);
 
         NewOrder buyOrder = NewOrder

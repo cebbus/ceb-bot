@@ -40,12 +40,12 @@ public class MacdStrategy extends BaseCebStrategy {
 
         Rule exitRule = new UnderIndicatorRule(macd, signal);
 
-        BaseStrategy strategy = new BaseStrategy("MACD", entryRule, exitRule);
+        BaseStrategy strategy = new BaseStrategy(MACD_KEY, entryRule, exitRule);
 
         Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
-        indicators.put("MACD", new LinkedHashMap<>());
-        indicators.get("MACD").put("MACD", macd);
-        indicators.get("MACD").put(String.format("EMA (%s)", emaBarCount), signal);
+        indicators.put(MACD_KEY, new LinkedHashMap<>());
+        indicators.get(MACD_KEY).put(MACD_KEY, macd);
+        indicators.get(MACD_KEY).put(String.format(EMA_PARAM_KEY, emaBarCount), signal);
 
         this.builderResult = new BuilderResult(strategy, indicators);
     }

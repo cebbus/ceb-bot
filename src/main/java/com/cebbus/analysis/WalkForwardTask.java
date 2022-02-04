@@ -122,7 +122,6 @@ public class WalkForwardTask implements Runnable {
             stepResult.setTestResult(result);
             stepResult.setTestBuyAndHoldResult(buyAndHoldResult);
             stepResult.setParameters(parameters);
-            //this.stepResultList.add(stepResult);
             this.stepDoneListeners.forEach(l -> l.accept(stepResult));
 
             if (result.isGreaterThan(bestResult)) {
@@ -186,7 +185,6 @@ public class WalkForwardTask implements Runnable {
             stepResult.setTestResult(testResult);
             stepResult.setTestBuyAndHoldResult(testBuyAndHoldResult);
             stepResult.setParameters(parameters);
-            //this.stepResultList.add(stepResult);
             this.stepDoneListeners.forEach(l -> l.accept(stepResult));
 
             if (this.cancelled) {

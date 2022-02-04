@@ -39,10 +39,10 @@ public class GoldenCrossStrategy extends BaseCebStrategy {
         BaseStrategy strategy = new BaseStrategy("Golden Cross", entryRule, exitRule);
 
         Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
-        indicators.put("CPI", new LinkedHashMap<>());
-        indicators.get("CPI").put("CPI", closePrice);
-        indicators.get("CPI").put(String.format("SMA (%s)", shortBarCount), shortSma);
-        indicators.get("CPI").put(String.format("SMA (%s)", longBarCount), longSma);
+        indicators.put(CPI_KEY, new LinkedHashMap<>());
+        indicators.get(CPI_KEY).put(CPI_KEY, closePrice);
+        indicators.get(CPI_KEY).put(String.format(SMA_PARAM_KEY, shortBarCount), shortSma);
+        indicators.get(CPI_KEY).put(String.format(SMA_PARAM_KEY, longBarCount), longSma);
 
         this.builderResult = new BuilderResult(strategy, indicators);
     }

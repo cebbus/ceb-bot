@@ -36,13 +36,13 @@ public class RsiStrategy extends BaseCebStrategy {
         Rule entryRule = new CrossedDownIndicatorRule(rsi, rsiBuyThreshold);
         Rule exitRule = new CrossedUpIndicatorRule(rsi, rsiSellThreshold);
 
-        BaseStrategy strategy = new BaseStrategy("RSI", entryRule, exitRule);
+        BaseStrategy strategy = new BaseStrategy(RSI_KEY, entryRule, exitRule);
 
         Map<String, Map<String, CachedIndicator<Num>>> indicators = new LinkedHashMap<>();
-        indicators.put("CPI", new LinkedHashMap<>());
-        indicators.get("CPI").put("CPI", closePrice);
+        indicators.put(CPI_KEY, new LinkedHashMap<>());
+        indicators.get(CPI_KEY).put(CPI_KEY, closePrice);
 
-        indicators.put("RSI", Map.of(String.format("RSI (%s)", rsiBarCount), rsi));
+        indicators.put(RSI_KEY, Map.of(String.format(RSI_PARAM_KEY, rsiBarCount), rsi));
 
         this.builderResult = new BuilderResult(strategy, indicators);
     }
