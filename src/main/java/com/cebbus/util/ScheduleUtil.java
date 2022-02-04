@@ -2,44 +2,25 @@ package com.cebbus.util;
 
 import com.binance.api.client.domain.market.CandlestickInterval;
 import com.cebbus.analysis.Symbol;
+import com.cebbus.binance.CsIntervalAdapter;
 import com.cebbus.binance.Speculator;
 import com.cebbus.binance.SpeculatorJob;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 
-import java.util.EnumMap;
-import java.util.Map;
 import java.util.TimeZone;
 
 @Slf4j
 public class ScheduleUtil {
 
     private static Scheduler scheduler;
-    private static Map<CandlestickInterval, String> cronMap;
 
     static {
         try {
             SchedulerFactory schedulerFactory = new StdSchedulerFactory();
             scheduler = schedulerFactory.getScheduler();
             scheduler.start();
-
-            cronMap = new EnumMap<>(CandlestickInterval.class);
-            cronMap.put(CandlestickInterval.ONE_MINUTE, "10 0/1 * * * ?");
-            cronMap.put(CandlestickInterval.THREE_MINUTES, "10 0/3 * * * ?");
-            cronMap.put(CandlestickInterval.FIVE_MINUTES, "10 0/5 * * * ?");
-            cronMap.put(CandlestickInterval.FIFTEEN_MINUTES, "10 0/15 * * * ?");
-            cronMap.put(CandlestickInterval.HALF_HOURLY, "10 0/30 * * * ?");
-            cronMap.put(CandlestickInterval.HOURLY, "10 0 0/1 * * ?");
-            cronMap.put(CandlestickInterval.TWO_HOURLY, "10 0 0/2 * * ?");
-            cronMap.put(CandlestickInterval.FOUR_HOURLY, "10 0 0/4 * * ?");
-            cronMap.put(CandlestickInterval.SIX_HOURLY, "10 0 0/6 * * ?");
-            cronMap.put(CandlestickInterval.EIGHT_HOURLY, "10 0 0/8 * * ?");
-            cronMap.put(CandlestickInterval.TWELVE_HOURLY, "10 0 0/12 * * ?");
-            cronMap.put(CandlestickInterval.DAILY, "10 0 0 * * ?");
-            cronMap.put(CandlestickInterval.THREE_DAILY, "10 0 0 1/3 * ?");
-            cronMap.put(CandlestickInterval.WEEKLY, "10 0 0 1/7 * ?");
-            cronMap.put(CandlestickInterval.MONTHLY, "10 0 0 L * ?");
         } catch (SchedulerException e) {
             log.error(e.getMessage(), e);
             System.exit(-1);
@@ -64,7 +45,7 @@ public class ScheduleUtil {
                 .build();
 
         CronScheduleBuilder cronBuilder = CronScheduleBuilder
-                .cronSchedule(cronMap.get(interval))
+                .cronSchedule(CsIntervalAdapter.getCron(interval))
                 .inTimeZone(TimeZone.getTimeZone(DateTimeUtil.ZONE));
 
         CronTrigger trigger = TriggerBuilder.newTrigger()
