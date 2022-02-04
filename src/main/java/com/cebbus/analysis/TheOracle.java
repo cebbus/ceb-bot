@@ -93,57 +93,57 @@ public class TheOracle {
         TradeMapper tradeMapper = new TradeMapper(series, tradeList);
         Map<Integer, List<Trade>> tradeMap = tradeMapper.getTradeMap();
 
-        TradingRecord tradingRecord = getTradingRecord();
+        TradingRecord tr = getTradingRecord();
         tradeMap.forEach((index, trades) -> {
             for (Trade trade : trades) {
                 Num price = DecimalNum.valueOf(trade.getPrice());
                 Num amount = DecimalNum.valueOf(trade.getQty());
 
                 if (trade.isBuyer()) {
-                    tradingRecord.enter(index, price, amount);
+                    tr.enter(index, price, amount);
                 } else {
-                    tradingRecord.exit(index, price, amount);
+                    tr.exit(index, price, amount);
                 }
             }
         });
     }
 
     public boolean shouldEnter(boolean isSpecActive, boolean isManual) {
-        TradingRecord tradingRecord = isSpecActive ? getTradingRecord() : getBacktestRecord();
-        if (!tradingRecord.getCurrentPosition().isNew()) {
+        TradingRecord tr = isSpecActive ? getTradingRecord() : getBacktestRecord();
+        if (!tr.getCurrentPosition().isNew()) {
             log.info("you are already in a position!");
             return false;
         }
 
-        return isManual || this.cebStrategy.shouldEnter(tradingRecord);
+        return isManual || this.cebStrategy.shouldEnter(tr);
     }
 
     public boolean shouldExit(boolean isSpecActive, boolean isManual) {
-        TradingRecord tradingRecord = isSpecActive ? getTradingRecord() : getBacktestRecord();
-        if (notInPosition(tradingRecord)) {
+        TradingRecord tr = isSpecActive ? getTradingRecord() : getBacktestRecord();
+        if (notInPosition(tr)) {
             log.info("you have no position!");
             return false;
         }
 
-        return isManual || this.cebStrategy.shouldExit(tradingRecord);
+        return isManual || this.cebStrategy.shouldExit(tr);
     }
 
     public org.ta4j.core.Trade newTrade(boolean isSpecActive, Pair<Num, Num> priceAmount) {
-        TradingRecord tradingRecord = isSpecActive ? getTradingRecord() : getBacktestRecord();
+        TradingRecord tr = isSpecActive ? getTradingRecord() : getBacktestRecord();
         int endIndex = getSeries().getEndIndex();
 
         if (isSpecActive) {
-            tradingRecord.operate(endIndex, priceAmount.getKey(), priceAmount.getValue());
+            tr.operate(endIndex, priceAmount.getKey(), priceAmount.getValue());
         } else {
             Num closePrice = getSeries().getLastBar().getClosePrice();
-            tradingRecord.operate(endIndex, closePrice, DecimalNum.valueOf(1));
+            tr.operate(endIndex, closePrice, DecimalNum.valueOf(1));
         }
 
-        return tradingRecord.getLastTrade();
+        return tr.getLastTrade();
     }
 
-    public boolean notInPosition(TradingRecord tradingRecord) {
-        return !Optional.ofNullable(tradingRecord).orElseGet(this::getTradingRecord).getCurrentPosition().isOpened();
+    public boolean notInPosition(TradingRecord tr) {
+        return !Optional.ofNullable(tr).orElseGet(this::getTradingRecord).getCurrentPosition().isOpened();
     }
 
     public TradingRecord getTradingRecord() {
