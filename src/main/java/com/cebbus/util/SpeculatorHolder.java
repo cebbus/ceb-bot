@@ -4,8 +4,6 @@ import com.cebbus.analysis.Symbol;
 import com.cebbus.binance.Speculator;
 import com.cebbus.exception.SpeculatorBlockedException;
 import lombok.extern.slf4j.Slf4j;
-import org.ta4j.core.Trade;
-import org.ta4j.core.TradingRecord;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +42,7 @@ public class SpeculatorHolder {
         String quote = symbol.getQuote();
         double weight = symbol.getWeight();
         double totalWeight = SPECULATORS.stream()
-                .filter(s -> !isInPosition(s))
+                .filter(s -> s.getTheOracle().notInPosition(null))
                 .filter(s -> s.getSymbol().getQuote().equals(quote))
                 .mapToDouble(s -> s.getSymbol().getWeight())
                 .sum();
@@ -106,11 +104,5 @@ public class SpeculatorHolder {
 
     private boolean isLocked() {
         return this.lockedBy != null;
-    }
-
-    private boolean isInPosition(Speculator speculator) {
-        TradingRecord tradingRecord = speculator.getTheOracle().getTradingRecord();
-        Trade lastTrade = tradingRecord.getLastTrade();
-        return lastTrade != null && lastTrade.isBuy();
     }
 }

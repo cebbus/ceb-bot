@@ -6,6 +6,7 @@ import org.jgap.Gene;
 import org.jgap.InvalidConfigurationException;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.Strategy;
+import org.ta4j.core.TradingRecord;
 import org.ta4j.core.indicators.CachedIndicator;
 import org.ta4j.core.num.Num;
 
@@ -15,6 +16,10 @@ public interface CebStrategy {
     void build();
 
     void rebuild(Number... parameters);
+
+    boolean shouldEnter(TradingRecord tradingRecord);
+
+    boolean shouldExit(TradingRecord tradingRecord);
 
     CebStrategy and(CebStrategy other);
 

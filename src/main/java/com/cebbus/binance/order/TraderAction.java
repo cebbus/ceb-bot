@@ -16,9 +16,7 @@ import com.cebbus.binance.Speculator;
 import com.cebbus.exception.OrderNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
-import org.ta4j.core.BarSeries;
 import org.ta4j.core.Trade;
-import org.ta4j.core.TradingRecord;
 import org.ta4j.core.num.DecimalNum;
 import org.ta4j.core.num.Num;
 
@@ -73,14 +71,7 @@ public abstract class TraderAction {
     }
 
     Trade createBacktestRecord() {
-        BarSeries series = this.theOracle.getSeries();
-        int endIndex = series.getEndIndex();
-        Num closePrice = series.getLastBar().getClosePrice();
-
-        TradingRecord tradingRecord = this.theOracle.getBacktestRecord();
-        tradingRecord.operate(endIndex, closePrice, DecimalNum.valueOf(1));
-
-        return tradingRecord.getLastTrade();
+        return this.theOracle.newTrade(false, null);
     }
 
     Trade createTradeRecord(NewOrderResponse response) {
@@ -92,17 +83,7 @@ public abstract class TraderAction {
         Order order = findOrder(response.getOrderId());
         Pair<Num, Num> priceAmount = getPriceAmountPair(order);
 
-        BarSeries series = this.theOracle.getSeries();
-        int endIndex = series.getEndIndex();
-
-        TradingRecord tradingRecord = this.theOracle.getTradingRecord();
-        tradingRecord.operate(endIndex, priceAmount.getKey(), priceAmount.getValue());
-
-        return tradingRecord.getLastTrade();
-    }
-
-    TradingRecord getTradingRecord() {
-        return this.speculator.isActive() ? this.theOracle.getTradingRecord() : this.theOracle.getBacktestRecord();
+        return this.theOracle.newTrade(true, priceAmount);
     }
 
     //order not returns immediately, that's why wait a second before the retry

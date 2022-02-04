@@ -8,9 +8,7 @@ import com.cebbus.binance.Speculator;
 import com.cebbus.exception.ZeroWeightException;
 import com.cebbus.util.SpeculatorHolder;
 import lombok.extern.slf4j.Slf4j;
-import org.ta4j.core.Strategy;
 import org.ta4j.core.Trade;
-import org.ta4j.core.TradingRecord;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -39,28 +37,14 @@ public class BuyerAction extends TraderAction {
         }
     }
 
-    public boolean enterable(boolean askTheOracle) {
-        TradingRecord tradingRecord = getTradingRecord();
-
-        if (askTheOracle) {
-            Strategy strategy = this.theOracle.prophesy();
-            int endIndex = this.theOracle.getSeries().getEndIndex();
-            if (!strategy.shouldEnter(endIndex, tradingRecord)) {
-                return false;
-            }
-        }
-
-        if (!tradingRecord.getCurrentPosition().isNew()) {
-            log.info("you are already in a position!");
-            return false;
-        }
-
-        if (this.speculator.isActive() && noBalance(this.symbol.getQuote(), false)) {
+    public boolean enterable(boolean isManual) {
+        boolean isSpecActive = this.speculator.isActive();
+        if (isSpecActive && noBalance(this.symbol.getQuote(), false)) {
             log.info("you have no balance!");
             return false;
         }
 
-        return true;
+        return this.theOracle.shouldEnter(isSpecActive, isManual);
     }
 
     private NewOrderResponse buy(SpeculatorHolder specHolder) {

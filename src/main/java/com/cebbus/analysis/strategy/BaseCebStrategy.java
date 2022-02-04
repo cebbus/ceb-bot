@@ -2,6 +2,7 @@ package com.cebbus.analysis.strategy;
 
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.Strategy;
+import org.ta4j.core.TradingRecord;
 import org.ta4j.core.indicators.CachedIndicator;
 import org.ta4j.core.num.Num;
 
@@ -37,6 +38,16 @@ public abstract class BaseCebStrategy implements CebStrategy {
     public void rebuild(Number... parameters) {
         this.parameters = parameters;
         build();
+    }
+
+    @Override
+    public boolean shouldEnter(TradingRecord tradingRecord) {
+        return getStrategy().shouldEnter(this.series.getEndIndex(), tradingRecord);
+    }
+
+    @Override
+    public boolean shouldExit(TradingRecord tradingRecord) {
+        return getStrategy().shouldExit(this.series.getEndIndex(), tradingRecord);
     }
 
     @Override

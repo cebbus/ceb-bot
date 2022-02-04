@@ -6,9 +6,7 @@ import com.binance.api.client.domain.account.NewOrderResponse;
 import com.binance.api.client.domain.general.SymbolFilter;
 import com.cebbus.binance.Speculator;
 import lombok.extern.slf4j.Slf4j;
-import org.ta4j.core.Strategy;
 import org.ta4j.core.Trade;
-import org.ta4j.core.TradingRecord;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -29,28 +27,14 @@ public class SellerAction extends TraderAction {
         }
     }
 
-    public boolean exitable(boolean askTheOracle) {
-        TradingRecord tradingRecord = getTradingRecord();
-
-        if (askTheOracle) {
-            Strategy strategy = this.theOracle.prophesy();
-            int endIndex = this.theOracle.getSeries().getEndIndex();
-            if (!strategy.shouldExit(endIndex, tradingRecord)) {
-                return false;
-            }
-        }
-
-        if (!tradingRecord.getCurrentPosition().isOpened()) {
-            log.info("you have no position!");
-            return false;
-        }
-
-        if (this.speculator.isActive() && noBalance(this.symbol.getBase(), true)) {
+    public boolean exitable(boolean isManual) {
+        boolean isSpecActive = this.speculator.isActive();
+        if (isSpecActive && noBalance(this.symbol.getBase(), true)) {
             log.info("you have no coin!");
             return false;
         }
 
-        return true;
+        return this.theOracle.shouldExit(isSpecActive, isManual);
     }
 
     private NewOrderResponse sell() {

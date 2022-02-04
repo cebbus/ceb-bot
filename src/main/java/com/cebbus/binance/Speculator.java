@@ -8,19 +8,14 @@ import com.binance.api.client.domain.market.CandlestickInterval;
 import com.cebbus.analysis.Symbol;
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.analysis.mapper.BarMapper;
-import com.cebbus.analysis.strategy.BaseCebStrategy;
-import com.cebbus.analysis.strategy.CebStrategy;
-import com.cebbus.analysis.strategy.StrategyFactory;
 import com.cebbus.binance.listener.CandlestickEventListener;
 import com.cebbus.binance.listener.operation.EventOperation;
 import com.cebbus.binance.listener.operation.TradeOperation;
 import com.cebbus.binance.listener.operation.UpdateCacheOperation;
 import com.cebbus.binance.listener.operation.UpdateSeriesOperation;
-import com.cebbus.binance.mapper.TradeMapper;
 import com.cebbus.binance.order.TradeStatus;
 import com.cebbus.util.LimitedHashMap;
 import com.cebbus.util.PropertyReader;
-import com.cebbus.util.ReflectionUtil;
 import com.cebbus.util.ScheduleUtil;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -29,9 +24,6 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.ta4j.core.Bar;
-import org.ta4j.core.BarSeries;
-import org.ta4j.core.TradingRecord;
-import org.ta4j.core.num.DecimalNum;
 import org.ta4j.core.num.Num;
 
 import java.util.List;
@@ -103,25 +95,8 @@ public class Speculator {
             log.warn("needs credentials!");
         }
 
-        BarSeries series = this.theOracle.getSeries();
         List<Trade> tradeList = this.restClient.getMyTrades(this.symbol.getName());
-
-        TradeMapper tradeMapper = new TradeMapper(series, tradeList);
-        Map<Integer, List<Trade>> tradeMap = tradeMapper.getTradeMap();
-
-        TradingRecord tradingRecord = this.theOracle.getTradingRecord();
-        tradeMap.forEach((index, trades) -> {
-            for (Trade trade : trades) {
-                Num price = DecimalNum.valueOf(trade.getPrice());
-                Num amount = DecimalNum.valueOf(trade.getQty());
-
-                if (trade.isBuyer()) {
-                    tradingRecord.enter(index, price, amount);
-                } else {
-                    tradingRecord.exit(index, price, amount);
-                }
-            }
-        });
+        this.theOracle.fillTradeHistory(tradeList);
     }
 
     public void startSpec() {
@@ -202,16 +177,7 @@ public class Speculator {
 
     public List<Pair<String, Num>> calcStrategies() {
         Objects.requireNonNull(this.theOracle);
-
-        BarSeries series = this.theOracle.getSeries();
-        List<Class<? extends BaseCebStrategy>> strategies = ReflectionUtil.listStrategyClasses();
-
-        return strategies.stream().map(clazz -> {
-            CebStrategy cs = StrategyFactory.create(series, clazz);
-            TheOracle testOracle = new TheOracle(cs);
-
-            return Pair.of(clazz.getSimpleName(), testOracle.calculateProfit());
-        }).collect(Collectors.toList());
+        return theOracle.calcStrategies();
     }
 
     public void changeParameters(Number... parameters) {
