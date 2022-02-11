@@ -75,9 +75,10 @@ public class OptimizeTask implements Runnable {
             @Override
             protected double evaluate(IChromosome chromosome) {
                 TheOracle theOracle = speculator.getTheOracle();
-                theOracle.changeProphesyParameters(chromosomeToParameters(chromosome));
+                Number[] parameters = chromosomeToParameters(chromosome);
+                AnalysisCriterionCalculator calculator = theOracle.changeProphesyParameters(parameters);
 
-                Num result = theOracle.calculateProfit();
+                Num result = calculator.backtestStrategyReturn();
                 chromosome.setFitnessValue(result.doubleValue());
 
                 return result.doubleValue();

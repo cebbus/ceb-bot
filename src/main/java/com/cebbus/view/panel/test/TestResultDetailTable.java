@@ -1,17 +1,11 @@
 package com.cebbus.view.panel.test;
 
+import com.cebbus.analysis.AnalysisCriterionCalculator;
 import com.cebbus.analysis.OptimizeTask;
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.binance.Speculator;
 import com.cebbus.view.panel.FormFieldSet;
 import com.cebbus.view.panel.WaitDialog;
-import org.ta4j.core.BarSeries;
-import org.ta4j.core.TradingRecord;
-import org.ta4j.core.analysis.criteria.BuyAndHoldReturnCriterion;
-import org.ta4j.core.analysis.criteria.NumberOfBarsCriterion;
-import org.ta4j.core.analysis.criteria.VersusBuyAndHoldCriterion;
-import org.ta4j.core.analysis.criteria.WinningPositionsRatioCriterion;
-import org.ta4j.core.analysis.criteria.pnl.GrossReturnCriterion;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -120,30 +114,14 @@ public class TestResultDetailTable extends FormFieldSet {
         model.setRowCount(0);
 
         TheOracle theOracle = speculator.getTheOracle();
-        BarSeries series = theOracle.getSeries();
-        TradingRecord tradingRecord = theOracle.getBacktestRecord();
+        AnalysisCriterionCalculator calculator = theOracle.getCriterionCalculator();
 
-        model.addRow(new Object[]{"Number of Pos", tradingRecord.getPositionCount()});
-
-        NumberOfBarsCriterion numberOfBarsCriterion = new NumberOfBarsCriterion();
-        int numOfBars = numberOfBarsCriterion.calculate(series, tradingRecord).intValue();
-        model.addRow(new Object[]{"Number of Bars", numOfBars});
-
-        GrossReturnCriterion returnCriterion = new GrossReturnCriterion();
-        double totalReturn = returnCriterion.calculate(series, tradingRecord).doubleValue();
-        model.addRow(new Object[]{"Strategy Return", RESULT_FORMAT.format(totalReturn)});
-
-        BuyAndHoldReturnCriterion buyAndHoldReturnCriterion = new BuyAndHoldReturnCriterion();
-        double buyAndHold = buyAndHoldReturnCriterion.calculate(series, tradingRecord).doubleValue();
-        model.addRow(new Object[]{"Buy and Hold Return", RESULT_FORMAT.format(buyAndHold)});
-
-        VersusBuyAndHoldCriterion versusBuyAndHoldCriterion = new VersusBuyAndHoldCriterion(returnCriterion);
-        double versus = versusBuyAndHoldCriterion.calculate(series, tradingRecord).doubleValue();
-        model.addRow(new Object[]{"Strategy vs Hold (%)", RESULT_FORMAT.format(versus * 100)});
-
-        WinningPositionsRatioCriterion winningRatioCriterion = new WinningPositionsRatioCriterion();
-        double winningRatio = winningRatioCriterion.calculate(series, tradingRecord).doubleValue();
-        model.addRow(new Object[]{"Strategy Winning Ratio (%)", RESULT_FORMAT.format(winningRatio * 100)});
+        model.addRow(new Object[]{"Number of Pos", calculator.backtestPosCount()});
+        model.addRow(new Object[]{"Number of Bars", calculator.backtestBarCount()});
+        model.addRow(new Object[]{"Strategy Return", RESULT_FORMAT.format(calculator.backtestStrategyReturn().doubleValue())});
+        model.addRow(new Object[]{"Buy and Hold Return", RESULT_FORMAT.format(calculator.backtestBuyAndHold().doubleValue())});
+        model.addRow(new Object[]{"Strategy vs Hold (%)", RESULT_FORMAT.format(calculator.backtestVersus().doubleValue() * 100)});
+        model.addRow(new Object[]{"Strategy Winning Ratio (%)", RESULT_FORMAT.format(calculator.backtestWinnigRatio().doubleValue() * 100)});
     }
 
     public void update(Speculator speculator) {
@@ -159,29 +137,15 @@ public class TestResultDetailTable extends FormFieldSet {
         }
 
         TheOracle theOracle = speculator.getTheOracle();
-        BarSeries series = theOracle.getSeries();
-        TradingRecord tradingRecord = theOracle.getBacktestRecord();
-        model.setValueAt(tradingRecord.getPositionCount(), 0, 2);
+        AnalysisCriterionCalculator calculator = theOracle.getCriterionCalculator();
 
-        NumberOfBarsCriterion numberOfBarsCriterion = new NumberOfBarsCriterion();
-        int numOfBars = numberOfBarsCriterion.calculate(series, tradingRecord).intValue();
-        model.setValueAt(numOfBars, 1, 2);
+        model.setValueAt(calculator.backtestPosCount(), 0, 2);
+        model.setValueAt(calculator.backtestBarCount(), 1, 2);
 
-        GrossReturnCriterion returnCriterion = new GrossReturnCriterion();
-        double totalReturn = returnCriterion.calculate(series, tradingRecord).doubleValue();
-        model.setValueAt(RESULT_FORMAT.format(totalReturn), 2, 2);
-
-        BuyAndHoldReturnCriterion buyAndHoldReturnCriterion = new BuyAndHoldReturnCriterion();
-        double buyAndHold = buyAndHoldReturnCriterion.calculate(series, tradingRecord).doubleValue();
-        model.setValueAt(RESULT_FORMAT.format(buyAndHold), 3, 2);
-
-        VersusBuyAndHoldCriterion versusBuyAndHoldCriterion = new VersusBuyAndHoldCriterion(returnCriterion);
-        double versus = versusBuyAndHoldCriterion.calculate(series, tradingRecord).doubleValue();
-        model.setValueAt(RESULT_FORMAT.format(versus * 100), 4, 2);
-
-        WinningPositionsRatioCriterion winningRatioCriterion = new WinningPositionsRatioCriterion();
-        double winningRatio = winningRatioCriterion.calculate(series, tradingRecord).doubleValue();
-        model.setValueAt(RESULT_FORMAT.format(winningRatio * 100), 5, 2);
+        model.setValueAt(RESULT_FORMAT.format(calculator.backtestStrategyReturn().doubleValue()), 2, 2);
+        model.setValueAt(RESULT_FORMAT.format(calculator.backtestBuyAndHold().doubleValue()), 3, 2);
+        model.setValueAt(RESULT_FORMAT.format(calculator.backtestVersus().doubleValue() * 100), 4, 2);
+        model.setValueAt(RESULT_FORMAT.format(calculator.backtestWinnigRatio().doubleValue() * 100), 5, 2);
     }
 
     public void addOptimizeDoneListener(Consumer<Speculator> operation) {

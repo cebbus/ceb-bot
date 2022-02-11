@@ -108,11 +108,12 @@ public class WalkForwardTask implements Runnable {
 
             CebStrategy cebStrategy = StrategyFactory.create(backtestSeries, strategy);
             TheOracle backtestOracle = new TheOracle(cebStrategy);
-            Num defaultResult = backtestOracle.calculateProfit();
-            Num buyAndHoldResult = backtestOracle.calculateBuyAndHold();
+            AnalysisCriterionCalculator calculator = backtestOracle.getCriterionCalculator();
+            Num defaultResult = calculator.backtestStrategyReturn();
+            Num buyAndHoldResult = calculator.backtestBuyAndHold();
 
-            backtestOracle.changeProphesyParameters(parameters);
-            Num result = backtestOracle.calculateProfit();
+            AnalysisCriterionCalculator updatedCalc = backtestOracle.changeProphesyParameters(parameters);
+            Num result = updatedCalc.backtestStrategyReturn();
 
             StepResult stepResult = new StepResult();
             stepResult.setStrategy(strategy);
@@ -147,23 +148,21 @@ public class WalkForwardTask implements Runnable {
         for (String strategy : this.strategyList) {
             CebStrategy trainsStrategy = StrategyFactory.create(trainSeries, strategy);
             TheOracle trainOracle = new TheOracle(trainsStrategy);
-            Num trainDefaultResult = trainOracle.calculateProfit();
-            Num trainBuyAndHoldResult = trainOracle.calculateBuyAndHold();
+            AnalysisCriterionCalculator trainCalculator = trainOracle.getCriterionCalculator();
 
             optimize(trainOracle);
-            Num trainResult = trainOracle.calculateProfit();
+            AnalysisCriterionCalculator optimizedCalculator = trainOracle.getCriterionCalculator();
 
             CebStrategy testStrategy = StrategyFactory.create(testSeries, strategy);
             TheOracle testOracle = new TheOracle(testStrategy);
             Number[] testDefaultParameters = testOracle.getProphesyParameters();
-            Num testDefaultResult = testOracle.calculateProfit();
-            Num testBuyAndHoldResult = testOracle.calculateBuyAndHold();
+            AnalysisCriterionCalculator testCalculator = testOracle.getCriterionCalculator();
 
             Number[] testParameters = trainOracle.getProphesyParameters();
-            testOracle.changeProphesyParameters(testParameters);
-            Num testResult = testOracle.calculateProfit();
+            AnalysisCriterionCalculator updatedCalc = testOracle.changeProphesyParameters(testParameters);
+            Num testResult = updatedCalc.backtestStrategyReturn();
 
-            Num result = testResult.max(testDefaultResult);
+            Num result = testResult.max(testCalculator.backtestStrategyReturn());
             Number[] parameters = result.equals(testResult) ? testParameters : testDefaultParameters;
 
             if (result.isGreaterThan(bestResult)) {
@@ -178,12 +177,12 @@ public class WalkForwardTask implements Runnable {
             stepResult.setTrainEndBar(trainSeries.getLastBar());
             stepResult.setTestStartBar(testSeries.getFirstBar());
             stepResult.setTestEndBar(testSeries.getLastBar());
-            stepResult.setTrainDefaultResult(trainDefaultResult);
-            stepResult.setTrainResult(trainResult);
-            stepResult.setTrainBuyAndHoldResult(trainBuyAndHoldResult);
-            stepResult.setTestDefaultResult(testDefaultResult);
+            stepResult.setTrainDefaultResult(trainCalculator.backtestStrategyReturn());
+            stepResult.setTrainResult(optimizedCalculator.backtestStrategyReturn());
+            stepResult.setTrainBuyAndHoldResult(trainCalculator.backtestBuyAndHold());
+            stepResult.setTestDefaultResult(testCalculator.backtestStrategyReturn());
             stepResult.setTestResult(testResult);
-            stepResult.setTestBuyAndHoldResult(testBuyAndHoldResult);
+            stepResult.setTestBuyAndHoldResult(testCalculator.backtestBuyAndHold());
             stepResult.setParameters(parameters);
             this.stepDoneListeners.forEach(l -> l.accept(stepResult));
 

@@ -3,7 +3,6 @@ package com.cebbus.analysis;
 import com.binance.api.client.domain.account.Trade;
 import com.cebbus.analysis.strategy.BaseCebStrategy;
 import com.cebbus.analysis.strategy.CebStrategy;
-import com.cebbus.analysis.strategy.StrategyFactory;
 import com.cebbus.binance.mapper.TradeMapper;
 import com.cebbus.util.ReflectionUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -15,8 +14,6 @@ import org.ta4j.core.BarSeries;
 import org.ta4j.core.BarSeriesManager;
 import org.ta4j.core.BaseTradingRecord;
 import org.ta4j.core.TradingRecord;
-import org.ta4j.core.analysis.criteria.BuyAndHoldReturnCriterion;
-import org.ta4j.core.analysis.criteria.pnl.GrossReturnCriterion;
 import org.ta4j.core.indicators.CachedIndicator;
 import org.ta4j.core.num.DecimalNum;
 import org.ta4j.core.num.Num;
@@ -30,16 +27,14 @@ import java.util.stream.Collectors;
 public class TheOracle {
 
     private final CebStrategy cebStrategy;
-    private final GrossReturnCriterion grossReturnCriterion;
-    private final BuyAndHoldReturnCriterion buyAndHoldReturnCriterion;
 
     private TradingRecord tradingRecord;
     private TradingRecord backtestRecord;
+    private AnalysisCriterionCalculator criterionCalculator;
 
     public TheOracle(CebStrategy cebStrategy) {
         this.cebStrategy = cebStrategy;
-        this.grossReturnCriterion = new GrossReturnCriterion();
-        this.buyAndHoldReturnCriterion = new BuyAndHoldReturnCriterion();
+        this.criterionCalculator = new AnalysisCriterionCalculator(this);
     }
 
     public BarSeries getSeries() {
@@ -58,33 +53,22 @@ public class TheOracle {
         return this.cebStrategy.getParameterMap();
     }
 
-    public Num calculateProfit() {
-        return this.grossReturnCriterion.calculate(getSeries(), getBacktestRecord());
-    }
-
-    public Num calculateBuyAndHold() {
-        return this.buyAndHoldReturnCriterion.calculate(getSeries(), getBacktestRecord());
-    }
-
     public Chromosome getProphesyOmen(Configuration conf) throws InvalidConfigurationException {
         return new Chromosome(conf, this.cebStrategy.createGene(conf));
     }
 
-    public void changeProphesyParameters(Number... parameters) {
+    public AnalysisCriterionCalculator changeProphesyParameters(Number... parameters) {
         this.cebStrategy.rebuild(parameters);
         this.backtestRecord = null;
         getBacktestRecord();
+
+        return this.criterionCalculator;
     }
 
     public List<Pair<String, Num>> calcStrategies() {
-        BarSeries series = getSeries();
         List<Class<? extends BaseCebStrategy>> strategies = ReflectionUtil.listStrategyClasses();
-
-        return strategies.stream().map(clazz -> {
-            CebStrategy cs = StrategyFactory.create(series, clazz);
-            TheOracle testOracle = new TheOracle(cs);
-            return Pair.of(clazz.getSimpleName(), testOracle.calculateProfit());
-        }).collect(Collectors.toList());
+        StrategyReturnCalcFunction calcFunction = new StrategyReturnCalcFunction(this);
+        return strategies.stream().map(calcFunction).collect(Collectors.toList());
     }
 
     public void fillTradeHistory(List<Trade> tradeList) {
@@ -149,6 +133,7 @@ public class TheOracle {
     public TradingRecord getTradingRecord() {
         if (this.tradingRecord == null) {
             this.tradingRecord = new BaseTradingRecord();
+            this.criterionCalculator = new AnalysisCriterionCalculator(this);
         }
 
         return this.tradingRecord;
@@ -158,8 +143,13 @@ public class TheOracle {
         if (this.backtestRecord == null) {
             BarSeriesManager manager = new BarSeriesManager(getSeries());
             this.backtestRecord = manager.run(this.cebStrategy.getStrategy());
+            this.criterionCalculator = new AnalysisCriterionCalculator(this);
         }
 
         return this.backtestRecord;
+    }
+
+    public AnalysisCriterionCalculator getCriterionCalculator() {
+        return criterionCalculator;
     }
 }
