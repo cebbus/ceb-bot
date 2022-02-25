@@ -5,11 +5,10 @@ import com.cebbus.analysis.strategy.CebStrategy;
 import com.cebbus.analysis.strategy.StrategyFactory;
 import org.apache.commons.lang3.tuple.Pair;
 import org.ta4j.core.BarSeries;
-import org.ta4j.core.num.Num;
 
 import java.util.function.Function;
 
-public class StrategyReturnCalcFunction implements Function<Class<? extends BaseCebStrategy>, Pair<String, Num>> {
+public class StrategyReturnCalcFunction implements Function<Class<? extends BaseCebStrategy>, Pair<String, Double>> {
 
     private final BarSeries series;
 
@@ -18,9 +17,9 @@ public class StrategyReturnCalcFunction implements Function<Class<? extends Base
     }
 
     @Override
-    public Pair<String, Num> apply(Class<? extends BaseCebStrategy> clazz) {
+    public Pair<String, Double> apply(Class<? extends BaseCebStrategy> clazz) {
         CebStrategy cebStrategy = StrategyFactory.create(this.series, clazz);
         TheOracle testOracle = new TheOracle(cebStrategy);
-        return Pair.of(clazz.getSimpleName(), testOracle.backtestStrategyReturn());
+        return Pair.of(clazz.getSimpleName(), testOracle.backtestStrategyReturn().doubleValue());
     }
 }

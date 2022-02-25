@@ -2,6 +2,7 @@ package com.cebbus.analysis;
 
 import com.cebbus.analysis.strategy.BaseCebStrategy;
 import com.cebbus.analysis.strategy.CebStrategy;
+import com.cebbus.analysis.strategy.StrategyFactory;
 import com.cebbus.util.ReflectionUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
@@ -57,9 +58,11 @@ public class TheOracle {
         return new Chromosome(conf, this.cebStrategy.createGene(conf));
     }
 
-    //TODO
-    public void changeStrategy(String strategy) {
-        //CebStrategy cebStrategy = StrategyFactory.create(series, strategy);
+    public TheOracle changeStrategy(String strategy) {
+        BarSeries series = this.cebStrategy.getSeries();
+        CebStrategy newStrategy = StrategyFactory.create(series, strategy);
+
+        return new TheOracle(newStrategy);
     }
 
     public void changeProphesyParameters(Number... parameters) {
@@ -69,7 +72,7 @@ public class TheOracle {
         this.criterionCalculator.setBacktestRecord(this.backtestRecord);
     }
 
-    public List<Pair<String, Num>> calcStrategies() {
+    public List<Pair<String, Double>> calcStrategies() {
         BarSeries series = this.cebStrategy.getSeries();
 
         List<Class<? extends BaseCebStrategy>> strategies = ReflectionUtil.listStrategyClasses();

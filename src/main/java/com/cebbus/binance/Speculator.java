@@ -24,7 +24,6 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.ta4j.core.Bar;
-import org.ta4j.core.num.Num;
 
 import java.text.DecimalFormat;
 import java.util.List;
@@ -180,7 +179,7 @@ public class Speculator {
         Objects.requireNonNull(this.theOracle);
         DecimalFormat format = new DecimalFormat("#,###.0000");
 
-        List<Pair<String, Num>> pairs = theOracle.calcStrategies();
+        List<Pair<String, Double>> pairs = theOracle.calcStrategies();
         return pairs.stream().map(p -> Pair.of(p.getKey(), format.format(p.getValue()))).collect(Collectors.toList());
     }
 
@@ -192,7 +191,7 @@ public class Speculator {
 
     public void changeStrategy(String strategy) {
         Objects.requireNonNull(this.theOracle);
-        this.theOracle.changeStrategy(strategy);
+        this.theOracle = this.theOracle.changeStrategy(strategy);
     }
 
     private boolean trade(boolean isBuy) {
