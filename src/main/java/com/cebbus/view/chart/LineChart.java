@@ -1,16 +1,13 @@
 package com.cebbus.view.chart;
 
-import com.cebbus.util.DateTimeUtil;
+import com.cebbus.analysis.TheOracle;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.time.RegularTimePeriod;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
-import org.ta4j.core.Bar;
-import org.ta4j.core.BarSeries;
-import org.ta4j.core.Trade;
-import org.ta4j.core.TradingRecord;
+import org.jfree.data.time.TimeSeriesDataItem;
 import org.ta4j.core.indicators.CachedIndicator;
 import org.ta4j.core.num.Num;
 
@@ -23,27 +20,13 @@ import java.util.Map;
 public class LineChart extends CryptoChart {
 
     private JFreeChart chart;
-    private Trade lastTradeBuffer;
-    private Trade lastBacktestBuffer;
 
-    private final TradingRecord tradingRecord;
-    private final TradingRecord backtestRecord;
     private final Map<String, CachedIndicator<Num>> indicatorMap;
     private final Map<String, TimeSeries> timeSeriesMap = new HashMap<>();
 
-    public LineChart(
-            BarSeries series,
-            Map<String, CachedIndicator<Num>> indicatorMap,
-            TradingRecord tradingRecord,
-            TradingRecord backtestRecord) {
-        super(series);
-
+    public LineChart(TheOracle theOracle, Map<String, CachedIndicator<Num>> indicatorMap) {
+        super(theOracle);
         this.indicatorMap = indicatorMap;
-        this.tradingRecord = tradingRecord;
-        this.backtestRecord = backtestRecord;
-
-        this.lastTradeBuffer = this.tradingRecord.getLastTrade();
-        this.lastBacktestBuffer = this.backtestRecord.getLastTrade();
     }
 
     @Override
@@ -82,8 +65,7 @@ public class LineChart extends CryptoChart {
         xyPlot.setBackgroundPaint(ColorPalette.LIGHT_GRAY);
         xyPlot.setFixedLegendItems(xyPlot.getLegendItems());
 
-        addSignals(xyPlot, this.backtestRecord, true);
-        addSignals(xyPlot, this.tradingRecord, false);
+        addSignals(xyPlot);
 
         return this.chart;
     }
@@ -95,61 +77,34 @@ public class LineChart extends CryptoChart {
         }
 
         this.indicatorMap.forEach((name, indicator) -> {
-            int endIndex = this.series.getEndIndex();
-            Bar bar = this.series.getBar(endIndex);
-            RegularTimePeriod period = DateTimeUtil.getBarPeriod(bar);
-
             TimeSeries timeSeries = this.timeSeriesMap.get(name);
 
-            double value = indicator.getValue(endIndex).doubleValue();
-            if (!itemExist(timeSeries, period)) {
-                timeSeries.add(period, value);
-            } else {
-                timeSeries.update(period, value);
+            if (!this.theOracle.isNewCandle()) {
+                int count = timeSeries.getItemCount();
+                RegularTimePeriod lastPeriod = timeSeries.getTimePeriod(count - 1);
+                timeSeries.delete(lastPeriod);
             }
+
+            timeSeries.add(this.theOracle.getLastSeriesItem(indicator));
         });
 
-        Trade lastBacktest = this.backtestRecord.getLastTrade();
-        if (lastBacktest != null && !lastBacktest.equals(this.lastBacktestBuffer)) {
-            XYPlot xyPlot = this.chart.getXYPlot();
-            addSignal(xyPlot, lastBacktest, true);
+        XYPlot xyPlot = this.chart.getXYPlot();
 
-            this.lastBacktestBuffer = lastBacktest;
+        if (this.theOracle.hasNewTrade(true)) {
+            addSignal(xyPlot, this.theOracle.getLastTradePoint(true));
         }
 
-        Trade lastTrade = this.tradingRecord.getLastTrade();
-        if (lastTrade != null && !lastTrade.equals(this.lastTradeBuffer)) {
-            XYPlot xyPlot = this.chart.getXYPlot();
-            addSignal(xyPlot, lastTrade, false);
-
-            this.lastTradeBuffer = lastTrade;
+        if (this.theOracle.hasNewTrade(false)) {
+            addSignal(xyPlot, this.theOracle.getLastTradePoint(false));
         }
     }
 
     private TimeSeries createChartData(String name, CachedIndicator<Num> indicator) {
+        List<TimeSeriesDataItem> dataList = this.theOracle.getSeriesDataList(indicator);
+
         TimeSeries timeSeries = new TimeSeries(name);
-
-        int startIndex = getStartIndex();
-        int endIndex = this.series.getEndIndex();
-        for (int i = startIndex; i <= endIndex; i++) {
-            Bar bar = this.series.getBar(i);
-
-            RegularTimePeriod period = DateTimeUtil.getBarPeriod(bar);
-            double value = indicator.getValue(i).doubleValue();
-
-            timeSeries.add(period, value);
-        }
+        dataList.forEach(timeSeries::add);
 
         return timeSeries;
-    }
-
-    private boolean itemExist(TimeSeries timeSeries, RegularTimePeriod newPeriod) {
-        int count = timeSeries.getItemCount();
-        if (count == 0) {
-            return false;
-        }
-
-        RegularTimePeriod lastPeriod = timeSeries.getTimePeriod(count - 1);
-        return lastPeriod.equals(newPeriod);
     }
 }

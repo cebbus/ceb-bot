@@ -9,69 +9,141 @@ import org.ta4j.core.analysis.criteria.WinningPositionsRatioCriterion;
 import org.ta4j.core.analysis.criteria.pnl.GrossReturnCriterion;
 import org.ta4j.core.num.Num;
 
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.cebbus.view.chart.ColorPalette.*;
+
 public class AnalysisCriterionCalculator {
 
-    private final BarSeries series;
-    private final TradingRecord tradingRecord;
-    private final TradingRecord backtestRecord;
+    private static final DecimalFormat RESULT_FORMAT = new DecimalFormat("#,###.0000");
 
+    private final BarSeries series;
     private final NumberOfBarsCriterion numberOfBarsCriterion = new NumberOfBarsCriterion();
     private final GrossReturnCriterion returnCriterion = new GrossReturnCriterion();
     private final BuyAndHoldReturnCriterion buyAndHoldReturnCriterion = new BuyAndHoldReturnCriterion();
     private final VersusBuyAndHoldCriterion versusBuyAndHoldCriterion = new VersusBuyAndHoldCriterion(new GrossReturnCriterion());
     private final WinningPositionsRatioCriterion winningRatioCriterion = new WinningPositionsRatioCriterion();
 
-    AnalysisCriterionCalculator(TheOracle theOracle) {
-        this.series = theOracle.getSeries();
-        this.tradingRecord = theOracle.getTradingRecord();
-        this.backtestRecord = theOracle.getBacktestRecord();
+    private TradingRecord tradingRecord;
+    private TradingRecord backtestRecord;
+
+    AnalysisCriterionCalculator(BarSeries series, TradingRecord tradingRecord, TradingRecord backtestRecord) {
+        this.series = series;
+        setTradingRecord(tradingRecord);
+        setBacktestRecord(backtestRecord);
     }
 
-    public int posCount() {
+    private int posCount() {
         return this.tradingRecord.getPositionCount();
     }
 
-    public int barCount() {
+    private int barCount() {
         return this.numberOfBarsCriterion.calculate(this.series, this.tradingRecord).intValue();
     }
 
-    public Num strategyReturn() {
+    private Num strategyReturn() {
         return this.returnCriterion.calculate(this.series, this.tradingRecord);
     }
 
-    public Num buyAndHold() {
+    private double strategyReturnAsDouble() {
+        return strategyReturn().doubleValue();
+    }
+
+    private Num buyAndHold() {
         return this.buyAndHoldReturnCriterion.calculate(this.series, this.tradingRecord);
     }
 
-    public Num winnigRatio() {
+    private double buyAndHoldAsDouble() {
+        return buyAndHold().doubleValue();
+    }
+
+    private Num winnigRatio() {
         return this.winningRatioCriterion.calculate(this.series, this.tradingRecord);
     }
 
-    public Num versus() {
+    private double winnigRatioAsDouble() {
+        return winnigRatio().doubleValue();
+    }
+
+    private Num versus() {
         return this.versusBuyAndHoldCriterion.calculate(this.series, this.tradingRecord);
     }
 
-    public int backtestPosCount() {
+    private double versusAsDouble() {
+        return versus().doubleValue();
+    }
+
+    private int backtestPosCount() {
         return this.backtestRecord.getPositionCount();
     }
 
-    public int backtestBarCount() {
+    private int backtestBarCount() {
         return this.numberOfBarsCriterion.calculate(this.series, this.backtestRecord).intValue();
     }
 
-    public Num backtestStrategyReturn() {
+    protected Num backtestStrategyReturn() {
         return this.returnCriterion.calculate(this.series, this.backtestRecord);
     }
 
-    public Num backtestBuyAndHold() {
+    private double backtestStrategyReturnAsDouble() {
+        return backtestStrategyReturn().doubleValue();
+    }
+
+    protected Num backtestBuyAndHold() {
         return this.buyAndHoldReturnCriterion.calculate(this.series, this.backtestRecord);
     }
 
-    public Num backtestWinnigRatio() {
+    private double backtestBuyAndHoldAsDouble() {
+        return backtestBuyAndHold().doubleValue();
+    }
+
+    private Num backtestWinnigRatio() {
         return this.winningRatioCriterion.calculate(this.series, this.backtestRecord);
     }
 
-    public Num backtestVersus() {
+    private double backtestWinnigRatioAsDouble() {
+        return backtestWinnigRatio().doubleValue();
+    }
+
+    private Num backtestVersus() {
         return this.versusBuyAndHoldCriterion.calculate(this.series, this.backtestRecord);
+    }
+
+    private double backtestVersusAsDouble() {
+        return backtestVersus().doubleValue();
+    }
+
+    public List<CriterionResult> getCriterionResultList(boolean backtest) {
+        List<CriterionResult> resultList = new ArrayList<>();
+
+        int positionCount = backtest ? backtestPosCount() : posCount();
+        resultList.add(new CriterionResult("Number of Pos", positionCount, Integer.toString(positionCount), DARK_GRAY));
+
+        int numOfBars = backtest ? backtestBarCount() : barCount();
+        resultList.add(new CriterionResult("Number of Bars", numOfBars, Integer.toString(numOfBars), DARK_GRAY));
+
+        double totalReturn = backtest ? backtestStrategyReturnAsDouble() : strategyReturnAsDouble();
+        resultList.add(new CriterionResult("Strategy Return", totalReturn, RESULT_FORMAT.format(totalReturn), totalReturn > 0 ? GREEN : RED));
+
+        double buyAndHold = backtest ? backtestBuyAndHoldAsDouble() : buyAndHoldAsDouble();
+        resultList.add(new CriterionResult("Buy and Hold Return", buyAndHold, RESULT_FORMAT.format(buyAndHold), buyAndHold > 0 ? GREEN : RED));
+
+        double versus = backtest ? backtestVersusAsDouble() : versusAsDouble();
+        resultList.add(new CriterionResult("Strategy vs Hold (%)", versus, RESULT_FORMAT.format(versus * 100), versus > 1 ? GREEN : RED));
+
+        double winningRatio = backtest ? backtestWinnigRatioAsDouble() : winnigRatioAsDouble();
+        resultList.add(new CriterionResult("Strategy Winning Ratio (%)", winningRatio, RESULT_FORMAT.format(winningRatio * 100), winningRatio > 0.75 ? GREEN : RED));
+
+        return resultList;
+    }
+
+    void setTradingRecord(TradingRecord tradingRecord) {
+        this.tradingRecord = tradingRecord;
+    }
+
+    void setBacktestRecord(TradingRecord backtestRecord) {
+        this.backtestRecord = backtestRecord;
     }
 }

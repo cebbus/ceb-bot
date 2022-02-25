@@ -26,6 +26,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.ta4j.core.Bar;
 import org.ta4j.core.num.Num;
 
+import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -103,7 +104,7 @@ public class Speculator {
         Objects.requireNonNull(this.theOracle);
 
         this.listener.addOperation(new UpdateCacheOperation(this.candlestickCache));
-        this.listener.addOperation(new UpdateSeriesOperation(this.theOracle.getSeries(), this.symbol.getInterval()));
+        this.listener.addOperation(new UpdateSeriesOperation(this.theOracle, this.symbol.getInterval()));
         this.listener.addOperation(new TradeOperation(this));
 
         ScheduleUtil.schedule(this);
@@ -175,14 +176,23 @@ public class Speculator {
         return status == null || status == TradeStatus.ACTIVE;
     }
 
-    public List<Pair<String, Num>> calcStrategies() {
+    public List<Pair<String, String>> calcStrategies() {
         Objects.requireNonNull(this.theOracle);
-        return theOracle.calcStrategies();
+        DecimalFormat format = new DecimalFormat("#,###.0000");
+
+        List<Pair<String, Num>> pairs = theOracle.calcStrategies();
+        return pairs.stream().map(p -> Pair.of(p.getKey(), format.format(p.getValue()))).collect(Collectors.toList());
     }
 
     public void changeParameters(Number... parameters) {
+        Objects.requireNonNull(this.theOracle);
         this.theOracle.changeProphesyParameters(parameters);
         this.parameterChangeListeners.forEach(o -> o.accept(this));
+    }
+
+    public void changeStrategy(String strategy) {
+        Objects.requireNonNull(this.theOracle);
+        this.theOracle.changeStrategy(strategy);
     }
 
     private boolean trade(boolean isBuy) {

@@ -1,17 +1,10 @@
 package com.cebbus.view.panel;
 
+import com.cebbus.analysis.CriterionResult;
 import com.cebbus.analysis.Symbol;
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.binance.Speculator;
-import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
-import org.ta4j.core.BarSeries;
-import org.ta4j.core.TradingRecord;
-import org.ta4j.core.analysis.criteria.BuyAndHoldReturnCriterion;
-import org.ta4j.core.analysis.criteria.NumberOfBarsCriterion;
-import org.ta4j.core.analysis.criteria.VersusBuyAndHoldCriterion;
-import org.ta4j.core.analysis.criteria.WinningPositionsRatioCriterion;
-import org.ta4j.core.analysis.criteria.pnl.GrossReturnCriterion;
 
 import javax.swing.*;
 import java.awt.*;
@@ -21,33 +14,20 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static com.cebbus.view.chart.ColorPalette.*;
-
 public class PerformancePanel extends FormFieldSet {
 
     private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#,###.0000");
 
     private final Symbol symbol;
-    private final BarSeries series;
-    private final TradingRecord tradingRecord;
-    private final TradingRecord backtestRecord;
+    private final TheOracle theOracle;
+
     private final Map<String, JLabel> infoLabelMap = new LinkedHashMap<>();
     private final Map<String, JLabel> tradingLabelMap = new LinkedHashMap<>();
     private final Map<String, JLabel> backtestLabelMap = new LinkedHashMap<>();
 
-    private int lastPositionCount;
-    private int lastBacktestPositionCount;
-
     public PerformancePanel(Speculator speculator) {
         this.symbol = speculator.getSymbol();
-
-        TheOracle theOracle = speculator.getTheOracle();
-        this.series = theOracle.getSeries();
-        this.tradingRecord = theOracle.getTradingRecord();
-        this.backtestRecord = theOracle.getBacktestRecord();
-
-        this.lastPositionCount = this.tradingRecord.getPositionCount();
-        this.lastBacktestPositionCount = this.backtestRecord.getPositionCount();
+        this.theOracle = speculator.getTheOracle();
     }
 
     public JPanel create() {
@@ -65,18 +45,14 @@ public class PerformancePanel extends FormFieldSet {
     }
 
     public void refresh() {
-        if (this.backtestRecord.getPositionCount() > this.lastBacktestPositionCount) {
-            List<CriterionResult> resultList = createCriterionMap(this.backtestRecord);
+        if (this.theOracle.hasNewPosition(true)) {
+            List<CriterionResult> resultList = this.theOracle.getCriterionResultList(true);
             resultList.forEach(r -> updateValueLabel(this.backtestLabelMap.get(r.getLabel()), r));
-
-            this.lastBacktestPositionCount = this.backtestRecord.getPositionCount();
         }
 
-        if (this.tradingRecord.getPositionCount() > this.lastPositionCount) {
-            List<CriterionResult> resultList = createCriterionMap(this.tradingRecord);
+        if (this.theOracle.hasNewPosition(false)) {
+            List<CriterionResult> resultList = this.theOracle.getCriterionResultList(false);
             resultList.forEach(r -> updateValueLabel(this.tradingLabelMap.get(r.getLabel()), r));
-
-            this.lastPositionCount = this.tradingRecord.getPositionCount();
         }
     }
 
@@ -106,7 +82,7 @@ public class PerformancePanel extends FormFieldSet {
         panel.add(createTitleLabel("Backtest Results"), createConst(rowNum, 0));
         panel.add(new JLabel(""), createConst(rowNum, 1));
 
-        List<CriterionResult> backtestResultList = createCriterionMap(this.backtestRecord);
+        List<CriterionResult> backtestResultList = this.theOracle.getCriterionResultList(true);
         backtestResultList.forEach(r -> this.backtestLabelMap.put(r.getLabel(), createValueLabel(r)));
 
         this.backtestLabelMap.forEach((s, l) -> {
@@ -119,7 +95,7 @@ public class PerformancePanel extends FormFieldSet {
         panel.add(createTitleLabel("Trade Results"), createConst(rowNum, 0));
         panel.add(new JLabel(""), createConst(rowNum, 1));
 
-        List<CriterionResult> currentResultList = createCriterionMap(this.tradingRecord);
+        List<CriterionResult> currentResultList = this.theOracle.getCriterionResultList(false);
         currentResultList.forEach(r -> this.tradingLabelMap.put(r.getLabel(), createValueLabel(r)));
 
         this.tradingLabelMap.forEach((s, l) -> {
@@ -145,45 +121,8 @@ public class PerformancePanel extends FormFieldSet {
     }
 
     private void updateValueLabel(JLabel label, CriterionResult result) {
-        label.setText(result.getValue());
+        label.setText(result.getFormattedValue());
         label.setForeground(result.getColor());
-    }
-
-    private List<CriterionResult> createCriterionMap(TradingRecord tradingRecord) {
-        List<CriterionResult> resultList = new ArrayList<>();
-
-        int positionCount = tradingRecord.getPositionCount();
-        resultList.add(new CriterionResult("Number of Pos", Integer.toString(positionCount), DARK_GRAY));
-
-        NumberOfBarsCriterion numberOfBarsCriterion = new NumberOfBarsCriterion();
-        int numOfBars = numberOfBarsCriterion.calculate(this.series, tradingRecord).intValue();
-        resultList.add(new CriterionResult("Number of Bars", Integer.toString(numOfBars), DARK_GRAY));
-
-        GrossReturnCriterion returnCriterion = new GrossReturnCriterion();
-        double totalReturn = returnCriterion.calculate(this.series, tradingRecord).doubleValue();
-        resultList.add(new CriterionResult("Strategy Return",
-                DECIMAL_FORMAT.format(totalReturn),
-                totalReturn > 0 ? GREEN : RED));
-
-        BuyAndHoldReturnCriterion buyAndHoldReturnCriterion = new BuyAndHoldReturnCriterion();
-        double buyAndHold = buyAndHoldReturnCriterion.calculate(this.series, tradingRecord).doubleValue();
-        resultList.add(new CriterionResult("Buy and Hold Return",
-                DECIMAL_FORMAT.format(buyAndHold),
-                buyAndHold > 0 ? GREEN : RED));
-
-        VersusBuyAndHoldCriterion versusBuyAndHoldCriterion = new VersusBuyAndHoldCriterion(returnCriterion);
-        double versus = versusBuyAndHoldCriterion.calculate(this.series, tradingRecord).doubleValue();
-        resultList.add(new CriterionResult("Strategy vs Hold (%)",
-                DECIMAL_FORMAT.format(versus * 100),
-                versus > 1 ? GREEN : RED));
-
-        WinningPositionsRatioCriterion winningRatioCriterion = new WinningPositionsRatioCriterion();
-        double winningRatio = winningRatioCriterion.calculate(this.series, tradingRecord).doubleValue();
-        resultList.add(new CriterionResult("Strategy Winning Ratio (%)",
-                DECIMAL_FORMAT.format(winningRatio * 100),
-                winningRatio > 0.75 ? GREEN : RED));
-
-        return resultList;
     }
 
     private String snakeCaseToCapitalWord(String value) {
@@ -192,12 +131,5 @@ public class PerformancePanel extends FormFieldSet {
 
     private String capitalizeWord(String value) {
         return StringUtils.capitalize(value.toLowerCase(Locale.ROOT));
-    }
-
-    @Data
-    private static class CriterionResult {
-        private final String label;
-        private final String value;
-        private final Color color;
     }
 }

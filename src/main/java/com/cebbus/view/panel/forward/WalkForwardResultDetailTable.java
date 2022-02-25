@@ -1,6 +1,6 @@
 package com.cebbus.view.panel.forward;
 
-import com.cebbus.analysis.AnalysisCriterionCalculator;
+import com.cebbus.analysis.CriterionResult;
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.binance.Speculator;
 import com.cebbus.view.panel.FormFieldSet;
@@ -8,8 +8,8 @@ import com.cebbus.view.panel.FormFieldSet;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
+import java.util.List;
 
-import static com.cebbus.view.panel.forward.CryptoWalkForwardTabPanel.RESULT_FORMAT;
 import static com.cebbus.view.panel.forward.CryptoWalkForwardTabPanel.WEST_ITEM_WIDTH;
 
 public class WalkForwardResultDetailTable extends FormFieldSet {
@@ -49,14 +49,11 @@ public class WalkForwardResultDetailTable extends FormFieldSet {
         model.setRowCount(0);
 
         TheOracle theOracle = speculator.getTheOracle();
-        AnalysisCriterionCalculator calculator = theOracle.getCriterionCalculator();
+        List<CriterionResult> criterionResultList = theOracle.getCriterionResultList(true);
 
-        model.addRow(new Object[]{"Number of Pos", calculator.backtestPosCount()});
-        model.addRow(new Object[]{"Number of Bars", calculator.backtestBarCount()});
-        model.addRow(new Object[]{"Strategy Return", RESULT_FORMAT.format(calculator.backtestStrategyReturn().doubleValue())});
-        model.addRow(new Object[]{"Buy and Hold Return", RESULT_FORMAT.format(calculator.backtestBuyAndHold().doubleValue())});
-        model.addRow(new Object[]{"Strategy vs Hold (%)", RESULT_FORMAT.format(calculator.backtestVersus().doubleValue() * 100)});
-        model.addRow(new Object[]{"Strategy Winning Ratio (%)", RESULT_FORMAT.format(calculator.backtestWinnigRatio().doubleValue() * 100)});
+        for (CriterionResult result : criterionResultList) {
+            model.addRow(new Object[]{result.getLabel(), result.getFormattedValue()});
+        }
     }
 
     public Box getPanel() {

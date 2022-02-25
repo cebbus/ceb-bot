@@ -1,13 +1,8 @@
 package com.cebbus.view.panel.test;
 
-import com.cebbus.analysis.TheOracle;
-import com.cebbus.analysis.strategy.CebStrategy;
-import com.cebbus.analysis.strategy.StrategyFactory;
 import com.cebbus.binance.Speculator;
 import com.cebbus.view.panel.FormFieldSet;
 import org.apache.commons.lang3.tuple.Pair;
-import org.ta4j.core.BarSeries;
-import org.ta4j.core.num.Num;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -19,7 +14,6 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static com.cebbus.view.panel.test.CryptoTestTabPanel.RESULT_FORMAT;
 import static com.cebbus.view.panel.test.CryptoTestTabPanel.WEST_ITEM_WIDTH;
 
 public class TestResultTable extends FormFieldSet {
@@ -81,12 +75,8 @@ public class TestResultTable extends FormFieldSet {
         setSize(jButton, WEST_ITEM_WIDTH, 20);
         jButton.setEnabled(false);
         jButton.addActionListener(e -> {
-            BarSeries series = this.speculator.getTheOracle().getSeries();
             String strategy = String.join(" & ", this.strategies);
-            CebStrategy cebStrategy = StrategyFactory.create(series, strategy);
-
-            this.speculator.setTheOracle(new TheOracle(cebStrategy));
-
+            this.speculator.changeStrategy(strategy);
             this.onDetailClickListeners.forEach(action -> action.accept(this.speculator));
         });
 
@@ -100,10 +90,6 @@ public class TestResultTable extends FormFieldSet {
         return jButton;
     }
 
-    private Object[] createTableRow(Pair<String, Num> result) {
-        return new Object[]{result.getKey(), RESULT_FORMAT.format(result.getValue().doubleValue())};
-    }
-
     public void reload(Speculator speculator) {
         this.speculator = speculator;
 
@@ -112,9 +98,9 @@ public class TestResultTable extends FormFieldSet {
         DefaultTableModel model = (DefaultTableModel) this.table.getModel();
         model.setRowCount(0);
 
-        List<Pair<String, Num>> resultList = speculator.calcStrategies();
+        List<Pair<String, String>> resultList = speculator.calcStrategies();
         resultList.sort((o1, o2) -> o2.getValue().compareTo(o1.getValue()));
-        resultList.forEach(result -> model.addRow(createTableRow(result)));
+        resultList.forEach(result -> model.addRow(new Object[]{result.getKey(), result.getValue()}));
     }
 
     public void addDetailClickListener(Consumer<Speculator> operation) {

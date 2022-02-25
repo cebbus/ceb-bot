@@ -108,12 +108,11 @@ public class WalkForwardTask implements Runnable {
 
             CebStrategy cebStrategy = StrategyFactory.create(backtestSeries, strategy);
             TheOracle backtestOracle = new TheOracle(cebStrategy);
-            AnalysisCriterionCalculator calculator = backtestOracle.getCriterionCalculator();
-            Num defaultResult = calculator.backtestStrategyReturn();
-            Num buyAndHoldResult = calculator.backtestBuyAndHold();
+            Num defaultResult = backtestOracle.backtestStrategyReturn();
+            Num buyAndHoldResult = backtestOracle.backtestBuyAndHold();
 
-            AnalysisCriterionCalculator updatedCalc = backtestOracle.changeProphesyParameters(parameters);
-            Num result = updatedCalc.backtestStrategyReturn();
+            backtestOracle.changeProphesyParameters(parameters);
+            Num result = backtestOracle.backtestStrategyReturn();
 
             StepResult stepResult = new StepResult();
             stepResult.setStrategy(strategy);
@@ -148,21 +147,23 @@ public class WalkForwardTask implements Runnable {
         for (String strategy : this.strategyList) {
             CebStrategy trainsStrategy = StrategyFactory.create(trainSeries, strategy);
             TheOracle trainOracle = new TheOracle(trainsStrategy);
-            AnalysisCriterionCalculator trainCalculator = trainOracle.getCriterionCalculator();
+            Num trainBuyAndHold = trainOracle.backtestBuyAndHold();
+            Num trainDefaultResult = trainOracle.backtestStrategyReturn();
 
             optimize(trainOracle);
-            AnalysisCriterionCalculator optimizedCalculator = trainOracle.getCriterionCalculator();
+            Num trainResult = trainOracle.backtestStrategyReturn();
 
             CebStrategy testStrategy = StrategyFactory.create(testSeries, strategy);
             TheOracle testOracle = new TheOracle(testStrategy);
             Number[] testDefaultParameters = testOracle.getProphesyParameters();
-            AnalysisCriterionCalculator testCalculator = testOracle.getCriterionCalculator();
+            Num testBuyAndHold = testOracle.backtestBuyAndHold();
+            Num testDefaultResult = testOracle.backtestStrategyReturn();
 
             Number[] testParameters = trainOracle.getProphesyParameters();
-            AnalysisCriterionCalculator updatedCalc = testOracle.changeProphesyParameters(testParameters);
-            Num testResult = updatedCalc.backtestStrategyReturn();
+            testOracle.changeProphesyParameters(testParameters);
+            Num testResult = testOracle.backtestStrategyReturn();
 
-            Num result = testResult.max(testCalculator.backtestStrategyReturn());
+            Num result = testResult.max(testDefaultResult);
             Number[] parameters = result.equals(testResult) ? testParameters : testDefaultParameters;
 
             if (result.isGreaterThan(bestResult)) {
@@ -177,12 +178,12 @@ public class WalkForwardTask implements Runnable {
             stepResult.setTrainEndBar(trainSeries.getLastBar());
             stepResult.setTestStartBar(testSeries.getFirstBar());
             stepResult.setTestEndBar(testSeries.getLastBar());
-            stepResult.setTrainDefaultResult(trainCalculator.backtestStrategyReturn());
-            stepResult.setTrainResult(optimizedCalculator.backtestStrategyReturn());
-            stepResult.setTrainBuyAndHoldResult(trainCalculator.backtestBuyAndHold());
-            stepResult.setTestDefaultResult(testCalculator.backtestStrategyReturn());
+            stepResult.setTrainDefaultResult(trainDefaultResult);
+            stepResult.setTrainResult(trainResult);
+            stepResult.setTrainBuyAndHoldResult(trainBuyAndHold);
+            stepResult.setTestDefaultResult(testDefaultResult);
             stepResult.setTestResult(testResult);
-            stepResult.setTestBuyAndHoldResult(testCalculator.backtestBuyAndHold());
+            stepResult.setTestBuyAndHoldResult(testBuyAndHold);
             stepResult.setParameters(parameters);
             this.stepDoneListeners.forEach(l -> l.accept(stepResult));
 

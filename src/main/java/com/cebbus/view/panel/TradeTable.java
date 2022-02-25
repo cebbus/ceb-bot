@@ -2,65 +2,43 @@ package com.cebbus.view.panel;
 
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.view.chart.ColorPalette;
-import org.ta4j.core.BarSeries;
-import org.ta4j.core.Position;
-import org.ta4j.core.Trade;
-import org.ta4j.core.TradingRecord;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 public class TradeTable {
 
-    private final BarSeries series;
-    private final TradingRecord tradingRecord;
-    private final TradingRecord backtestRecord;
+    private final TheOracle theOracle;
     private final DefaultTableModel tradeModel = new DefaultTableModel();
     private final DefaultTableModel backtestModel = new DefaultTableModel();
 
-    private Trade lastTradeBuffer;
-    private Trade lastBacktestBuffer;
-
     public TradeTable(TheOracle theOracle) {
-        this.series = theOracle.getSeries();
-        this.tradingRecord = theOracle.getTradingRecord();
-        this.backtestRecord = theOracle.getBacktestRecord();
-
-        this.lastTradeBuffer = this.tradingRecord.getLastTrade();
-        this.lastBacktestBuffer = this.backtestRecord.getLastTrade();
+        this.theOracle = theOracle;
     }
 
     public JTabbedPane create() {
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
-        tabbedPane.addTab("Trade", createTable(this.tradeModel, this.tradingRecord));
-        tabbedPane.addTab("Backtest", createTable(this.backtestModel, this.backtestRecord));
+        tabbedPane.addTab("Trade", createTable(this.tradeModel, false));
+        tabbedPane.addTab("Backtest", createTable(this.backtestModel, true));
 
         return tabbedPane;
     }
 
     public void refresh() {
-        Trade lastBacktest = this.backtestRecord.getLastTrade();
-        if (lastBacktest != null && !lastBacktest.equals(this.lastBacktestBuffer)) {
-            this.backtestModel.addRow(tradeToRow(lastBacktest));
-            this.lastBacktestBuffer = lastBacktest;
+        if (this.theOracle.hasNewTrade(true)) {
+            this.backtestModel.addRow(this.theOracle.getLastTradeRow(true));
         }
 
-        Trade lastTrade = this.tradingRecord.getLastTrade();
-        if (lastTrade != null && !lastTrade.equals(this.lastTradeBuffer)) {
-            this.tradeModel.addRow(tradeToRow(lastTrade));
-            this.lastTradeBuffer = lastTrade;
+        if (this.theOracle.hasNewTrade(false)) {
+            this.tradeModel.addRow(this.theOracle.getLastTradeRow(false));
         }
     }
 
-    private JScrollPane createTable(DefaultTableModel model, TradingRecord tradingRecord) {
+    private JScrollPane createTable(DefaultTableModel model, boolean backtest) {
         model.addColumn("#");
         model.addColumn("Date");
         model.addColumn("B/S");
@@ -68,45 +46,14 @@ public class TradeTable {
         model.addColumn("Price");
         model.addColumn("Total");
 
-        List<Trade> tradeList = new ArrayList<>();
-
-        List<Position> positionList = tradingRecord.getPositions();
-        positionList.forEach(p -> tradeList.addAll(positionToTradeList(p)));
-
-        Trade lastTrade = tradingRecord.getLastTrade();
-        Position lastPosition = tradingRecord.getLastPosition();
-        if (lastTrade != null && (tradeList.isEmpty() || (lastPosition != null && !lastPosition.getExit().equals(lastTrade)))) {
-            tradeList.add(lastTrade);
-        }
-
-        tradeList.sort(Comparator.comparingInt(Trade::getIndex));
-        tradeList.forEach(t -> model.addRow(tradeToRow(t)));
+        List<Object[]> rowList = this.theOracle.getTradeRowList(backtest);
+        rowList.forEach(model::addRow);
 
         JTable table = new JTable(model);
         table.setDefaultRenderer(Object.class, new BuySellRenderer());
         table.setFillsViewportHeight(true);
 
         return new JScrollPane(table);
-    }
-
-    private Object[] tradeToRow(Trade trade) {
-        int index = trade.getIndex();
-        ZonedDateTime dateTime = this.series.getBar(index).getEndTime();
-        String formattedTime = dateTime.toLocalDateTime().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss"));
-
-        Object[] row = new Object[6];
-        row[0] = index;
-        row[1] = formattedTime;
-        row[2] = trade.isBuy() ? "B" : "S";
-        row[3] = trade.getAmount();
-        row[4] = trade.getNetPrice();
-        row[5] = trade.getAmount().multipliedBy(trade.getNetPrice());
-
-        return row;
-    }
-
-    private List<Trade> positionToTradeList(Position position) {
-        return List.of(position.getEntry(), position.getExit());
     }
 
     private static class BuySellRenderer extends DefaultTableCellRenderer {

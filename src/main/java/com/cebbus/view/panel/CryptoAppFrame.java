@@ -55,7 +55,7 @@ public class CryptoAppFrame {
 
         CryptoTabPanel tabPanel = new CryptoTabPanel(speculator);
 
-        String name = theOracle.getSeries().getName();
+        String name = speculator.getSymbol().getName();
         JPanel container = tabPanel.getContainer();
         if (index == null) {
             this.tabPane.addTab(name, container);

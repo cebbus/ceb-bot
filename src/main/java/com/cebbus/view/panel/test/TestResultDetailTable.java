@@ -1,6 +1,6 @@
 package com.cebbus.view.panel.test;
 
-import com.cebbus.analysis.AnalysisCriterionCalculator;
+import com.cebbus.analysis.CriterionResult;
 import com.cebbus.analysis.OptimizeTask;
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.binance.Speculator;
@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static com.cebbus.view.panel.test.CryptoTestTabPanel.RESULT_FORMAT;
 import static com.cebbus.view.panel.test.CryptoTestTabPanel.WEST_ITEM_WIDTH;
 
 public class TestResultDetailTable extends FormFieldSet {
@@ -114,14 +113,10 @@ public class TestResultDetailTable extends FormFieldSet {
         model.setRowCount(0);
 
         TheOracle theOracle = speculator.getTheOracle();
-        AnalysisCriterionCalculator calculator = theOracle.getCriterionCalculator();
-
-        model.addRow(new Object[]{"Number of Pos", calculator.backtestPosCount()});
-        model.addRow(new Object[]{"Number of Bars", calculator.backtestBarCount()});
-        model.addRow(new Object[]{"Strategy Return", RESULT_FORMAT.format(calculator.backtestStrategyReturn().doubleValue())});
-        model.addRow(new Object[]{"Buy and Hold Return", RESULT_FORMAT.format(calculator.backtestBuyAndHold().doubleValue())});
-        model.addRow(new Object[]{"Strategy vs Hold (%)", RESULT_FORMAT.format(calculator.backtestVersus().doubleValue() * 100)});
-        model.addRow(new Object[]{"Strategy Winning Ratio (%)", RESULT_FORMAT.format(calculator.backtestWinnigRatio().doubleValue() * 100)});
+        List<CriterionResult> criterionResultList = theOracle.getCriterionResultList(true);
+        for (CriterionResult result : criterionResultList) {
+            model.addRow(new Object[]{result.getLabel(), result.getFormattedValue()});
+        }
     }
 
     public void update(Speculator speculator) {
@@ -137,15 +132,12 @@ public class TestResultDetailTable extends FormFieldSet {
         }
 
         TheOracle theOracle = speculator.getTheOracle();
-        AnalysisCriterionCalculator calculator = theOracle.getCriterionCalculator();
+        List<CriterionResult> criterionResultList = theOracle.getCriterionResultList(true);
 
-        model.setValueAt(calculator.backtestPosCount(), 0, 2);
-        model.setValueAt(calculator.backtestBarCount(), 1, 2);
-
-        model.setValueAt(RESULT_FORMAT.format(calculator.backtestStrategyReturn().doubleValue()), 2, 2);
-        model.setValueAt(RESULT_FORMAT.format(calculator.backtestBuyAndHold().doubleValue()), 3, 2);
-        model.setValueAt(RESULT_FORMAT.format(calculator.backtestVersus().doubleValue() * 100), 4, 2);
-        model.setValueAt(RESULT_FORMAT.format(calculator.backtestWinnigRatio().doubleValue() * 100), 5, 2);
+        for (int i = 0; i < criterionResultList.size(); i++) {
+            CriterionResult result = criterionResultList.get(i);
+            model.setValueAt(result.getFormattedValue(), i, 2);
+        }
     }
 
     public void addOptimizeDoneListener(Consumer<Speculator> operation) {

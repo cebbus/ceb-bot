@@ -5,13 +5,11 @@ import com.cebbus.binance.Speculator;
 import com.cebbus.util.PropertyReader;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.ta4j.core.num.Num;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import java.awt.*;
-import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Map;
 
@@ -104,7 +102,7 @@ public class PanelMenu {
         JMenu status = new JMenu("Strategy");
         JMenuItem compare = new JMenuItem("Compare");
         compare.addActionListener(e -> {
-            List<Pair<String, Num>> resultList = this.speculator.calcStrategies();
+            List<Pair<String, String>> resultList = this.speculator.calcStrategies();
             JTable resultTable = createResultTable(resultList);
             JScrollPane scrollPane = new JScrollPane(resultTable);
 
@@ -180,13 +178,13 @@ public class PanelMenu {
         return dialog;
     }
 
-    private JTable createResultTable(List<Pair<String, Num>> resultList) {
+    private JTable createResultTable(List<Pair<String, String>> resultList) {
         DefaultTableModel model = new DefaultTableModel();
         model.addColumn("Strategy");
         model.addColumn("Result");
 
         resultList.sort((o1, o2) -> o2.getValue().compareTo(o1.getValue()));
-        resultList.forEach(result -> model.addRow(new Object[]{result.getKey(), formatResult(result.getValue())}));
+        resultList.forEach(result -> model.addRow(new Object[]{result.getKey(), result.getValue()}));
 
         JTable table = new JTable(model);
         table.setFillsViewportHeight(true);
@@ -205,10 +203,5 @@ public class PanelMenu {
         table.setFillsViewportHeight(true);
 
         return table;
-    }
-
-    private String formatResult(Num result) {
-        DecimalFormat format = new DecimalFormat("#,###.0000");
-        return format.format(result.doubleValue());
     }
 }

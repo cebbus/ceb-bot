@@ -11,7 +11,6 @@ public class CryptoWalkForwardTabPanel {
 
     static final int WEST_WIDTH = 250;
     static final int WEST_ITEM_WIDTH = 234;
-    static final DecimalFormat RESULT_FORMAT = new DecimalFormat("#,###.0000");
 
     private final JPanel container;
     private final WalkForwardFormPanel formPanel;

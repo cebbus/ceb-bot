@@ -1,18 +1,15 @@
 package com.cebbus.view.chart;
 
-import com.cebbus.util.DateTimeUtil;
+import com.cebbus.analysis.TheOracle;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.CandlestickRenderer;
-import org.jfree.data.time.RegularTimePeriod;
 import org.jfree.data.time.ohlc.OHLCItem;
 import org.jfree.data.time.ohlc.OHLCSeries;
 import org.jfree.data.time.ohlc.OHLCSeriesCollection;
 import org.jfree.data.xy.OHLCDataset;
-import org.ta4j.core.Bar;
-import org.ta4j.core.BarSeries;
 
 import javax.swing.*;
 import java.util.Collections;
@@ -24,8 +21,8 @@ public class CandlestickChart extends CryptoChart {
 
     private final OHLCSeries ohlcSeries = new OHLCSeries("");
 
-    public CandlestickChart(BarSeries series) {
-        super(series);
+    public CandlestickChart(TheOracle theOracle) {
+        super(theOracle);
     }
 
     @Override
@@ -61,50 +58,21 @@ public class CandlestickChart extends CryptoChart {
             return;
         }
 
-        int endIndex = this.series.getEndIndex();
-        Bar bar = this.series.getBar(endIndex);
-        RegularTimePeriod period = DateTimeUtil.getBarPeriod(bar);
-
-        if (itemExist(period)) {
+        if (!this.theOracle.isNewCandle()) {
             int count = this.ohlcSeries.getItemCount();
             this.ohlcSeries.remove(count - 1);
         }
 
-        this.ohlcSeries.add(createItem(bar));
+        this.ohlcSeries.add(this.theOracle.getLastCandle());
     }
 
     private OHLCDataset createChartData() {
-        int startIndex = getStartIndex();
-        int endIndex = this.series.getEndIndex();
-        for (int i = startIndex; i <= endIndex; i++) {
-            Bar bar = this.series.getBar(i);
-            this.ohlcSeries.add(createItem(bar));
-        }
+        List<OHLCItem> dataList = this.theOracle.getCandleDataList();
+        dataList.forEach(this.ohlcSeries::add);
 
         OHLCSeriesCollection dataset = new OHLCSeriesCollection();
         dataset.addSeries(this.ohlcSeries);
 
         return dataset;
-    }
-
-    private OHLCItem createItem(Bar bar) {
-        RegularTimePeriod period = DateTimeUtil.getBarPeriod(bar);
-
-        double open = bar.getOpenPrice().doubleValue();
-        double high = bar.getHighPrice().doubleValue();
-        double low = bar.getLowPrice().doubleValue();
-        double close = bar.getClosePrice().doubleValue();
-
-        return new OHLCItem(period, open, high, low, close);
-    }
-
-    private boolean itemExist(RegularTimePeriod newPeriod) {
-        int count = this.ohlcSeries.getItemCount();
-        if (count == 0) {
-            return false;
-        }
-
-        RegularTimePeriod lastPeriod = this.ohlcSeries.getPeriod(count - 1);
-        return lastPeriod.equals(newPeriod);
     }
 }

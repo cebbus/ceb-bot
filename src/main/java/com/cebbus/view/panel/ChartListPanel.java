@@ -6,33 +6,22 @@ import com.cebbus.view.chart.CryptoChartFactory;
 import com.cebbus.view.chart.LegendClickListener;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
-import org.ta4j.core.BarSeries;
-import org.ta4j.core.TradingRecord;
-import org.ta4j.core.indicators.CachedIndicator;
-import org.ta4j.core.num.Num;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class ChartListPanel {
 
     private static final int CENTER_WIDTH = 1100;
     private static final int CHART_HEIGHT = 400;
 
-    private final BarSeries series;
-    private final TradingRecord tradingRecord;
-    private final TradingRecord backtestRecord;
-    private final Map<String, Map<String, CachedIndicator<Num>>> indicators;
+    private final TheOracle theOracle;
     private final List<CryptoChart> chartList = new ArrayList<>();
 
     public ChartListPanel(TheOracle theOracle) {
-        this.series = theOracle.getSeries();
-        this.tradingRecord = theOracle.getTradingRecord();
-        this.backtestRecord = theOracle.getBacktestRecord();
-        this.indicators = theOracle.getIndicators();
+        this.theOracle = theOracle;
     }
 
     public JPanel create() {
@@ -72,9 +61,8 @@ public class ChartListPanel {
     }
 
     private void fillChartList() {
-        CryptoChartFactory factory = new CryptoChartFactory(this.series, this.tradingRecord, this.backtestRecord);
+        CryptoChartFactory factory = new CryptoChartFactory(this.theOracle);
         this.chartList.add(factory.newCandlestickChart());
-
-        this.indicators.forEach((key, indicatorMap) -> this.chartList.add(factory.newLineChart(indicatorMap)));
+        this.theOracle.getIndicators().forEach((key, indicatorMap) -> this.chartList.add(factory.newLineChart(indicatorMap)));
     }
 }
