@@ -2,9 +2,10 @@ package com.cebbus.analysis;
 
 import com.binance.api.client.domain.market.CandlestickInterval;
 import com.cebbus.binance.order.TradeStatus;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class SymbolTest {
 
@@ -16,7 +17,42 @@ class SymbolTest {
     }
 
     @Test
+    void getId() {
+        assertEquals(0, this.symbol.getId());
+    }
+
+    @Test
+    void getWeight() {
+        assertEquals(0d, this.symbol.getWeight());
+    }
+
+    @Test
+    void getBase() {
+        assertEquals("BASE", this.symbol.getBase());
+    }
+
+    @Test
+    void getQuote() {
+        assertEquals("QUOTE", this.symbol.getQuote());
+    }
+
+    @Test
+    void getStrategy() {
+        assertEquals("Junk", this.symbol.getStrategy());
+    }
+
+    @Test
+    void getInterval() {
+        assertEquals(CandlestickInterval.ONE_MINUTE, this.symbol.getInterval());
+    }
+
+    @Test
+    void getStatus() {
+        assertEquals(TradeStatus.INACTIVE, this.symbol.getStatus());
+    }
+
+    @Test
     void getName() {
-        Assertions.assertEquals("BASEQUOTE", this.symbol.getName());
+        assertEquals("BASEQUOTE", this.symbol.getName());
     }
 }
