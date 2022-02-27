@@ -5,7 +5,6 @@ import com.cebbus.view.panel.BoxTitlePanel;
 
 import javax.swing.*;
 import java.awt.*;
-import java.text.DecimalFormat;
 
 public class CryptoWalkForwardTabPanel {
 

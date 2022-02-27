@@ -33,9 +33,7 @@ public class SeriesHelper {
     }
 
     public void addBar(Bar newBar) {
-        Bar lastBar = this.series.getLastBar();
-        boolean replace = newBar.getBeginTime().equals(lastBar.getBeginTime());
-        this.series.addBar(newBar, replace);
+        this.series.addBar(newBar, !isNewCandle());
     }
 
     public OHLCItem getLastCandle() {

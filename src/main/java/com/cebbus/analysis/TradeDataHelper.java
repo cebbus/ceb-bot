@@ -34,9 +34,7 @@ public class TradeDataHelper {
     }
 
     public void fillTradeHistory(List<com.binance.api.client.domain.account.Trade> tradeList) {
-        BarSeries series = this.series;
-
-        TradeMapper tradeMapper = new TradeMapper(series, tradeList);
+        TradeMapper tradeMapper = new TradeMapper(this.series, tradeList);
         Map<Integer, List<com.binance.api.client.domain.account.Trade>> tradeMap = tradeMapper.getTradeMap();
 
         tradeMap.forEach((index, trades) -> {
