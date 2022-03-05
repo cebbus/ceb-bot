@@ -4,7 +4,6 @@ import com.cebbus.analysis.TheOracle;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.data.time.RegularTimePeriod;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.data.time.TimeSeriesDataItem;
@@ -12,10 +11,7 @@ import org.ta4j.core.indicators.CachedIndicator;
 import org.ta4j.core.num.Num;
 
 import javax.swing.*;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class LineChart extends CryptoChart {
 
@@ -78,25 +74,12 @@ public class LineChart extends CryptoChart {
 
         this.indicatorMap.forEach((name, indicator) -> {
             TimeSeries timeSeries = this.timeSeriesMap.get(name);
-
-            if (!this.theOracle.isNewCandle()) {
-                int count = timeSeries.getItemCount();
-                RegularTimePeriod lastPeriod = timeSeries.getTimePeriod(count - 1);
-                timeSeries.delete(lastPeriod);
-            }
-
-            timeSeries.add(this.theOracle.getLastSeriesItem(indicator));
+            TimeSeriesDataItem lastItem = this.theOracle.getLastSeriesItem(indicator);
+            timeSeries.addOrUpdate(lastItem);
         });
 
-        XYPlot xyPlot = this.chart.getXYPlot();
-
-        if (this.theOracle.hasNewTrade(true)) {
-            addSignal(xyPlot, this.theOracle.getLastTradePoint(true));
-        }
-
-        if (this.theOracle.hasNewTrade(false)) {
-            addSignal(xyPlot, this.theOracle.getLastTradePoint(false));
-        }
+        addTradeMarker(true);
+        addTradeMarker(false);
     }
 
     private TimeSeries createChartData(String name, CachedIndicator<Num> indicator) {
@@ -106,5 +89,15 @@ public class LineChart extends CryptoChart {
         dataList.forEach(timeSeries::add);
 
         return timeSeries;
+    }
+
+    private void addTradeMarker(boolean backtest) {
+        Optional<Object[]> tradePoint = this.theOracle.getLastTradePoint(backtest);
+        tradePoint.ifPresent(point -> {
+            XYPlot xyPlot = this.chart.getXYPlot();
+            CryptoMarker marker = createMarker(point);
+            xyPlot.removeDomainMarker(marker);
+            xyPlot.addDomainMarker(marker);
+        });
     }
 }

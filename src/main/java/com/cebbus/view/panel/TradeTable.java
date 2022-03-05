@@ -8,6 +8,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
+import java.util.Optional;
 
 public class TradeTable {
 
@@ -29,13 +30,8 @@ public class TradeTable {
     }
 
     public void refresh() {
-        if (this.theOracle.hasNewTrade(true)) {
-            this.backtestModel.addRow(this.theOracle.getLastTradeRow(true));
-        }
-
-        if (this.theOracle.hasNewTrade(false)) {
-            this.tradeModel.addRow(this.theOracle.getLastTradeRow(false));
-        }
+        addTradeRow(this.backtestModel, true);
+        addTradeRow(this.tradeModel, false);
     }
 
     private JScrollPane createTable(DefaultTableModel model, boolean backtest) {
@@ -54,6 +50,20 @@ public class TradeTable {
         table.setFillsViewportHeight(true);
 
         return new JScrollPane(table);
+    }
+
+    private void addTradeRow(DefaultTableModel model, boolean backtest) {
+        Optional<Object[]> tradeRow = this.theOracle.getLastTradeRow(backtest);
+        tradeRow.ifPresent(row -> {
+            if (!exists(model, row)) {
+                model.addRow(row);
+            }
+        });
+    }
+
+    private boolean exists(DefaultTableModel model, Object[] row) {
+        int rowIndex = model.getRowCount() - 1;
+        return model.getValueAt(rowIndex, 1).equals(row[1]);
     }
 
     private static class BuySellRenderer extends DefaultTableCellRenderer {

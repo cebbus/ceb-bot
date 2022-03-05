@@ -23,12 +23,11 @@ public abstract class CryptoChart {
 
     void addSignals(XYPlot plot) {
         List<Object[]> tradePointList = this.theOracle.getTradePointList();
-        tradePointList.forEach(point -> addSignal(plot, point));
+        tradePointList.forEach(point -> plot.addDomainMarker(createMarker(point)));
     }
 
-    void addSignal(XYPlot plot, Object[] point) {
-        CryptoMarker marker = new CryptoMarker((double) point[0], (boolean) point[1], (boolean) point[2]);
-        plot.addDomainMarker(marker);
+    CryptoMarker createMarker(Object[] point) {
+        return new CryptoMarker((double) point[0], (boolean) point[1], (boolean) point[2]);
     }
 
 }

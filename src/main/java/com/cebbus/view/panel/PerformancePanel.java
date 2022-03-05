@@ -45,15 +45,11 @@ public class PerformancePanel extends FormFieldSet {
     }
 
     public void refresh() {
-        if (this.theOracle.hasNewPosition(true)) {
-            List<CriterionResult> resultList = this.theOracle.getCriterionResultList(true);
-            resultList.forEach(r -> updateValueLabel(this.backtestLabelMap.get(r.getLabel()), r));
-        }
+        List<CriterionResult> backtestList = this.theOracle.getCriterionResultList(true);
+        backtestList.forEach(r -> updateValueLabel(this.backtestLabelMap.get(r.getLabel()), r));
 
-        if (this.theOracle.hasNewPosition(false)) {
-            List<CriterionResult> resultList = this.theOracle.getCriterionResultList(false);
-            resultList.forEach(r -> updateValueLabel(this.tradingLabelMap.get(r.getLabel()), r));
-        }
+        List<CriterionResult> resultList = this.theOracle.getCriterionResultList(false);
+        resultList.forEach(r -> updateValueLabel(this.tradingLabelMap.get(r.getLabel()), r));
     }
 
     private void addEmptyRow(JPanel panel, AtomicInteger rowNum) {

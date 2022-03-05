@@ -108,10 +108,6 @@ public class TheOracle {
         this.seriesHelper.addBar(newBar);
     }
 
-    public boolean isNewCandle() {
-        return this.seriesHelper.isNewCandle();
-    }
-
     public OHLCItem getLastCandle() {
         return this.seriesHelper.getLastCandle();
     }
@@ -140,19 +136,11 @@ public class TheOracle {
         return this.tradeDataHelper.getTradePointList();
     }
 
-    public boolean hasNewTrade(boolean backtest) {
-        return this.tradeDataHelper.hasNewTrade(backtest);
-    }
-
-    public Object[] getLastTradePoint(boolean backtest) {
+    public Optional<Object[]> getLastTradePoint(boolean backtest) {
         return this.tradeDataHelper.getLastTradePoint(backtest);
     }
 
-    public boolean hasNewPosition(boolean backtest) {
-        return this.tradeDataHelper.hasNewPosition(backtest);
-    }
-
-    public Object[] getLastTradeRow(boolean backtest) {
+    public Optional<Object[]> getLastTradeRow(boolean backtest) {
         return this.tradeDataHelper.getLastTradeRow(backtest);
     }
 

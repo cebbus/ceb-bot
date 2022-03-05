@@ -6,6 +6,7 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.CandlestickRenderer;
+import org.jfree.data.time.RegularTimePeriod;
 import org.jfree.data.time.ohlc.OHLCItem;
 import org.jfree.data.time.ohlc.OHLCSeries;
 import org.jfree.data.time.ohlc.OHLCSeriesCollection;
@@ -58,12 +59,9 @@ public class CandlestickChart extends CryptoChart {
             return;
         }
 
-        if (!this.theOracle.isNewCandle()) {
-            int count = this.ohlcSeries.getItemCount();
-            this.ohlcSeries.remove(count - 1);
-        }
-
-        this.ohlcSeries.add(this.theOracle.getLastCandle());
+        OHLCItem lastCandle = this.theOracle.getLastCandle();
+        removeIfExist(lastCandle);
+        this.ohlcSeries.add(lastCandle);
     }
 
     private OHLCDataset createChartData() {
@@ -74,5 +72,15 @@ public class CandlestickChart extends CryptoChart {
         dataset.addSeries(this.ohlcSeries);
 
         return dataset;
+    }
+
+    private void removeIfExist(OHLCItem lastCandle) {
+        int count = this.ohlcSeries.getItemCount();
+        RegularTimePeriod period = this.ohlcSeries.getPeriod(count - 1);
+        boolean exist = period.getStart().equals(lastCandle.getPeriod().getStart());
+
+        if (exist) {
+            this.ohlcSeries.remove(count - 1);
+        }
     }
 }

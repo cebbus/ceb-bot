@@ -15,29 +15,20 @@ import java.util.List;
 public class SeriesHelper {
 
     private final BarSeries series;
-    private Bar lastBar;
 
     SeriesHelper(BarSeries series) {
         this.series = series;
-        this.lastBar = series.getLastBar();
-    }
-
-    public boolean isNewCandle() {
-        Bar currentBar = this.series.getLastBar();
-        if (!this.lastBar.getBeginTime().equals(currentBar.getBeginTime())) {
-            this.lastBar = currentBar;
-            return true;
-        }
-
-        return false;
     }
 
     public void addBar(Bar newBar) {
-        this.series.addBar(newBar, !isNewCandle());
+        Bar lastBar = this.series.getLastBar();
+        boolean replace = newBar.getBeginTime().equals(lastBar.getBeginTime());
+
+        this.series.addBar(newBar, replace);
     }
 
     public OHLCItem getLastCandle() {
-        return createItem(this.lastBar);
+        return createItem(this.series.getLastBar());
     }
 
     public TimeSeriesDataItem getLastSeriesItem(CachedIndicator<Num> indicator) {

@@ -10,10 +10,7 @@ import org.ta4j.core.num.Num;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class TradeDataHelper {
@@ -22,10 +19,6 @@ public class TradeDataHelper {
 
     private TradingRecord tradingRecord;
     private TradingRecord backtestRecord;
-    private Trade lastTradeBuffer;
-    private Trade lastBacktestBuffer;
-    private int lastPositionCount;
-    private int lastBacktestPositionCount;
 
     TradeDataHelper(BarSeries series, TradingRecord tradingRecord, TradingRecord backtestRecord) {
         this.series = series;
@@ -51,40 +44,6 @@ public class TradeDataHelper {
         });
     }
 
-    public boolean hasNewTrade(boolean backtest) {
-        Trade bufferTrade = !backtest ? this.lastTradeBuffer : this.lastBacktestBuffer;
-        Trade currentTrade = (!backtest ? this.tradingRecord : this.backtestRecord).getLastTrade();
-
-        if (currentTrade != null && !currentTrade.equals(bufferTrade)) {
-            if (!backtest) {
-                this.lastTradeBuffer = currentTrade;
-            } else {
-                this.lastBacktestBuffer = currentTrade;
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
-    public boolean hasNewPosition(boolean backtest) {
-        int bufferSize = !backtest ? this.lastPositionCount : this.lastBacktestPositionCount;
-        int currentSize = (!backtest ? this.tradingRecord : this.backtestRecord).getPositionCount();
-
-        if (currentSize > bufferSize) {
-            if (!backtest) {
-                this.lastPositionCount = currentSize;
-            } else {
-                this.lastBacktestPositionCount = currentSize;
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
     public Trade newTrade(boolean isSpecActive, Pair<Num, Num> priceAmount) {
         TradingRecord tr = isSpecActive ? this.tradingRecord : this.backtestRecord;
         int endIndex = this.series.getEndIndex();
@@ -107,14 +66,14 @@ public class TradeDataHelper {
         return pointList;
     }
 
-    public Object[] getLastTradePoint(boolean backtest) {
-        Trade bufferTrade = !backtest ? this.lastTradeBuffer : this.lastBacktestBuffer;
-        return createTradePoint(bufferTrade, backtest);
+    public Optional<Object[]> getLastTradePoint(boolean backtest) {
+        Trade bufferTrade = !backtest ? this.tradingRecord.getLastTrade() : this.backtestRecord.getLastTrade();
+        return bufferTrade == null ? Optional.empty() : Optional.of(createTradePoint(bufferTrade, backtest));
     }
 
-    public Object[] getLastTradeRow(boolean backtest) {
-        Trade bufferTrade = !backtest ? this.lastTradeBuffer : this.lastBacktestBuffer;
-        return createTradeRow(bufferTrade);
+    public Optional<Object[]> getLastTradeRow(boolean backtest) {
+        Trade bufferTrade = !backtest ? this.tradingRecord.getLastTrade() : this.backtestRecord.getLastTrade();
+        return bufferTrade == null ? Optional.empty() : Optional.of(createTradeRow(bufferTrade));
     }
 
     public List<Object[]> getTradeRowList(boolean backtest) {
@@ -191,13 +150,9 @@ public class TradeDataHelper {
 
     void setTradingRecord(TradingRecord tradingRecord) {
         this.tradingRecord = tradingRecord;
-        this.lastTradeBuffer = tradingRecord.getLastTrade();
-        this.lastPositionCount = tradingRecord.getPositionCount();
     }
 
     void setBacktestRecord(TradingRecord backtestRecord) {
         this.backtestRecord = backtestRecord;
-        this.lastBacktestBuffer = backtestRecord.getLastTrade();
-        this.lastBacktestPositionCount = backtestRecord.getPositionCount();
     }
 }
