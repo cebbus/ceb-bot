@@ -121,8 +121,7 @@ public class TradeMapper {
         BigDecimal firstVal = new BigDecimal(v1);
         BigDecimal secondVal = new BigDecimal(v2);
 
-        return firstVal.divide(secondVal,
-                RoundingMode.HALF_DOWN).toPlainString();
+        return firstVal.divide(secondVal, RoundingMode.DOWN).toPlainString();
     }
 
     private void addToCumulativeList(List<Trade> subTradeList) {

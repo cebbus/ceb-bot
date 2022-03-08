@@ -43,7 +43,7 @@ public class SellerAction extends TraderAction {
         int scale = Math.max(0, stepSize.stripTrailingZeros().scale());
 
         AssetBalance balance = getBalance(this.symbol.getBase());
-        BigDecimal quantity = new BigDecimal(balance.getFree()).setScale(scale, RoundingMode.HALF_DOWN);
+        BigDecimal quantity = new BigDecimal(balance.getFree()).setScale(scale, RoundingMode.DOWN);
 
         NewOrder sellOrder = NewOrder.marketSell(this.symbol.getName(), quantity.toPlainString());
 

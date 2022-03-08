@@ -115,12 +115,12 @@ public abstract class TraderAction {
         BigDecimal amount = strToBd(order.getExecutedQty());
 
         BigDecimal quote = strToBd(order.getCummulativeQuoteQty());
-        BigDecimal price = quote.divide(amount, SCALE, RoundingMode.HALF_DOWN);
+        BigDecimal price = quote.divide(amount, SCALE, RoundingMode.DOWN);
 
         return Pair.of(DecimalNum.valueOf(price), DecimalNum.valueOf(amount));
     }
 
     private BigDecimal strToBd(String value) {
-        return new BigDecimal(value).setScale(SCALE, RoundingMode.HALF_DOWN);
+        return new BigDecimal(value).setScale(SCALE, RoundingMode.DOWN);
     }
 }
