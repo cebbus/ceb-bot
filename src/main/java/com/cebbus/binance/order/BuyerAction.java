@@ -40,7 +40,7 @@ public class BuyerAction extends TraderAction {
     public boolean enterable(boolean isManual) {
         boolean isSpecActive = this.speculator.isActive();
         if (isSpecActive && noBalance(this.symbol.getQuote(), false)) {
-            log.info("you have no balance!");
+            log.info("{} - you have no balance!", this.symbol.getName());
             return false;
         }
 

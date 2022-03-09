@@ -30,7 +30,7 @@ public class SellerAction extends TraderAction {
     public boolean exitable(boolean isManual) {
         boolean isSpecActive = this.speculator.isActive();
         if (isSpecActive && noBalance(this.symbol.getBase(), true)) {
-            log.info("you have no coin!");
+            log.info("{} - you have no coin!", this.symbol.getName());
             return false;
         }
 

@@ -21,14 +21,14 @@ public class CandlestickEventListener implements BinanceApiCallback<CandlestickE
 
         if (!Boolean.TRUE.equals(response.getBarFinal())) {
             if (count.incrementAndGet() >= 10000) {
-                log.info("stick response! symbol: {}", response.getSymbol());
+                log.info("{} - stick response!", response.getSymbol());
                 count.set(0);
             }
 
             return;
         }
 
-        log.info("stick closed! candle: {}", response);
+        log.info("{} - stick closed! close price: {}", response.getSymbol(), response.getClose());
 
         try {
             for (EventOperation operation : this.operationList) {

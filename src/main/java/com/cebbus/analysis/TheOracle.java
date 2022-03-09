@@ -83,7 +83,7 @@ public class TheOracle {
     public boolean shouldEnter(boolean isSpecActive, boolean isManual) {
         TradingRecord tr = isSpecActive ? this.tradingRecord : this.backtestRecord;
         if (!tr.getCurrentPosition().isNew()) {
-            log.info("you are already in a position!");
+            log.info("{} - you are already in a position!", this.seriesHelper.getName());
             return false;
         }
 
@@ -93,7 +93,7 @@ public class TheOracle {
     public boolean shouldExit(boolean isSpecActive, boolean isManual) {
         TradingRecord tr = isSpecActive ? this.tradingRecord : this.backtestRecord;
         if (notInPosition(tr)) {
-            log.info("you have no position!");
+            log.info("{} - you have no position!", this.seriesHelper.getName());
             return false;
         }
 

@@ -24,7 +24,7 @@ public class SpeculatorHolder {
     }
 
     public synchronized void lock(Speculator speculator) {
-        waitForOtherSpec();
+        waitForOtherSpec(speculator.getSymbol());
         this.lockedBy = speculator;
 
         Symbol holder = this.lockedBy.getSymbol();
@@ -34,7 +34,8 @@ public class SpeculatorHolder {
     public synchronized double calculateWeight(Speculator speculator) {
         if (isLockedByOther(speculator)) {
             Symbol holder = this.lockedBy.getSymbol();
-            log.warn("spec blocked by other spec! holder: {} - {}", holder.getId(), holder.getName());
+            Symbol requester = speculator.getSymbol();
+            log.warn("{} - spec blocked by other spec! holder: {} - {}", requester.getName(), holder.getId(), holder.getName());
             throw new SpeculatorBlockedException();
         }
 
@@ -65,7 +66,7 @@ public class SpeculatorHolder {
         SPECULATORS.add(speculator);
     }
 
-    private void waitForOtherSpec() {
+    private void waitForOtherSpec(Symbol requester) {
         int count = 0;
         boolean available = false;
 
@@ -73,16 +74,15 @@ public class SpeculatorHolder {
             if (isLocked()) {
                 Symbol holder = this.lockedBy.getSymbol();
 
-                log.warn("spec blocked by other spec! attempt: {}, holder: {} - {}",
-                        count, holder.getId(), holder.getName());
+                log.warn("{} - spec blocked by other spec! attempt: {}, holder: {} - {}",
+                        requester.getName(), count, holder.getId(), holder.getName());
 
                 if (count++ >= 5) {
                     throw new SpeculatorBlockedException();
                 }
 
                 try {
-                    Thread.sleep(1000L);
-                    waitForOtherSpec();
+                    Thread.sleep(10000L);
                 } catch (InterruptedException e) {
                     log.error(e.getMessage(), e);
                     Thread.currentThread().interrupt();

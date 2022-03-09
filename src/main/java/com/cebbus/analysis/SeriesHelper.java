@@ -20,6 +20,10 @@ public class SeriesHelper {
         this.series = series;
     }
 
+    String getName() {
+        return this.series.getName();
+    }
+
     public void addBar(Bar newBar) {
         Bar lastBar = this.series.getLastBar();
         boolean replace = newBar.getBeginTime().equals(lastBar.getBeginTime());
