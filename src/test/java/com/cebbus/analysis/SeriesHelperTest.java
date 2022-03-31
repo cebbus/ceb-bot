@@ -8,6 +8,7 @@ import org.jfree.data.time.ohlc.OHLCItem;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
+import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBar;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
@@ -23,11 +24,12 @@ import static org.mockito.Mockito.mockStatic;
 
 class SeriesHelperTest {
 
+    private BarSeries series;
     private SeriesHelper helper;
 
     @BeforeEach
     void setUp() {
-        BarSeries series = DataGenerator.generateSeries();
+        this.series = DataGenerator.generateSeries();
         this.helper = new SeriesHelper(series);
     }
 
@@ -50,10 +52,10 @@ class SeriesHelperTest {
 
     @Test
     void addBarReplace() {
-        Duration hour = Duration.ofHours(1);
-        ZonedDateTime now = ZonedDateTime.now();
         BigDecimal zpo = new BigDecimal("0.1");
-        BaseBar newBar = new BaseBar(hour, now.plus(3L, ChronoUnit.HOURS), zpo, zpo, zpo, zpo, zpo);
+
+        Bar lastBar = this.series.getLastBar();
+        BaseBar newBar = new BaseBar(lastBar.getTimePeriod(), lastBar.getEndTime(), zpo, zpo, zpo, zpo, zpo);
 
         this.helper.addBar(newBar);
         assertEquals(3, this.helper.getCandleDataList().size());
