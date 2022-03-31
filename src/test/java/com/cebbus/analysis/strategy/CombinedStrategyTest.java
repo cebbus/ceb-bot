@@ -6,12 +6,13 @@ import org.junit.jupiter.api.Test;
 import org.ta4j.core.BarSeries;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class AdxStrategyTest {
+class CombinedStrategyTest {
 
     private BarSeries series;
     private CebStrategy strategy;
@@ -20,8 +21,11 @@ class AdxStrategyTest {
     @BeforeEach
     void setUp() {
         this.series = DataGenerator.generateSeries();
-        this.strategy = new AdxStrategy(series);
-        this.parameters = new Number[]{50, 14, 20};
+
+        List<CebStrategy> strategies = List.of(new AdxStrategy(series), new ScalpingStrategy(series));
+        this.strategy = CombinedStrategy.combine(series, strategies, true);
+
+        this.parameters = new Number[]{50, 14, 20, 5, 8, 13};
     }
 
     @Test
@@ -36,7 +40,7 @@ class AdxStrategyTest {
 
     @Test
     void rebuild() {
-        Number[] expected = new Number[]{1, 2, 3};
+        Number[] expected = new Number[]{1, 2, 3, 4, 5, 6};
         this.strategy.rebuild(expected);
 
         assertEquals(expected, this.strategy.getParameters());
@@ -45,9 +49,12 @@ class AdxStrategyTest {
     @Test
     void getParameterMap() {
         Map<String, Number> map = new LinkedHashMap<>(this.parameters.length);
-        map.put("SMA Bar Count", this.parameters[0]);
-        map.put("ADX Bar Count", this.parameters[1]);
-        map.put("ADX Threshold", this.parameters[2]);
+        map.put("ADX - SMA Bar Count", this.parameters[0]);
+        map.put("ADX - ADX Bar Count", this.parameters[1]);
+        map.put("ADX - ADX Threshold", this.parameters[2]);
+        map.put("Scalping - Short SMA Bar Count", this.parameters[3]);
+        map.put("Scalping - Middle SMA Bar Count", this.parameters[4]);
+        map.put("Scalping - Long SMA Bar Count", this.parameters[5]);
 
         assertEquals(map, this.strategy.getParameterMap());
     }

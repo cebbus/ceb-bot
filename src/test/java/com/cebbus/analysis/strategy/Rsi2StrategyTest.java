@@ -11,7 +11,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class AdxStrategyTest {
+class Rsi2StrategyTest {
 
     private BarSeries series;
     private CebStrategy strategy;
@@ -20,8 +20,8 @@ class AdxStrategyTest {
     @BeforeEach
     void setUp() {
         this.series = DataGenerator.generateSeries();
-        this.strategy = new AdxStrategy(series);
-        this.parameters = new Number[]{50, 14, 20};
+        this.strategy = new Rsi2Strategy(series);
+        this.parameters = new Number[]{2, 5, 95, 5, 200};
     }
 
     @Test
@@ -36,7 +36,7 @@ class AdxStrategyTest {
 
     @Test
     void rebuild() {
-        Number[] expected = new Number[]{1, 2, 3};
+        Number[] expected = new Number[]{1, 2, 3, 4, 5};
         this.strategy.rebuild(expected);
 
         assertEquals(expected, this.strategy.getParameters());
@@ -45,9 +45,11 @@ class AdxStrategyTest {
     @Test
     void getParameterMap() {
         Map<String, Number> map = new LinkedHashMap<>(this.parameters.length);
-        map.put("SMA Bar Count", this.parameters[0]);
-        map.put("ADX Bar Count", this.parameters[1]);
-        map.put("ADX Threshold", this.parameters[2]);
+        map.put("RSI Bar Count", this.parameters[0]);
+        map.put("RSI Buy Threshold", this.parameters[1]);
+        map.put("RSI Sell Threshold", this.parameters[2]);
+        map.put("Short SMA Bar Count", this.parameters[3]);
+        map.put("Long SMA Bar Count", this.parameters[4]);
 
         assertEquals(map, this.strategy.getParameterMap());
     }
