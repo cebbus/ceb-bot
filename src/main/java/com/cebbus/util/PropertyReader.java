@@ -56,15 +56,15 @@ public class PropertyReader {
     }
 
     public static boolean isTestProfile() {
-        return getProperty("api.profile").equals("test");
+        return getProfile().equals("test");
     }
 
     public static boolean isDevelopmentProfile() {
-        return getProperty("api.profile").equals("development");
+        return getProfile().equals("development");
     }
 
     public static boolean isProductionProfile() {
-        return getProperty("api.profile").equals("production");
+        return getProfile().equals("production");
     }
 
     public static List<Symbol> getSymbols() {
@@ -118,6 +118,10 @@ public class PropertyReader {
         log.info("Property file loaded from {}", url != null ? url.getPath() : null);
 
         return url;
+    }
+
+    private static String getProfile() {
+        return getProperty("api.profile");
     }
 
 }
