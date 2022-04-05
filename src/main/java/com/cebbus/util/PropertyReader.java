@@ -55,6 +55,18 @@ public class PropertyReader {
         return !getApiKey().isBlank() && !getApiSecret().isBlank();
     }
 
+    public static boolean isTestProfile() {
+        return getProperty("api.profile").equals("test");
+    }
+
+    public static boolean isDevelopmentProfile() {
+        return getProperty("api.profile").equals("development");
+    }
+
+    public static boolean isProductionProfile() {
+        return getProperty("api.profile").equals("production");
+    }
+
     public static List<Symbol> getSymbols() {
         String[] baseArr = getProperty("symbol.base").split(",");
         String[] quoteArr = getProperty("symbol.quote").split(",");

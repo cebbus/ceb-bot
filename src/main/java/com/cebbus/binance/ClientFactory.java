@@ -11,9 +11,14 @@ public class ClientFactory {
     private static final BinanceApiClientFactory CLIENT_FACTORY;
 
     static {
-        String key = PropertyReader.getApiKey();
-        String secret = PropertyReader.getApiSecret();
-        CLIENT_FACTORY = BinanceApiClientFactory.newInstance((key.equals("") ? null : key), (secret.equals("") ? null : secret));
+        String apiKey = PropertyReader.getApiKey();
+        String apiSecret = PropertyReader.getApiSecret();
+
+        String key = apiKey.equals("") ? null : apiKey;
+        String secret = apiSecret.equals("") ? null : apiSecret;
+        boolean useTest = PropertyReader.isTestProfile() || PropertyReader.isDevelopmentProfile();
+
+        CLIENT_FACTORY = BinanceApiClientFactory.newInstance(key, secret, useTest, useTest);
         REST_CLIENT = CLIENT_FACTORY.newRestClient();
     }
 
