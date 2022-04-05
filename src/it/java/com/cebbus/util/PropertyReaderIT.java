@@ -27,7 +27,7 @@ public class PropertyReaderIT {
     @Test
     void getCacheSize() {
         Integer actual = PropertyReader.getCacheSize();
-        assertEquals(128, actual);
+        assertEquals(90, actual);
     }
 
     @Test
@@ -53,8 +53,9 @@ public class PropertyReaderIT {
     @Test
     void getSymbols() {
         List<Symbol> expected = new ArrayList<>();
-        expected.add(new Symbol(0, 0.5, "ETH", "USDT", "MacdStrategy", CandlestickInterval.ONE_MINUTE, TradeStatus.ACTIVE));
-        expected.add(new Symbol(1, 0.5, "LUNA", "USDT", "MacdStrategy", CandlestickInterval.ONE_MINUTE, TradeStatus.ACTIVE));
+        expected.add(new Symbol(0, 0.9, "BNB", "USDT", "MacdStrategy", CandlestickInterval.ONE_MINUTE, TradeStatus.ACTIVE));
+        expected.add(new Symbol(1, 0.1, "ETH", "USDT", "MacdStrategy", CandlestickInterval.ONE_MINUTE, TradeStatus.ACTIVE));
+        expected.add(new Symbol(2, 0.0, "XRP", "USDT", "MacdStrategy", CandlestickInterval.ONE_MINUTE, TradeStatus.INACTIVE));
 
         List<Symbol> actual = PropertyReader.getSymbols();
         assertIterableEquals(expected, actual);

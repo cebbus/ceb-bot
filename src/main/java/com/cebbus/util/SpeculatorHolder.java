@@ -77,7 +77,7 @@ public class SpeculatorHolder {
                 log.warn("{} - spec blocked by other spec! attempt: {}, holder: {} - {}",
                         requester.getName(), count, holder.getId(), holder.getName());
 
-                if (count++ >= 5) {
+                if (count++ >= 60) {
                     throw new SpeculatorBlockedException();
                 }
 

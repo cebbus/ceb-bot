@@ -1,6 +1,5 @@
 package com.cebbus.binance.order;
 
-import com.binance.api.client.domain.account.AssetBalance;
 import com.binance.api.client.domain.account.NewOrder;
 import com.binance.api.client.domain.account.NewOrderResponse;
 import com.binance.api.client.domain.general.SymbolInfo;
@@ -39,9 +38,14 @@ public class BuyerAction extends TraderAction {
 
     public boolean enterable(boolean isManual) {
         boolean isSpecActive = this.speculator.isActive();
-        if (isSpecActive && noBalance(this.symbol.getQuote(), false)) {
-            log.info("{} - you have no balance!", this.symbol.getName());
-            return false;
+        if (isSpecActive) {
+            String quote = this.symbol.getQuote();
+            BigDecimal freeBalance = getFreeBalance(quote);
+
+            if (freeBalance.doubleValue() <= 0) {
+                log.info("{} - you have no balance!", quote);
+                return false;
+            }
         }
 
         return this.theOracle.shouldEnter(isSpecActive, isManual);
@@ -55,8 +59,7 @@ public class BuyerAction extends TraderAction {
 
         SymbolInfo symbolInfo = getSymbolInfo();
 
-        AssetBalance balance = getBalance(this.symbol.getQuote());
-        BigDecimal quantity = new BigDecimal(balance.getFree())
+        BigDecimal quantity = getFreeBalance(this.symbol.getQuote())
                 .multiply(BigDecimal.valueOf(weight))
                 .setScale(symbolInfo.getQuotePrecision(), RoundingMode.DOWN);
 

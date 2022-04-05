@@ -62,6 +62,10 @@ public class TradeTable {
     }
 
     private boolean exists(DefaultTableModel model, Object[] row) {
+        if (model.getRowCount() == 0) {
+            return false;
+        }
+
         int rowIndex = model.getRowCount() - 1;
         return model.getValueAt(rowIndex, 1).equals(row[1]);
     }

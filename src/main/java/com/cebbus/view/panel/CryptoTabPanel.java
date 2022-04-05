@@ -3,6 +3,7 @@ package com.cebbus.view.panel;
 import com.cebbus.binance.Speculator;
 import com.cebbus.binance.order.TradeStatus;
 import com.cebbus.view.chart.ColorPalette;
+import com.cebbus.view.panel.menu.PanelMenu;
 
 import javax.swing.*;
 import java.awt.*;
