@@ -1,6 +1,10 @@
 package com.cebbus.analysis.strategy;
 
 import com.cebbus.analysis.DataGenerator;
+import org.jgap.Configuration;
+import org.jgap.Gene;
+import org.jgap.InvalidConfigurationException;
+import org.jgap.impl.IntegerGene;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.ta4j.core.BarSeries;
@@ -50,6 +54,16 @@ class ScalpingStrategyTest {
         map.put("Long SMA Bar Count", this.parameters[2]);
 
         assertEquals(map, this.strategy.getParameterMap());
+    }
+
+    @Test
+    void createGene() throws InvalidConfigurationException {
+        Configuration conf = new Configuration();
+        IntegerGene shortBarCount = new IntegerGene(conf, 1, 5);
+        IntegerGene middleBarCount = new IntegerGene(conf, 6, 10);
+        IntegerGene longBarCount = new IntegerGene(conf, 11, 20);
+
+        assertArrayEquals(new Gene[]{shortBarCount, middleBarCount, longBarCount}, this.strategy.createGene(conf));
     }
 
 }

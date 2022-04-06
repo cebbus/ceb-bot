@@ -3,6 +3,7 @@ package com.cebbus.analysis.rule;
 import com.cebbus.analysis.DataGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.ta4j.core.BaseTradingRecord;
 import org.ta4j.core.TradingRecord;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 
@@ -29,6 +30,11 @@ class LastEntryOverIndicatorRuleTest {
     @Test
     void isSatisfiedFalse() {
         assertFalse(this.rule.isSatisfied(2, this.rec));
+    }
+
+    @Test
+    void isSatisfiedFalseIsLastEntryNull() {
+        assertFalse(this.rule.isSatisfied(1, new BaseTradingRecord()));
     }
 
     @Test

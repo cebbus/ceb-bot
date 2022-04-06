@@ -1,6 +1,10 @@
 package com.cebbus.analysis.strategy;
 
 import com.cebbus.analysis.DataGenerator;
+import org.jgap.Configuration;
+import org.jgap.Gene;
+import org.jgap.InvalidConfigurationException;
+import org.jgap.impl.IntegerGene;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.ta4j.core.BarSeries;
@@ -52,6 +56,18 @@ class Rsi2StrategyTest {
         map.put("Long SMA Bar Count", this.parameters[4]);
 
         assertEquals(map, this.strategy.getParameterMap());
+    }
+
+    @Test
+    void createGene() throws InvalidConfigurationException {
+        Configuration conf = new Configuration();
+        IntegerGene rsiBarCount = new IntegerGene(conf, 1, 10);
+        IntegerGene entryThreshold = new IntegerGene(conf, 1, 10);
+        IntegerGene exitThreshold = new IntegerGene(conf, 75, 100);
+        IntegerGene shortSmaBarCount = new IntegerGene(conf, 1, 10);
+        IntegerGene longSmaBarCount = new IntegerGene(conf, 150, 300);
+
+        assertArrayEquals(new Gene[]{rsiBarCount, entryThreshold, exitThreshold, shortSmaBarCount, longSmaBarCount}, this.strategy.createGene(conf));
     }
 
 }

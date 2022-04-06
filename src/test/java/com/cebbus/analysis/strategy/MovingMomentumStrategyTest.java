@@ -1,6 +1,10 @@
 package com.cebbus.analysis.strategy;
 
 import com.cebbus.analysis.DataGenerator;
+import org.jgap.Configuration;
+import org.jgap.Gene;
+import org.jgap.InvalidConfigurationException;
+import org.jgap.impl.IntegerGene;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.ta4j.core.BarSeries;
@@ -53,6 +57,20 @@ class MovingMomentumStrategyTest {
         map.put("Stochastic Oscillator Sell Threshold", this.parameters[5]);
 
         assertEquals(map, this.strategy.getParameterMap());
+    }
+
+    @Test
+    void createGene() throws InvalidConfigurationException {
+        Configuration conf = new Configuration();
+        IntegerGene shortEmaBarCount = new IntegerGene(conf, 1, 10);
+        IntegerGene longEmaBarCount = new IntegerGene(conf, 10, 30);
+        IntegerGene stoBarCount = new IntegerGene(conf, 10, 20);
+        IntegerGene macdEmaBarCount = new IntegerGene(conf, 10, 20);
+        IntegerGene stocBuyThreshold = new IntegerGene(conf, 10, 30);
+        IntegerGene stocSellThreshold = new IntegerGene(conf, 70, 100);
+
+        assertArrayEquals(new Gene[]{shortEmaBarCount, longEmaBarCount, stoBarCount, macdEmaBarCount,
+                stocBuyThreshold, stocSellThreshold}, this.strategy.createGene(conf));
     }
 
 }

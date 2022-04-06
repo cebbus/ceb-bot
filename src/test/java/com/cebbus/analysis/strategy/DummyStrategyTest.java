@@ -1,6 +1,10 @@
 package com.cebbus.analysis.strategy;
 
 import com.cebbus.analysis.DataGenerator;
+import org.jgap.Configuration;
+import org.jgap.Gene;
+import org.jgap.InvalidConfigurationException;
+import org.jgap.impl.IntegerGene;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.ta4j.core.BarSeries;
@@ -49,6 +53,15 @@ class DummyStrategyTest {
         map.put("Backward Under Threshold", this.parameters[1]);
 
         assertEquals(map, this.strategy.getParameterMap());
+    }
+
+    @Test
+    void createGene() throws InvalidConfigurationException {
+        Configuration conf = new Configuration();
+        IntegerGene smaBarCount = new IntegerGene(conf, 10, 100);
+        IntegerGene backwardUnderThreshold = new IntegerGene(conf, 10, 50);
+
+        assertArrayEquals(new Gene[]{smaBarCount, backwardUnderThreshold}, this.strategy.createGene(conf));
     }
 
 }

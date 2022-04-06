@@ -1,6 +1,7 @@
 package com.cebbus.analysis.strategy;
 
 import com.cebbus.analysis.DataGenerator;
+import org.jgap.InvalidConfigurationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.ta4j.core.BarSeries;
@@ -44,6 +45,11 @@ class JunkStrategyTest {
     @Test
     void getParameterMap() {
         assertEquals(Collections.emptyMap(), this.strategy.getParameterMap());
+    }
+
+    @Test
+    void createGene() throws InvalidConfigurationException {
+        assertEquals(0, this.strategy.createGene(null).length);
     }
 
 }

@@ -15,7 +15,7 @@ import org.ta4j.core.BaseBarSeriesBuilder;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class CebBotIT {
+class CebBotIT {
 
     private Speculator speculator;
 
