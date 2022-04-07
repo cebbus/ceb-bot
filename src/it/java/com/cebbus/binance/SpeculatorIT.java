@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class SpeculatorIT {
+class SpeculatorIT {
 
     private static final int LIMIT = 5;
 
@@ -25,7 +25,6 @@ public class SpeculatorIT {
 
     @Test
     void loadHistory() {
-        this.speculator.loadHistory();
         assertEquals(LIMIT - 1, this.speculator.convertToBarList().size());
     }
 

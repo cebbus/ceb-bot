@@ -2,7 +2,6 @@ package com.cebbus.binance;
 
 import com.binance.api.client.BinanceApiClientFactory;
 import com.binance.api.client.BinanceApiRestClient;
-import com.binance.api.client.BinanceApiWebSocketClient;
 import com.cebbus.util.PropertyReader;
 
 public class ClientFactory {
@@ -27,10 +26,6 @@ public class ClientFactory {
 
     public static BinanceApiRestClient getRestClient() {
         return REST_CLIENT;
-    }
-
-    public static BinanceApiWebSocketClient newWebSocketClient() {
-        return CLIENT_FACTORY.newWebSocketClient();
     }
 
 }
