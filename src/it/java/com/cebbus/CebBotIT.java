@@ -5,6 +5,7 @@ import com.cebbus.analysis.TheOracle;
 import com.cebbus.analysis.strategy.CebStrategy;
 import com.cebbus.analysis.strategy.StrategyFactory;
 import com.cebbus.binance.Speculator;
+import com.cebbus.binance.order.TradeStatus;
 import com.cebbus.util.PropertyReader;
 import com.cebbus.util.SpeculatorHolder;
 import com.cebbus.view.panel.CryptoAppFrame;
@@ -46,11 +47,17 @@ class CebBotIT {
 
     @Test
     void buyAndSell() {
-        boolean manualBuyResult = this.speculator.buy();
-        assertTrue(manualBuyResult);
+        assertTrue(this.speculator.buy());
+        assertTrue(this.speculator.sell());
+    }
 
-        boolean manualSellResult = this.speculator.sell();
-        assertTrue(manualSellResult);
+    @Test
+    void buyAndSellInactiveMode() {
+        this.speculator.setStatus(TradeStatus.INACTIVE);
+        this.speculator.changeParameters(0, 0);
+
+        assertTrue(this.speculator.buy());
+        assertTrue(this.speculator.sell());
     }
 
     @Test
