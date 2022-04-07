@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBarSeriesBuilder;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CebBotIT {
@@ -50,5 +51,13 @@ class CebBotIT {
 
         boolean manualSellResult = this.speculator.sell();
         assertTrue(manualSellResult);
+    }
+
+    @Test
+    void changeParameters() {
+        Number[] expected = new Number[]{1, 2};
+        this.speculator.changeParameters(expected);
+
+        assertEquals(expected, this.speculator.getTheOracle().getProphesyParameters());
     }
 }
