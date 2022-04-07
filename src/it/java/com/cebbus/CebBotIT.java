@@ -54,7 +54,7 @@ class CebBotIT {
     @Test
     void buyAndSellInactiveMode() {
         this.speculator.setStatus(TradeStatus.INACTIVE);
-        this.speculator.changeParameters(0, 0);
+        this.speculator.changeParameters(1000, 1000);
 
         assertTrue(this.speculator.buy());
         assertTrue(this.speculator.sell());
