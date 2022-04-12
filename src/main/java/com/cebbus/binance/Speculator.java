@@ -90,12 +90,14 @@ public class Speculator {
     }
 
     public void loadTradeHistory() {
-        Objects.requireNonNull(this.theOracle);
         if (!PropertyReader.isCredentialsExist()) {
             log.warn("needs credentials!");
+            return;
         }
 
         List<Trade> tradeList = this.restClient.getMyTrades(this.symbol.getName());
+
+        Objects.requireNonNull(this.theOracle);
         this.theOracle.fillTradeHistory(tradeList);
     }
 

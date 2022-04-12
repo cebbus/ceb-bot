@@ -9,13 +9,15 @@ import com.cebbus.binance.order.TradeStatus;
 import com.cebbus.util.PropertyReader;
 import com.cebbus.util.SpeculatorHolder;
 import com.cebbus.view.panel.CryptoAppFrame;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBarSeriesBuilder;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class CebBotIT {
 
@@ -39,7 +41,6 @@ class CebBotIT {
 
         CebStrategy cebStrategy = StrategyFactory.create(series, symbol.getStrategy());
         this.speculator.setTheOracle(new TheOracle(cebStrategy));
-        this.speculator.loadTradeHistory();
 
         appFrame.addTab(this.speculator);
         specHolder.addSpeculator(this.speculator);
@@ -66,5 +67,26 @@ class CebBotIT {
         this.speculator.changeParameters(expected);
 
         assertEquals(expected, this.speculator.getTheOracle().getProphesyParameters());
+    }
+
+    @Test
+    void changeStrategy() {
+        TheOracle oldOracle = this.speculator.getTheOracle();
+
+        this.speculator.changeStrategy("AdxStrategy");
+        TheOracle newOracle = this.speculator.getTheOracle();
+
+        assertNotEquals(oldOracle, newOracle);
+    }
+
+    @Test
+    void calcStrategies() {
+        List<Pair<String, String>> calcResultList = this.speculator.calcStrategies();
+        assertFalse(calcResultList.isEmpty());
+    }
+
+    @Test
+    void loadTradeHistory() {
+        assertDoesNotThrow(() -> this.speculator.loadTradeHistory());
     }
 }

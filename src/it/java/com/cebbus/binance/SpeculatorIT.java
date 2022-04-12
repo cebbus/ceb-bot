@@ -45,4 +45,10 @@ class SpeculatorIT {
         assertTrue(this.speculator.isActive());
     }
 
+    @Test
+    void isActiveStatusNull() {
+        this.speculator.setStatus(null);
+        assertTrue(this.speculator.isActive());
+    }
+
 }
