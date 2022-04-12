@@ -201,6 +201,7 @@
                     <excludes>
                         <exclude>src/it/**/*</exclude>
                         <exclude>src/test/**/*</exclude>
+                        <exclude>src/main/java/com/cebbus/view/**/*</exclude>
                     </excludes>
                 </configuration>
             </plugin>
