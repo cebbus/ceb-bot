@@ -78,9 +78,8 @@ public class TestFormPanel extends FormFieldSet {
 
     private Speculator createSpeculator(Symbol symbol, int limit) {
         Speculator speculator = new Speculator(symbol, limit);
-        speculator.loadHistory();
 
-        BarSeries series = new BaseBarSeries(speculator.convertToBarList());
+        BarSeries series = new BaseBarSeries(speculator.loadBarHistory());
         CebStrategy junkStrategy = StrategyFactory.create(series, "JunkStrategy");
 
         speculator.setTheOracle(new TheOracle(junkStrategy));

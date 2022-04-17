@@ -11,10 +11,8 @@ import com.cebbus.analysis.mapper.BarMapper;
 import com.cebbus.binance.listener.CandlestickEventListener;
 import com.cebbus.binance.listener.operation.EventOperation;
 import com.cebbus.binance.listener.operation.TradeOperation;
-import com.cebbus.binance.listener.operation.UpdateCacheOperation;
 import com.cebbus.binance.listener.operation.UpdateSeriesOperation;
 import com.cebbus.binance.order.TradeStatus;
-import com.cebbus.util.LimitedHashMap;
 import com.cebbus.util.PropertyReader;
 import com.cebbus.util.ScheduleUtil;
 import lombok.AccessLevel;
@@ -27,7 +25,6 @@ import org.ta4j.core.Bar;
 
 import java.text.DecimalFormat;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
@@ -40,10 +37,6 @@ public class Speculator {
     private final int limit;
     private final Symbol symbol;
     private final BinanceApiRestClient restClient;
-
-    @Getter(value = AccessLevel.NONE)
-    @Setter(value = AccessLevel.NONE)
-    private final Map<Long, Candlestick> candlestickCache;
 
     @Getter(value = AccessLevel.NONE)
     @Setter(value = AccessLevel.NONE)
@@ -69,7 +62,6 @@ public class Speculator {
         this.status = symbol.getStatus();
         this.limit = PropertyReader.getCacheSize();
         this.restClient = ClientFactory.getRestClient();
-        this.candlestickCache = LimitedHashMap.create(this.limit);
     }
 
     public Speculator(Symbol symbol, int limit) {
@@ -77,16 +69,17 @@ public class Speculator {
         this.symbol = symbol;
         this.status = symbol.getStatus();
         this.restClient = ClientFactory.getRestClient();
-        this.candlestickCache = LimitedHashMap.create(this.limit);
     }
 
-    public void loadHistory() {
+    public List<Bar> loadBarHistory() {
         String symName = this.symbol.getName();
         CandlestickInterval interval = this.symbol.getInterval();
         List<Candlestick> bars = this.restClient.getCandlestickBars(symName, interval, this.limit, null, null);
         bars.remove(bars.size() - 1);
 
-        bars.forEach(candlestick -> this.candlestickCache.put(candlestick.getCloseTime(), candlestick));
+        return bars.stream()
+                .map(c -> BarMapper.valueOf(c, interval))
+                .collect(Collectors.toList());
     }
 
     public void loadTradeHistory() {
@@ -104,7 +97,6 @@ public class Speculator {
     public void startSpec() {
         Objects.requireNonNull(this.theOracle);
 
-        this.listener.addOperation(new UpdateCacheOperation(this.candlestickCache));
         this.listener.addOperation(new UpdateSeriesOperation(this.theOracle, this.symbol.getInterval()));
         this.listener.addOperation(new TradeOperation(this));
 
@@ -113,12 +105,6 @@ public class Speculator {
 
     public void triggerListener(CandlestickEvent event) {
         this.listener.onResponse(event);
-    }
-
-    public List<Bar> convertToBarList() {
-        return this.candlestickCache.values().stream()
-                .map(c -> BarMapper.valueOf(c, this.symbol.getInterval()))
-                .collect(Collectors.toList());
     }
 
     public int addCandlestickEventOperation(EventOperation operation) {

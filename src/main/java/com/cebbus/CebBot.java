@@ -5,10 +5,10 @@ import com.cebbus.analysis.TheOracle;
 import com.cebbus.analysis.strategy.CebStrategy;
 import com.cebbus.analysis.strategy.StrategyFactory;
 import com.cebbus.binance.Speculator;
-import com.cebbus.view.panel.CryptoAppFrame;
-import com.cebbus.view.panel.CryptoSplashFrame;
 import com.cebbus.util.PropertyReader;
 import com.cebbus.util.SpeculatorHolder;
+import com.cebbus.view.panel.CryptoAppFrame;
+import com.cebbus.view.panel.CryptoSplashFrame;
 import lombok.extern.slf4j.Slf4j;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBarSeriesBuilder;
@@ -30,11 +30,10 @@ public class CebBot {
 
         for (Symbol symbol : SYMBOLS) {
             Speculator speculator = new Speculator(symbol);
-            speculator.loadHistory();
 
             BarSeries series = new BaseBarSeriesBuilder()
                     .withName(symbol.getName())
-                    .withBars(speculator.convertToBarList())
+                    .withBars(speculator.loadBarHistory())
                     .withMaxBarCount(PropertyReader.getCacheSize())
                     .build();
 

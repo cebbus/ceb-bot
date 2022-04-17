@@ -18,14 +18,12 @@ class SpeculatorIT {
     @BeforeEach
     void setUp() {
         Symbol symbol = PropertyReader.getSymbols().get(0);
-
         this.speculator = new Speculator(symbol, LIMIT);
-        this.speculator.loadHistory();
     }
 
     @Test
     void loadHistory() {
-        assertEquals(LIMIT - 1, this.speculator.convertToBarList().size());
+        assertEquals(LIMIT - 1, this.speculator.loadBarHistory().size());
     }
 
     @Test

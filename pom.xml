@@ -16,19 +16,13 @@
         <sonar.coverage.exclusions>src/main/java/com/cebbus/view/**/*</sonar.coverage.exclusions>
     </properties>
 
-    <repositories>
-        <repository>
-            <id>in-project</id>
-            <name>In Project Repo</name>
-            <url>file://${project.basedir}/libs/</url>
-        </repository>
-    </repositories>
-
     <dependencies>
         <dependency>
             <groupId>binance</groupId>
             <artifactId>binance-api-client</artifactId>
             <version>1.0.1</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/libs/binance/binance-api-client/1.0.1/binance-api-client-1.0.1.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>

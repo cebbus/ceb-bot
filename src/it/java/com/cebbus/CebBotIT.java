@@ -31,11 +31,10 @@ class CebBotIT {
 
         SpeculatorHolder specHolder = SpeculatorHolder.getInstance();
         this.speculator = new Speculator(symbol);
-        this.speculator.loadHistory();
 
         BarSeries series = new BaseBarSeriesBuilder()
                 .withName(symbol.getName())
-                .withBars(this.speculator.convertToBarList())
+                .withBars(this.speculator.loadBarHistory())
                 .withMaxBarCount(PropertyReader.getCacheSize())
                 .build();
 

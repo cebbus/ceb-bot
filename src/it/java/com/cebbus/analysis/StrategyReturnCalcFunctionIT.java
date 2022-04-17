@@ -20,11 +20,10 @@ class StrategyReturnCalcFunctionIT {
     void setUp() {
         Symbol symbol = PropertyReader.getSymbols().get(0);
         Speculator speculator = new Speculator(symbol);
-        speculator.loadHistory();
 
         BarSeries series = new BaseBarSeriesBuilder()
                 .withName(symbol.getName())
-                .withBars(speculator.convertToBarList())
+                .withBars(speculator.loadBarHistory())
                 .withMaxBarCount(PropertyReader.getCacheSize())
                 .build();
 

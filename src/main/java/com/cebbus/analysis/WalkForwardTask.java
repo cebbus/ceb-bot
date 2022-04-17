@@ -49,9 +49,7 @@ public class WalkForwardTask implements Runnable {
     @Override
     public void run() {
         Speculator loader = new Speculator(this.symbol, this.limitValue);
-        loader.loadHistory();
-
-        List<Bar> barList = loader.convertToBarList();
+        List<Bar> barList = loader.loadBarHistory();
 
         int barSize = barList.size();
         int optBarSize = barSize * this.optimizationValue / 100;
