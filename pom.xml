@@ -20,7 +20,7 @@
         <repository>
             <id>github</id>
             <name>GitHub OWNER Apache Maven Packages</name>
-            <url>https://maven.pkg.github.com/cebbus/ceb-bot.git</url>
+            <url>https://maven.pkg.github.com/cebbus/ceb-bot</url>
         </repository>
     </distributionManagement>
 
