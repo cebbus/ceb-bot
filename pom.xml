@@ -4,7 +4,7 @@
 
     <groupId>com.cebbus</groupId>
     <artifactId>ceb-bot</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.1</version>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
@@ -18,7 +18,7 @@
         <connection>scm:git:git://github.com/cebbus/ceb-bot.git</connection>
         <developerConnection>scm:git:https://github.com/cebbus/ceb-bot.git</developerConnection>
         <url>https://github.com/cebbus/ceb-bot</url>
-        <tag>HEAD</tag>
+        <tag>ceb-bot-1.1</tag>
     </scm>
 
 
