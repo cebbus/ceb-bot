@@ -21,6 +21,13 @@
         <tag>HEAD</tag>
     </scm>
 
+    <repositories>
+        <repository>
+            <id>in-project</id>
+            <name>In Project Repo</name>
+            <url>file://${project.basedir}/libs/</url>
+        </repository>
+    </repositories>
 
     <distributionManagement>
         <repository>
@@ -29,14 +36,6 @@
             <url>https://maven.pkg.github.com/cebbus/ceb-bot</url>
         </repository>
     </distributionManagement>
-
-    <repositories>
-        <repository>
-            <id>in-project</id>
-            <name>In Project Repo</name>
-            <url>file://${project.basedir}/libs/</url>
-        </repository>
-    </repositories>
 
     <dependencies>
         <dependency>

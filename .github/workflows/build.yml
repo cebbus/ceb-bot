@@ -28,7 +28,7 @@ jobs:
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-v1-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
+          restore-keys: ${{ runner.os }}-m2-v1
       - name: Configure Git User
         run: |
           git config user.email "actions@github.com"
