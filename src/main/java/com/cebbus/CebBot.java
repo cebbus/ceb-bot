@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBarSeriesBuilder;
 
+import java.awt.*;
 import java.util.List;
 
 @Slf4j
@@ -20,13 +21,18 @@ public class CebBot {
 
     private static final List<Symbol> SYMBOLS = PropertyReader.getSymbols();
 
+    private static CryptoAppFrame appFrame;
+    private static CryptoSplashFrame splashFrame;
+
     public static void main(String[] args) {
         SpeculatorHolder specHolder = SpeculatorHolder.getInstance();
 
-        CryptoSplashFrame splashFrame = new CryptoSplashFrame(SYMBOLS.size());
-        splashFrame.show();
+        if (!GraphicsEnvironment.isHeadless()) {
+            splashFrame = new CryptoSplashFrame(SYMBOLS.size());
+            splashFrame.show();
 
-        CryptoAppFrame appFrame = new CryptoAppFrame();
+            appFrame = new CryptoAppFrame();
+        }
 
         for (Symbol symbol : SYMBOLS) {
             Speculator speculator = new Speculator(symbol);
@@ -42,17 +48,21 @@ public class CebBot {
             speculator.loadTradeHistory();
             speculator.startSpec();
 
-            appFrame.addTab(speculator);
-            specHolder.addSpeculator(speculator);
+            if (!GraphicsEnvironment.isHeadless()) {
+                appFrame.addTab(speculator);
+                splashFrame.progress();
+            }
 
-            splashFrame.progress();
+            specHolder.addSpeculator(speculator);
         }
 
-        appFrame.addTestTab();
-        appFrame.addWalkForwardTab();
+        if (!GraphicsEnvironment.isHeadless()) {
+            appFrame.addTestTab();
+            appFrame.addWalkForwardTab();
 
-        splashFrame.hide();
-        appFrame.show();
+            splashFrame.hide();
+            appFrame.show();
+        }
     }
 
 }
