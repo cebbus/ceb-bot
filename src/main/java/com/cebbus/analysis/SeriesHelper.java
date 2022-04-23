@@ -1,16 +1,22 @@
 package com.cebbus.analysis;
 
+import com.binance.api.client.domain.market.Candlestick;
+import com.binance.api.client.domain.market.CandlestickInterval;
+import com.cebbus.analysis.mapper.BarMapper;
 import com.cebbus.util.DateTimeUtil;
+import com.cebbus.util.PropertyReader;
 import org.jfree.data.time.RegularTimePeriod;
 import org.jfree.data.time.TimeSeriesDataItem;
 import org.jfree.data.time.ohlc.OHLCItem;
 import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
+import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.indicators.CachedIndicator;
 import org.ta4j.core.num.Num;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class SeriesHelper {
 
@@ -18,6 +24,20 @@ public class SeriesHelper {
 
     SeriesHelper(BarSeries series) {
         this.series = series;
+    }
+
+    SeriesHelper(Symbol symbol, List<Candlestick> candlestickList) {
+        CandlestickInterval interval = symbol.getInterval();
+
+        List<Bar> barList = candlestickList.stream()
+                .map(c -> BarMapper.valueOf(c, interval))
+                .collect(Collectors.toList());
+
+        this.series = new BaseBarSeriesBuilder()
+                .withName(symbol.getName())
+                .withBars(barList)
+                .withMaxBarCount(PropertyReader.getCacheSize())
+                .build();
     }
 
     String getName() {
@@ -85,5 +105,9 @@ public class SeriesHelper {
 
     private int getStartIndex() {
         return Math.max(this.series.getRemovedBarsCount(), this.series.getBeginIndex());
+    }
+
+    public BarSeries getSeries() {
+        return series;
     }
 }

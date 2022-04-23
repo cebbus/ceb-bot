@@ -2,8 +2,6 @@ package com.cebbus;
 
 import com.cebbus.analysis.Symbol;
 import com.cebbus.analysis.TheOracle;
-import com.cebbus.analysis.strategy.CebStrategy;
-import com.cebbus.analysis.strategy.StrategyFactory;
 import com.cebbus.binance.Speculator;
 import com.cebbus.binance.order.TradeStatus;
 import com.cebbus.util.PropertyReader;
@@ -12,8 +10,6 @@ import com.cebbus.view.panel.CryptoAppFrame;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.ta4j.core.BarSeries;
-import org.ta4j.core.BaseBarSeriesBuilder;
 
 import java.util.List;
 
@@ -28,18 +24,8 @@ class CebBotIT {
         CryptoAppFrame appFrame = new CryptoAppFrame();
 
         Symbol symbol = PropertyReader.getSymbols().get(0);
-
         SpeculatorHolder specHolder = SpeculatorHolder.getInstance();
-        this.speculator = new Speculator(symbol);
-
-        BarSeries series = new BaseBarSeriesBuilder()
-                .withName(symbol.getName())
-                .withBars(this.speculator.loadBarHistory())
-                .withMaxBarCount(PropertyReader.getCacheSize())
-                .build();
-
-        CebStrategy cebStrategy = StrategyFactory.create(series, symbol.getStrategy());
-        this.speculator.setTheOracle(new TheOracle(cebStrategy));
+        this.speculator = new Speculator(symbol, true);
 
         appFrame.addTab(this.speculator);
         specHolder.addSpeculator(this.speculator);
@@ -82,10 +68,5 @@ class CebBotIT {
     void calcStrategies() {
         List<Pair<String, String>> calcResultList = this.speculator.calcStrategies();
         assertFalse(calcResultList.isEmpty());
-    }
-
-    @Test
-    void loadTradeHistory() {
-        assertDoesNotThrow(() -> this.speculator.loadTradeHistory());
     }
 }

@@ -1,5 +1,6 @@
 package com.cebbus.analysis;
 
+import com.binance.api.client.domain.market.Candlestick;
 import com.cebbus.analysis.strategy.BaseCebStrategy;
 import com.cebbus.analysis.strategy.CebStrategy;
 import com.cebbus.analysis.strategy.StrategyFactory;
@@ -39,6 +40,21 @@ public class TheOracle {
         BarSeries series = this.cebStrategy.getSeries();
         this.seriesHelper = new SeriesHelper(series);
         this.tradeDataHelper = new TradeDataHelper(series, this.tradingRecord, this.backtestRecord);
+        this.criterionCalculator = new AnalysisCriterionCalculator(series, this.tradingRecord, this.backtestRecord);
+    }
+
+    public TheOracle(
+            Symbol symbol,
+            List<Candlestick> candlestickList,
+            List<com.binance.api.client.domain.account.Trade> tradeList) {
+        this.seriesHelper = new SeriesHelper(symbol, candlestickList);
+
+        BarSeries series = this.seriesHelper.getSeries();
+        this.cebStrategy = StrategyFactory.create(series, symbol.getStrategy());
+        this.tradingRecord = new BaseTradingRecord();
+        this.backtestRecord = createBacktestRecord();
+
+        this.tradeDataHelper = new TradeDataHelper(series, this.tradingRecord, this.backtestRecord, tradeList);
         this.criterionCalculator = new AnalysisCriterionCalculator(series, this.tradingRecord, this.backtestRecord);
     }
 
@@ -122,10 +138,6 @@ public class TheOracle {
 
     public List<TimeSeriesDataItem> getSeriesDataList(CachedIndicator<Num> indicator) {
         return this.seriesHelper.getSeriesDataList(indicator);
-    }
-
-    public void fillTradeHistory(List<com.binance.api.client.domain.account.Trade> tradeList) {
-        this.tradeDataHelper.fillTradeHistory(tradeList);
     }
 
     public Trade newTrade(boolean isSpecActive, Pair<Num, Num> priceAmount) {

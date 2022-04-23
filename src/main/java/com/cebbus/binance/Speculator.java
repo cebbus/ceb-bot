@@ -24,6 +24,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.ta4j.core.Bar;
 
 import java.text.DecimalFormat;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -58,40 +59,34 @@ public class Speculator {
     private TheOracle theOracle;
 
     public Speculator(Symbol symbol) {
-        this.symbol = symbol;
-        this.status = symbol.getStatus();
-        this.limit = PropertyReader.getCacheSize();
-        this.restClient = ClientFactory.getRestClient();
+        this(symbol, false);
     }
 
     public Speculator(Symbol symbol, int limit) {
+        this(symbol, limit, false);
+    }
+
+    public Speculator(Symbol symbol, boolean initOracle) {
+        this(symbol, PropertyReader.getCacheSize(), initOracle);
+    }
+
+    private Speculator(Symbol symbol, int limit, boolean initOracle) {
         this.limit = limit;
         this.symbol = symbol;
         this.status = symbol.getStatus();
         this.restClient = ClientFactory.getRestClient();
+
+        if (initOracle) {
+            this.theOracle = new TheOracle(symbol, getCandleHistory(), getTradeHistory());
+        }
     }
 
     public List<Bar> loadBarHistory() {
-        String symName = this.symbol.getName();
         CandlestickInterval interval = this.symbol.getInterval();
-        List<Candlestick> bars = this.restClient.getCandlestickBars(symName, interval, this.limit, null, null);
-        bars.remove(bars.size() - 1);
 
-        return bars.stream()
+        return getCandleHistory().stream()
                 .map(c -> BarMapper.valueOf(c, interval))
                 .collect(Collectors.toList());
-    }
-
-    public void loadTradeHistory() {
-        if (!PropertyReader.isCredentialsExist()) {
-            log.warn("needs credentials!");
-            return;
-        }
-
-        List<Trade> tradeList = this.restClient.getMyTrades(this.symbol.getName());
-
-        Objects.requireNonNull(this.theOracle);
-        this.theOracle.fillTradeHistory(tradeList);
     }
 
     public void startSpec() {
@@ -188,5 +183,23 @@ public class Speculator {
 
         this.manualTradeListeners.forEach(o -> o.accept(success));
         return success;
+    }
+
+    private List<Candlestick> getCandleHistory() {
+        String symName = this.symbol.getName();
+        CandlestickInterval interval = this.symbol.getInterval();
+        List<Candlestick> bars = this.restClient.getCandlestickBars(symName, interval, this.limit, null, null);
+        bars.remove(bars.size() - 1);
+
+        return bars;
+    }
+
+    private List<Trade> getTradeHistory() {
+        if (!PropertyReader.isCredentialsExist()) {
+            log.warn("needs credentials!");
+            return Collections.emptyList();
+        }
+
+        return this.restClient.getMyTrades(this.symbol.getName());
     }
 }

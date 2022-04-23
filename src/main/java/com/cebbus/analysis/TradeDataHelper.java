@@ -26,8 +26,14 @@ public class TradeDataHelper {
         setBacktestRecord(backtestRecord);
     }
 
-    public void fillTradeHistory(List<com.binance.api.client.domain.account.Trade> tradeList) {
-        TradeMapper tradeMapper = new TradeMapper(this.series, tradeList);
+    TradeDataHelper(
+            BarSeries series,
+            TradingRecord tradingRecord,
+            TradingRecord backtestRecord,
+            List<com.binance.api.client.domain.account.Trade> tradeList) {
+        this(series, tradingRecord, backtestRecord);
+
+        TradeMapper tradeMapper = new TradeMapper(series, tradeList);
         Map<Integer, List<com.binance.api.client.domain.account.Trade>> tradeMap = tradeMapper.getTradeMap();
 
         tradeMap.forEach((index, trades) -> {
@@ -36,9 +42,9 @@ public class TradeDataHelper {
                 Num amount = DecimalNum.valueOf(trade.getQty());
 
                 if (trade.isBuyer()) {
-                    this.tradingRecord.enter(index, price, amount);
+                    tradingRecord.enter(index, price, amount);
                 } else {
-                    this.tradingRecord.exit(index, price, amount);
+                    tradingRecord.exit(index, price, amount);
                 }
             }
         });
