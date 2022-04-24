@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.ta4j.core.Trade;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Slf4j
 public class SellerAction extends TraderAction {
@@ -31,14 +32,16 @@ public class SellerAction extends TraderAction {
         boolean isSpecActive = this.speculator.isActive();
         if (isSpecActive) {
             String base = this.symbol.getBase();
-            BigDecimal freeBalance = getFreeBalance(base);
+            BigDecimal balance = getFreeBalance(base);
 
-            SymbolFilter symbolFilter = getMarketLotSizeFilter();
-            BigDecimal minQuantity = new BigDecimal(symbolFilter.getMinQty());
+            List<SymbolFilter> filterList = getLotSizeFilterList();
+            for (SymbolFilter filter : filterList) {
+                BigDecimal minQuantity = new BigDecimal(filter.getMinQty());
 
-            if (freeBalance.compareTo(minQuantity) < 0) {
-                log.info("{} - you have no coin!", base);
-                return false;
+                if (balance.compareTo(minQuantity) < 0) {
+                    log.info("{} - you have no coin! free balance: {}, min quantity: {}", base, balance, minQuantity);
+                    return false;
+                }
             }
         }
 
@@ -46,22 +49,42 @@ public class SellerAction extends TraderAction {
     }
 
     private NewOrderResponse sell() {
-        SymbolFilter symbolFilter = getMarketLotSizeFilter();
-        BigDecimal stepSize = new BigDecimal(symbolFilter.getStepSize());
-        int scale = Math.max(0, stepSize.stripTrailingZeros().scale());
+        String base = this.symbol.getBase();
+        String name = this.symbol.getName();
 
-        BigDecimal balance = getFreeBalance(this.symbol.getBase(), scale);
-        BigDecimal maxQuantity = new BigDecimal(symbolFilter.getMaxQty());
+        List<SymbolFilter> filterList = getLotSizeFilterList();
+        int scale = getScale(filterList);
+        BigDecimal maxQuantity = getMaxQuantity(filterList);
+
+        BigDecimal balance = getFreeBalance(base, scale);
         BigDecimal quantity = balance.min(maxQuantity);
 
-        NewOrder sellOrder = NewOrder.marketSell(this.symbol.getName(), quantity.toPlainString());
-
+        NewOrder sellOrder = NewOrder.marketSell(name, quantity.toPlainString());
         return this.restClient.newOrder(sellOrder);
     }
 
-    private SymbolFilter getMarketLotSizeFilter() {
+    private List<SymbolFilter> getLotSizeFilterList() {
         SymbolInfo symbolInfo = getSymbolInfo();
-        return symbolInfo.getSymbolFilter(FilterType.MARKET_LOT_SIZE);
+        SymbolFilter lotSize = symbolInfo.getSymbolFilter(FilterType.LOT_SIZE);
+        SymbolFilter marketLotSize = symbolInfo.getSymbolFilter(FilterType.MARKET_LOT_SIZE);
+
+        return List.of(lotSize, marketLotSize);
+    }
+
+    private Integer getScale(List<SymbolFilter> filterList) {
+        return filterList.stream()
+                .map(f -> new BigDecimal(f.getStepSize()))
+                .filter(s -> s.doubleValue() > 0)
+                .map(s -> s.stripTrailingZeros().scale())
+                .min(Integer::compareTo)
+                .orElse(2);
+    }
+
+    private BigDecimal getMaxQuantity(List<SymbolFilter> filterList) {
+        return filterList.stream()
+                .map(f -> new BigDecimal(f.getMaxQty()))
+                .min(BigDecimal::compareTo)
+                .orElseThrow();
     }
 
 }
