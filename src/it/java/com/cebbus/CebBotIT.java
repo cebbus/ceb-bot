@@ -8,13 +8,14 @@ import com.cebbus.util.PropertyReader;
 import com.cebbus.util.SpeculatorHolder;
 import com.cebbus.view.panel.CryptoAppFrame;
 import org.apache.commons.lang3.tuple.Pair;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
+import java.util.Date;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class CebBotIT {
 
     private Speculator speculator;
@@ -32,6 +33,7 @@ class CebBotIT {
     }
 
     @Test
+    @Order(1)
     void buyAndSell() {
         assertTrue(this.speculator.buy());
         assertTrue(this.speculator.sell());
@@ -68,5 +70,19 @@ class CebBotIT {
     void calcStrategies() {
         List<Pair<String, String>> calcResultList = this.speculator.calcStrategies();
         assertFalse(calcResultList.isEmpty());
+    }
+
+    @Test
+    @Order(2)
+    void startSpec() {
+        assertDoesNotThrow(() -> {
+            Date fireDate = this.speculator.startSpec();
+            Date now = new Date();
+
+            while (now.before(fireDate)) {
+                Thread.sleep(10000);
+                now = new Date();
+            }
+        });
     }
 }

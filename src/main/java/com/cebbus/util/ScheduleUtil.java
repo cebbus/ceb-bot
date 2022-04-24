@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 
+import java.util.Date;
 import java.util.TimeZone;
 
 @Slf4j
@@ -30,7 +31,7 @@ public class ScheduleUtil {
     private ScheduleUtil() {
     }
 
-    public static void schedule(Speculator speculator) {
+    public static Date schedule(Speculator speculator) {
         Symbol symbol = speculator.getSymbol();
         String symbolName = symbol.getName();
         String symbolBase = symbol.getBase();
@@ -55,11 +56,15 @@ public class ScheduleUtil {
                 .build();
 
         try {
-            scheduler.scheduleJob(job, trigger);
-            log.info(symbolName + " will be triggered at " + trigger.getNextFireTime());
+            Date nextFireTime = scheduler.scheduleJob(job, trigger);
+            log.info(symbolName + " will be triggered at " + nextFireTime);
+
+            return nextFireTime;
         } catch (SchedulerException e) {
             log.error(e.getMessage(), e);
             System.exit(-1);
         }
+
+        return null;
     }
 }

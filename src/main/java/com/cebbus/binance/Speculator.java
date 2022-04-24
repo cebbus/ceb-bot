@@ -25,6 +25,7 @@ import org.ta4j.core.Bar;
 
 import java.text.DecimalFormat;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -89,13 +90,13 @@ public class Speculator {
                 .collect(Collectors.toList());
     }
 
-    public void startSpec() {
+    public Date startSpec() {
         Objects.requireNonNull(this.theOracle);
 
         this.listener.addOperation(new UpdateSeriesOperation(this.theOracle, this.symbol.getInterval()));
         this.listener.addOperation(new TradeOperation(this));
 
-        ScheduleUtil.schedule(this);
+        return ScheduleUtil.schedule(this);
     }
 
     public void triggerListener(CandlestickEvent event) {
