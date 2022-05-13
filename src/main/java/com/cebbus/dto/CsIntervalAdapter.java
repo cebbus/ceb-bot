@@ -1,6 +1,4 @@
-package com.cebbus.binance;
-
-import com.binance.api.client.domain.market.CandlestickInterval;
+package com.cebbus.dto;
 
 import java.time.Duration;
 
@@ -29,11 +27,11 @@ public enum CsIntervalAdapter {
         this.duration = duration;
     }
 
-    public static String getCron(CandlestickInterval interval) {
-        return CsIntervalAdapter.valueOf(interval.name()).cron;
+    public String getCron() {
+        return cron;
     }
 
-    public static Duration getDuration(CandlestickInterval interval) {
-        return CsIntervalAdapter.valueOf(interval.name()).duration;
+    public Duration getDuration() {
+        return duration;
     }
 }

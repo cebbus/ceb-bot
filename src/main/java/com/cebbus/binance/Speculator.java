@@ -7,12 +7,14 @@ import com.binance.api.client.domain.market.Candlestick;
 import com.binance.api.client.domain.market.CandlestickInterval;
 import com.cebbus.analysis.Symbol;
 import com.cebbus.analysis.TheOracle;
-import com.cebbus.analysis.mapper.BarMapper;
 import com.cebbus.binance.listener.CandlestickEventListener;
 import com.cebbus.binance.listener.operation.EventOperation;
 import com.cebbus.binance.listener.operation.TradeOperation;
 import com.cebbus.binance.listener.operation.UpdateSeriesOperation;
 import com.cebbus.binance.order.TradeStatus;
+import com.cebbus.dto.CandleDto;
+import com.cebbus.dto.CsIntervalAdapter;
+import com.cebbus.dto.TradeDto;
 import com.cebbus.util.PropertyReader;
 import com.cebbus.util.ScheduleUtil;
 import lombok.AccessLevel;
@@ -21,7 +23,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
-import org.ta4j.core.Bar;
 
 import java.text.DecimalFormat;
 import java.util.Collections;
@@ -71,29 +72,29 @@ public class Speculator {
         this(symbol, PropertyReader.getCacheSize(), initOracle);
     }
 
-    private Speculator(Symbol symbol, int limit, boolean initOracle) {
+    public Speculator(Symbol symbol, int limit, boolean initOracle) {
         this.limit = limit;
         this.symbol = symbol;
         this.status = symbol.getStatus();
         this.restClient = ClientFactory.getRestClient();
 
         if (initOracle) {
-            this.theOracle = new TheOracle(symbol, getCandleHistory(), getTradeHistory());
+            this.theOracle = new TheOracle(symbol, loadTradeHistory(), loadBarHistory());
         }
     }
 
-    public List<Bar> loadBarHistory() {
-        CandlestickInterval interval = this.symbol.getInterval();
+    public List<CandleDto> loadBarHistory() {
+        return CandleDto.valueOf(getCandleHistory());
+    }
 
-        return getCandleHistory().stream()
-                .map(c -> BarMapper.valueOf(c, interval))
-                .collect(Collectors.toList());
+    public List<TradeDto> loadTradeHistory() {
+        return TradeDto.valueOf(getTradeHistory());
     }
 
     public Date startSpec() {
         Objects.requireNonNull(this.theOracle);
 
-        this.listener.addOperation(new UpdateSeriesOperation(this.theOracle, this.symbol.getInterval()));
+        this.listener.addOperation(new UpdateSeriesOperation(this));
         this.listener.addOperation(new TradeOperation(this));
 
         return ScheduleUtil.schedule(this);
@@ -188,8 +189,10 @@ public class Speculator {
 
     private List<Candlestick> getCandleHistory() {
         String symName = this.symbol.getName();
-        CandlestickInterval interval = this.symbol.getInterval();
-        List<Candlestick> bars = this.restClient.getCandlestickBars(symName, interval, this.limit, null, null);
+        CsIntervalAdapter interval = this.symbol.getInterval();
+        CandlestickInterval csInterval = CandlestickInterval.valueOf(interval.name());
+
+        List<Candlestick> bars = this.restClient.getCandlestickBars(symName, csInterval, this.limit, null, null);
         bars.remove(bars.size() - 1);
 
         return bars;

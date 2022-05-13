@@ -1,9 +1,10 @@
 package com.cebbus.analysis;
 
-import com.binance.api.client.domain.market.Candlestick;
 import com.cebbus.analysis.strategy.BaseCebStrategy;
 import com.cebbus.analysis.strategy.CebStrategy;
 import com.cebbus.analysis.strategy.StrategyFactory;
+import com.cebbus.dto.CandleDto;
+import com.cebbus.dto.TradeDto;
 import com.cebbus.util.ReflectionUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TheOracle {
 
+    private final Symbol symbol;
     private final CebStrategy cebStrategy;
     private final SeriesHelper seriesHelper;
     private final TradeDataHelper tradeDataHelper;
@@ -32,21 +34,23 @@ public class TheOracle {
 
     private TradingRecord backtestRecord;
 
-    public TheOracle(CebStrategy cebStrategy) {
+    public TheOracle(Symbol symbol, CebStrategy cebStrategy) {
+        this.symbol = symbol;
         this.cebStrategy = cebStrategy;
         this.tradingRecord = new BaseTradingRecord();
         this.backtestRecord = createBacktestRecord();
 
         BarSeries series = this.cebStrategy.getSeries();
-        this.seriesHelper = new SeriesHelper(series);
+        this.seriesHelper = new SeriesHelper(symbol, series);
         this.tradeDataHelper = new TradeDataHelper(series, this.tradingRecord, this.backtestRecord);
         this.criterionCalculator = new AnalysisCriterionCalculator(series, this.tradingRecord, this.backtestRecord);
     }
 
     public TheOracle(
             Symbol symbol,
-            List<Candlestick> candlestickList,
-            List<com.binance.api.client.domain.account.Trade> tradeList) {
+            List<TradeDto> tradeList,
+            List<CandleDto> candlestickList) {
+        this.symbol = symbol;
         this.seriesHelper = new SeriesHelper(symbol, candlestickList);
 
         BarSeries series = this.seriesHelper.getSeries();
@@ -78,7 +82,8 @@ public class TheOracle {
         BarSeries series = this.cebStrategy.getSeries();
         CebStrategy newStrategy = StrategyFactory.create(series, strategy);
 
-        return new TheOracle(newStrategy);
+        Symbol copy = this.symbol.copy(strategy);
+        return new TheOracle(copy, newStrategy);
     }
 
     public void changeProphesyParameters(Number... parameters) {
@@ -92,7 +97,8 @@ public class TheOracle {
         BarSeries series = this.cebStrategy.getSeries();
 
         List<Class<? extends BaseCebStrategy>> strategies = ReflectionUtil.listStrategyClasses();
-        StrategyReturnCalcFunction calcFunction = new StrategyReturnCalcFunction(series);
+        StrategyReturnCalcFunction calcFunction = new StrategyReturnCalcFunction(this.symbol, series);
+
         return strategies.stream().map(calcFunction).collect(Collectors.toList());
     }
 
@@ -120,7 +126,7 @@ public class TheOracle {
         return !Optional.ofNullable(tr).orElse(this.tradingRecord).getCurrentPosition().isOpened();
     }
 
-    public void addBar(Bar newBar) {
+    public void addBar(CandleDto newBar) {
         this.seriesHelper.addBar(newBar);
     }
 

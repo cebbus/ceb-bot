@@ -3,7 +3,7 @@ package com.cebbus.analysis.mapper;
 import com.binance.api.client.domain.event.CandlestickEvent;
 import com.binance.api.client.domain.market.Candlestick;
 import com.binance.api.client.domain.market.CandlestickInterval;
-import com.cebbus.binance.CsIntervalAdapter;
+import com.cebbus.dto.CsIntervalAdapter;
 import com.cebbus.util.DateTimeUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

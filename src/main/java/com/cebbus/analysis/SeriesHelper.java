@@ -1,8 +1,8 @@
 package com.cebbus.analysis;
 
-import com.binance.api.client.domain.market.Candlestick;
-import com.binance.api.client.domain.market.CandlestickInterval;
 import com.cebbus.analysis.mapper.BarMapper;
+import com.cebbus.dto.CandleDto;
+import com.cebbus.dto.CsIntervalAdapter;
 import com.cebbus.util.DateTimeUtil;
 import com.cebbus.util.PropertyReader;
 import org.jfree.data.time.RegularTimePeriod;
@@ -16,25 +16,25 @@ import org.ta4j.core.num.Num;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class SeriesHelper {
 
+    private final Symbol symbol;
     private final BarSeries series;
 
-    SeriesHelper(BarSeries series) {
+    SeriesHelper(Symbol symbol, BarSeries series) {
+        this.symbol = symbol;
         this.series = series;
     }
 
-    SeriesHelper(Symbol symbol, List<Candlestick> candlestickList) {
-        CandlestickInterval interval = symbol.getInterval();
+    SeriesHelper(Symbol symbol, List<CandleDto> candlestickList) {
+        String name = symbol.getName();
+        CsIntervalAdapter interval = symbol.getInterval();
+        List<Bar> barList = BarMapper.valueOf(candlestickList, interval);
 
-        List<Bar> barList = candlestickList.stream()
-                .map(c -> BarMapper.valueOf(c, interval))
-                .collect(Collectors.toList());
-
+        this.symbol = symbol;
         this.series = new BaseBarSeriesBuilder()
-                .withName(symbol.getName())
+                .withName(name)
                 .withBars(barList)
                 .withMaxBarCount(PropertyReader.getCacheSize())
                 .build();
@@ -44,9 +44,10 @@ public class SeriesHelper {
         return this.series.getName();
     }
 
-    public void addBar(Bar newBar) {
-        Bar lastBar = this.series.getLastBar();
-        boolean replace = newBar.getBeginTime().equals(lastBar.getBeginTime());
+    public void addBar(CandleDto dto) {
+        Bar last = this.series.getLastBar();
+        Bar newBar = BarMapper.valueOf(dto, this.symbol.getInterval());
+        boolean replace = newBar.getBeginTime().equals(last.getBeginTime());
 
         this.series.addBar(newBar, replace);
     }

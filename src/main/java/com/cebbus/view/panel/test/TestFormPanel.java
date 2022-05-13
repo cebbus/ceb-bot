@@ -1,14 +1,9 @@
 package com.cebbus.view.panel.test;
 
-import com.binance.api.client.domain.market.CandlestickInterval;
 import com.cebbus.analysis.Symbol;
-import com.cebbus.analysis.TheOracle;
-import com.cebbus.analysis.strategy.CebStrategy;
-import com.cebbus.analysis.strategy.StrategyFactory;
 import com.cebbus.binance.Speculator;
+import com.cebbus.dto.CsIntervalAdapter;
 import com.cebbus.view.panel.FormFieldSet;
-import org.ta4j.core.BarSeries;
-import org.ta4j.core.BaseBarSeries;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -60,10 +55,10 @@ public class TestFormPanel extends FormFieldSet {
             Integer limit = limitBox.getItemAt(limitBox.getSelectedIndex());
 
             String interval = intervalBox.getItemAt(intervalBox.getSelectedIndex());
-            CandlestickInterval csInterval = CandlestickInterval.valueOf(interval);
+            CsIntervalAdapter csInterval = CsIntervalAdapter.valueOf(interval);
 
-            Symbol symbol = new Symbol(-1, 0, baseVal, quoteVal, null, csInterval, null);
-            Speculator speculator = createSpeculator(symbol, limit);
+            Symbol symbol = new Symbol(-1, 0, baseVal, quoteVal, "JunkStrategy", csInterval, null);
+            Speculator speculator = new Speculator(symbol, limit, true);
 
             this.onRunClickListeners.forEach(c -> c.accept(speculator));
         });
@@ -74,16 +69,6 @@ public class TestFormPanel extends FormFieldSet {
         addToForm(this.panel, limitLabel, limitBox, WEST_ITEM_WIDTH);
         addToForm(this.panel, intervalLabel, intervalBox, WEST_ITEM_WIDTH);
         this.panel.add(startButtonBox);
-    }
-
-    private Speculator createSpeculator(Symbol symbol, int limit) {
-        Speculator speculator = new Speculator(symbol, limit);
-
-        BarSeries series = new BaseBarSeries(speculator.loadBarHistory());
-        CebStrategy junkStrategy = StrategyFactory.create(series, "JunkStrategy");
-
-        speculator.setTheOracle(new TheOracle(junkStrategy));
-        return speculator;
     }
 
     public void addRunClickListeners(Consumer<Speculator> operation) {
