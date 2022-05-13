@@ -1,5 +1,6 @@
 package com.cebbus.analysis;
 
+import com.cebbus.dto.CandleDto;
 import com.cebbus.util.DateTimeUtil;
 import org.jfree.data.time.Millisecond;
 import org.jfree.data.time.RegularTimePeriod;
@@ -40,11 +41,18 @@ class SeriesHelperTest {
 
     @Test
     void addBar() {
-        Duration hour = Duration.ofHours(1);
+        //Duration hour = Duration.ofHours(1);
         ZonedDateTime now = ZonedDateTime.now();
-        BigDecimal zpo = new BigDecimal("0.1");
+        ZonedDateTime endTime = now.plus(4L, ChronoUnit.HOURS);
+        String zpo = "0.1";
 
-        BaseBar newBar = new BaseBar(hour, now.plus(4L, ChronoUnit.HOURS), zpo, zpo, zpo, zpo, zpo);
+        CandleDto newBar = new CandleDto();
+        newBar.setOpen(zpo);
+        newBar.setHigh(zpo);
+        newBar.setLow(zpo);
+        newBar.setClose(zpo);
+        newBar.setVolume(zpo);
+        newBar.setCloseTime(endTime.toInstant().toEpochMilli());
 
         this.helper.addBar(newBar);
         assertEquals(4, this.helper.getCandleDataList().size());
@@ -55,7 +63,7 @@ class SeriesHelperTest {
         BigDecimal zpo = new BigDecimal("0.1");
 
         Bar lastBar = this.series.getLastBar();
-        BaseBar newBar = new BaseBar(lastBar.getTimePeriod(), lastBar.getEndTime(), zpo, zpo, zpo, zpo, zpo);
+        CandleDto newBar = new CandleDto(lastBar.getTimePeriod(), lastBar.getEndTime(), zpo, zpo, zpo, zpo, zpo);
 
         this.helper.addBar(newBar);
         assertEquals(3, this.helper.getCandleDataList().size());

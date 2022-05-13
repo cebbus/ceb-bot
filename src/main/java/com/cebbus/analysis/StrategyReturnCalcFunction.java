@@ -10,16 +10,20 @@ import java.util.function.Function;
 
 public class StrategyReturnCalcFunction implements Function<Class<? extends BaseCebStrategy>, Pair<String, Double>> {
 
+    private final Symbol symbol;
     private final BarSeries series;
 
-    StrategyReturnCalcFunction(BarSeries series) {
+    StrategyReturnCalcFunction(Symbol symbol, BarSeries series) {
+        this.symbol = symbol;
         this.series = series;
     }
 
     @Override
     public Pair<String, Double> apply(Class<? extends BaseCebStrategy> clazz) {
+        Symbol copy = this.symbol.copy(clazz.getSimpleName());
         CebStrategy cebStrategy = StrategyFactory.create(this.series, clazz);
-        TheOracle testOracle = new TheOracle(cebStrategy);
+
+        TheOracle testOracle = new TheOracle(copy, cebStrategy);
         return Pair.of(clazz.getSimpleName(), testOracle.backtestStrategyReturn().doubleValue());
     }
 }

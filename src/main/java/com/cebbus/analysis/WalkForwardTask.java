@@ -1,8 +1,11 @@
 package com.cebbus.analysis;
 
+import com.cebbus.analysis.mapper.BarMapper;
 import com.cebbus.analysis.strategy.CebStrategy;
 import com.cebbus.analysis.strategy.StrategyFactory;
 import com.cebbus.binance.Speculator;
+import com.cebbus.dto.CandleDto;
+import com.cebbus.dto.CsIntervalAdapter;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
@@ -49,7 +52,10 @@ public class WalkForwardTask implements Runnable {
     @Override
     public void run() {
         Speculator loader = new Speculator(this.symbol, this.limitValue);
-        List<Bar> barList = loader.loadBarHistory();
+        List<CandleDto> stickList = loader.loadBarHistory();
+
+        CsIntervalAdapter interval = symbol.getInterval();
+        List<Bar> barList = BarMapper.valueOf(stickList, interval);
 
         int barSize = barList.size();
         int optBarSize = barSize * this.optimizationValue / 100;
@@ -105,7 +111,7 @@ public class WalkForwardTask implements Runnable {
             Number[] parameters = strategyParameterPair.getValue();
 
             CebStrategy cebStrategy = StrategyFactory.create(backtestSeries, strategy);
-            TheOracle backtestOracle = new TheOracle(cebStrategy);
+            TheOracle backtestOracle = new TheOracle(this.symbol, cebStrategy);
             Num defaultResult = backtestOracle.backtestStrategyReturn();
             Num buyAndHoldResult = backtestOracle.backtestBuyAndHold();
 
@@ -144,7 +150,7 @@ public class WalkForwardTask implements Runnable {
 
         for (String strategy : this.strategyList) {
             CebStrategy trainsStrategy = StrategyFactory.create(trainSeries, strategy);
-            TheOracle trainOracle = new TheOracle(trainsStrategy);
+            TheOracle trainOracle = new TheOracle(this.symbol, trainsStrategy);
             Num trainBuyAndHold = trainOracle.backtestBuyAndHold();
             Num trainDefaultResult = trainOracle.backtestStrategyReturn();
 
@@ -152,7 +158,7 @@ public class WalkForwardTask implements Runnable {
             Num trainResult = trainOracle.backtestStrategyReturn();
 
             CebStrategy testStrategy = StrategyFactory.create(testSeries, strategy);
-            TheOracle testOracle = new TheOracle(testStrategy);
+            TheOracle testOracle = new TheOracle(this.symbol, testStrategy);
             Number[] testDefaultParameters = testOracle.getProphesyParameters();
             Num testBuyAndHold = testOracle.backtestBuyAndHold();
             Num testDefaultResult = testOracle.backtestStrategyReturn();

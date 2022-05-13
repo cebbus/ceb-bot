@@ -2,7 +2,7 @@ package com.cebbus.util;
 
 import com.binance.api.client.domain.market.CandlestickInterval;
 import com.cebbus.analysis.Symbol;
-import com.cebbus.binance.CsIntervalAdapter;
+import com.cebbus.dto.CsIntervalAdapter;
 import com.cebbus.binance.Speculator;
 import com.cebbus.binance.SpeculatorJob;
 import lombok.extern.slf4j.Slf4j;
