@@ -1,8 +1,8 @@
 package com.cebbus.util;
 
-import com.binance.api.client.domain.market.CandlestickInterval;
 import com.cebbus.analysis.Symbol;
 import com.cebbus.binance.order.TradeStatus;
+import com.cebbus.dto.CsIntervalAdapter;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -53,9 +53,9 @@ class PropertyReaderIT {
     @Test
     void getSymbols() {
         List<Symbol> expected = new ArrayList<>();
-        expected.add(new Symbol(0, 0.9, "BNB", "USDT", "MacdStrategy", CandlestickInterval.ONE_MINUTE, TradeStatus.ACTIVE));
-        expected.add(new Symbol(1, 0.1, "ETH", "USDT", "MacdStrategy", CandlestickInterval.ONE_MINUTE, TradeStatus.ACTIVE));
-        expected.add(new Symbol(2, 0.0, "XRP", "USDT", "MacdStrategy", CandlestickInterval.ONE_MINUTE, TradeStatus.INACTIVE));
+        expected.add(new Symbol(0, 0.9, "BNB", "USDT", "MacdStrategy", CsIntervalAdapter.ONE_MINUTE, TradeStatus.ACTIVE));
+        expected.add(new Symbol(1, 0.1, "ETH", "USDT", "MacdStrategy", CsIntervalAdapter.ONE_MINUTE, TradeStatus.ACTIVE));
+        expected.add(new Symbol(2, 0.0, "XRP", "USDT", "MacdStrategy", CsIntervalAdapter.ONE_MINUTE, TradeStatus.INACTIVE));
 
         List<Symbol> actual = PropertyReader.getSymbols();
         assertIterableEquals(expected, actual);

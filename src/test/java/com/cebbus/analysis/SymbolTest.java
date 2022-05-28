@@ -1,7 +1,7 @@
 package com.cebbus.analysis;
 
-import com.binance.api.client.domain.market.CandlestickInterval;
 import com.cebbus.binance.order.TradeStatus;
+import com.cebbus.dto.CsIntervalAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -13,7 +13,7 @@ class SymbolTest {
 
     @BeforeEach
     void setUp() {
-        this.symbol = new Symbol(0, 0d, "BASE", "QUOTE", "Junk", CandlestickInterval.ONE_MINUTE, TradeStatus.INACTIVE);
+        this.symbol = new Symbol(0, 0d, "BASE", "QUOTE", "Junk", CsIntervalAdapter.ONE_MINUTE, TradeStatus.INACTIVE);
     }
 
     @Test
@@ -43,7 +43,7 @@ class SymbolTest {
 
     @Test
     void getInterval() {
-        assertEquals(CandlestickInterval.ONE_MINUTE, this.symbol.getInterval());
+        assertEquals(CsIntervalAdapter.ONE_MINUTE, this.symbol.getInterval());
     }
 
     @Test

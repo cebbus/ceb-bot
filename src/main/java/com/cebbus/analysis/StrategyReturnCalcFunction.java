@@ -20,7 +20,7 @@ public class StrategyReturnCalcFunction implements Function<Class<? extends Base
 
     @Override
     public Pair<String, Double> apply(Class<? extends BaseCebStrategy> clazz) {
-        Symbol copy = this.symbol.copy(clazz.getSimpleName());
+        Symbol copy = this.symbol.changeStrategy(clazz.getSimpleName());
         CebStrategy cebStrategy = StrategyFactory.create(this.series, clazz);
 
         TheOracle testOracle = new TheOracle(copy, cebStrategy);

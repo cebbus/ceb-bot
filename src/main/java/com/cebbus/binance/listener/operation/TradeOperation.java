@@ -5,8 +5,8 @@ import com.cebbus.analysis.Symbol;
 import com.cebbus.binance.Speculator;
 import com.cebbus.binance.order.BuyerAction;
 import com.cebbus.binance.order.SellerAction;
+import com.cebbus.dto.TradeDto;
 import lombok.extern.slf4j.Slf4j;
-import org.ta4j.core.Trade;
 
 @Slf4j
 public class TradeOperation implements EventOperation {
@@ -23,7 +23,7 @@ public class TradeOperation implements EventOperation {
 
     @Override
     public void operate(CandlestickEvent response) {
-        Trade trade = null;
+        TradeDto trade = null;
         if (this.buyerAction.enterable(false)) {
             log.info(prepareLog("should enter!"));
             trade = this.buyerAction.enter();
@@ -40,7 +40,7 @@ public class TradeOperation implements EventOperation {
             log.info(prepareLog("manual enter triggered!"));
 
             try {
-                Trade trade = this.buyerAction.enter();
+                TradeDto trade = this.buyerAction.enter();
                 writeTradeLog(trade);
                 return true;
             } catch (Exception e) {
@@ -56,7 +56,7 @@ public class TradeOperation implements EventOperation {
             log.info(prepareLog("manual exit triggered!"));
 
             try {
-                Trade trade = this.sellerAction.exit();
+                TradeDto trade = this.sellerAction.exit();
                 writeTradeLog(trade);
                 return true;
             } catch (Exception e) {
@@ -67,9 +67,13 @@ public class TradeOperation implements EventOperation {
         return false;
     }
 
-    private void writeTradeLog(Trade trade) {
+    private void writeTradeLog(TradeDto trade) {
         if (trade != null) {
-            log.info("{} - {} amount: {} price: {}", this.symbol.getName(), trade.getType(), trade.getAmount(), trade.getNetPrice());
+            log.info("{} - {} amount: {} price: {}",
+                    this.symbol.getName(),
+                    trade.isBuyer() ? "Buy" : "Sell",
+                    trade.getQty(),
+                    trade.getPrice());
         }
     }
 

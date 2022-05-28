@@ -1,8 +1,6 @@
 package com.cebbus.analysis.mapper;
 
-import com.binance.api.client.domain.event.CandlestickEvent;
-import com.binance.api.client.domain.market.Candlestick;
-import com.binance.api.client.domain.market.CandlestickInterval;
+import com.cebbus.dto.CandleDto;
 import com.cebbus.dto.CsIntervalAdapter;
 import com.cebbus.util.DateTimeUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,9 +24,8 @@ class BarMapperTest {
     private BigDecimal low;
     private BigDecimal close;
     private BigDecimal volume;
-    private Duration duration;
     private ZonedDateTime dateTime;
-    private CandlestickInterval interval;
+    private CsIntervalAdapter interval;
 
     @BeforeEach
     void setUp() {
@@ -38,32 +35,28 @@ class BarMapperTest {
         this.close = new BigDecimal("52.5");
         this.volume = new BigDecimal("1000");
         this.dateTime = ZonedDateTime.now();
-        this.duration = Duration.ofMinutes(1L);
-        this.interval = CandlestickInterval.ONE_MINUTE;
-        this.bar = new BaseBar(this.duration, this.dateTime, this.open, this.high, this.low, this.close, this.volume);
+        this.interval = CsIntervalAdapter.ONE_MINUTE;
+        this.bar = new BaseBar(Duration.ofMinutes(1L), this.dateTime, this.open, this.high, this.low, this.close, this.volume);
     }
 
     @Test
-    void valueOfCandlestick() {
-        long closeTime = 1L;
+    void dtoToBar() {
+        long time = this.dateTime.toEpochSecond();
 
-        Candlestick candlestick = new Candlestick();
-        candlestick.setOpen(this.open.toPlainString());
-        candlestick.setHigh(this.high.toPlainString());
-        candlestick.setLow(this.low.toPlainString());
-        candlestick.setClose(this.close.toPlainString());
-        candlestick.setVolume(this.volume.toPlainString());
-        candlestick.setCloseTime(closeTime);
+        CandleDto dto = new CandleDto();
+        dto.setOpen(this.open);
+        dto.setHigh(this.high);
+        dto.setLow(this.low);
+        dto.setClose(this.close);
+        dto.setVolume(this.volume);
+        dto.setOpenTime(time);
+        dto.setCloseTime(time);
 
         Bar actual;
-        try (
-                MockedStatic<DateTimeUtil> dateTimeUtilMock = mockStatic(DateTimeUtil.class);
-                MockedStatic<CsIntervalAdapter> csIntervalAdapterMock = mockStatic(CsIntervalAdapter.class)
-        ) {
-            dateTimeUtilMock.when(() -> DateTimeUtil.millisToZonedTime(closeTime)).thenReturn(this.dateTime);
-            csIntervalAdapterMock.when(() -> CsIntervalAdapter.getDuration(this.interval)).thenReturn(this.duration);
+        try (MockedStatic<DateTimeUtil> dateTimeUtilMock = mockStatic(DateTimeUtil.class)) {
+            dateTimeUtilMock.when(() -> DateTimeUtil.millisToZonedTime(time)).thenReturn(this.dateTime);
 
-            actual = BarMapper.valueOf(candlestick, this.interval);
+            actual = BarMapper.dtoToBar(dto, this.interval);
         }
 
         assertEquals(this.bar, actual);
@@ -71,27 +64,27 @@ class BarMapperTest {
 
     @Test
     void valueOfCandlestickEvent() {
-        long closeTime = 1L;
+        long time = this.dateTime.toEpochSecond();
+        ZonedDateTime endTime = this.bar.getEndTime();
+        ZonedDateTime beginTime = this.bar.getBeginTime();
 
-        CandlestickEvent event = new CandlestickEvent();
-        event.setOpen(this.open.toPlainString());
-        event.setHigh(this.high.toPlainString());
-        event.setLow(this.low.toPlainString());
-        event.setClose(this.close.toPlainString());
-        event.setVolume(this.volume.toPlainString());
-        event.setCloseTime(closeTime);
+        CandleDto expected = new CandleDto();
+        expected.setOpen(this.open);
+        expected.setHigh(this.high);
+        expected.setLow(this.low);
+        expected.setClose(this.close);
+        expected.setVolume(this.volume);
+        expected.setOpenTime(time);
+        expected.setCloseTime(time);
 
-        Bar actual;
-        try (
-                MockedStatic<DateTimeUtil> dateTimeUtilMock = mockStatic(DateTimeUtil.class);
-                MockedStatic<CsIntervalAdapter> csIntervalAdapterMock = mockStatic(CsIntervalAdapter.class)
-        ) {
-            dateTimeUtilMock.when(() -> DateTimeUtil.millisToZonedTime(closeTime)).thenReturn(this.dateTime);
-            csIntervalAdapterMock.when(() -> CsIntervalAdapter.getDuration(this.interval)).thenReturn(this.duration);
+        CandleDto actual;
+        try (MockedStatic<DateTimeUtil> dateTimeUtilMock = mockStatic(DateTimeUtil.class)) {
+            dateTimeUtilMock.when(() -> DateTimeUtil.zonedTimeToMillis(endTime)).thenReturn(time);
+            dateTimeUtilMock.when(() -> DateTimeUtil.zonedTimeToMillis(beginTime)).thenReturn(time);
 
-            actual = BarMapper.valueOf(event, this.interval);
+            actual = BarMapper.barToDto(this.bar);
         }
 
-        assertEquals(this.bar, actual);
+        assertEquals(expected, actual);
     }
 }

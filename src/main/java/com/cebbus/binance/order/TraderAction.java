@@ -12,13 +12,11 @@ import com.binance.api.client.domain.general.SymbolInfo;
 import com.cebbus.analysis.Symbol;
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.binance.Speculator;
+import com.cebbus.dto.TradeDto;
 import com.cebbus.exception.OrderNotFilledException;
 import com.cebbus.exception.OrderNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
-import org.ta4j.core.Trade;
-import org.ta4j.core.num.DecimalNum;
-import org.ta4j.core.num.Num;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -61,11 +59,11 @@ public abstract class TraderAction {
         return this.restClient.getExchangeInfo().getSymbolInfo(this.symbol.getName());
     }
 
-    Trade createBacktestRecord() {
+    TradeDto createBacktestRecord() {
         return this.theOracle.newTrade(false, null);
     }
 
-    Trade createTradeRecord(NewOrderResponse response) {
+    TradeDto createTradeRecord(NewOrderResponse response) {
         Long orderId = response.getOrderId();
         OrderStatus status = response.getStatus();
 
@@ -74,7 +72,7 @@ public abstract class TraderAction {
         }
 
         Order order = findOrder(orderId);
-        Pair<Num, Num> priceAmount = getPriceAmountPair(order);
+        Pair<Number, Number> priceAmount = getPriceAmountPair(order);
         return this.theOracle.newTrade(true, priceAmount);
     }
 
@@ -97,13 +95,13 @@ public abstract class TraderAction {
         }
     }
 
-    private Pair<Num, Num> getPriceAmountPair(Order order) {
+    private Pair<Number, Number> getPriceAmountPair(Order order) {
         BigDecimal amount = strToBd(order.getExecutedQty());
 
         BigDecimal quote = strToBd(order.getCummulativeQuoteQty());
         BigDecimal price = quote.divide(amount, SCALE, DOWN);
 
-        return Pair.of(DecimalNum.valueOf(price), DecimalNum.valueOf(amount));
+        return Pair.of(price, amount);
     }
 
     private BigDecimal strToBd(String value) {

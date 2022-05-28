@@ -1,9 +1,9 @@
 package com.cebbus.util;
 
-import com.binance.api.client.domain.market.CandlestickInterval;
 import com.cebbus.CebBot;
 import com.cebbus.analysis.Symbol;
 import com.cebbus.binance.order.TradeStatus;
+import com.cebbus.dto.CsIntervalAdapter;
 import lombok.extern.slf4j.Slf4j;
 import org.jasypt.properties.EncryptableProperties;
 
@@ -92,7 +92,7 @@ public class PropertyReader {
             String quote = quoteArr[i].trim();
             String strategy = strategyArr[i].trim();
             double weight = Double.parseDouble(weightArr[i].trim());
-            CandlestickInterval interval = CandlestickInterval.valueOf(intervalArr[i].trim());
+            CsIntervalAdapter interval = CsIntervalAdapter.valueOf(intervalArr[i].trim());
             TradeStatus status = weight <= 0 ? TradeStatus.INACTIVE : TradeStatus.valueOf(statusArr[i].trim());
 
             symbols.add(new Symbol(i, weight, base, quote, strategy, interval, status));

@@ -6,8 +6,8 @@ import com.binance.api.client.domain.general.FilterType;
 import com.binance.api.client.domain.general.SymbolFilter;
 import com.binance.api.client.domain.general.SymbolInfo;
 import com.cebbus.binance.Speculator;
+import com.cebbus.dto.TradeDto;
 import lombok.extern.slf4j.Slf4j;
-import org.ta4j.core.Trade;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -19,7 +19,7 @@ public class SellerAction extends TraderAction {
         super(speculator);
     }
 
-    public Trade exit() {
+    public TradeDto exit() {
         if (this.speculator.isActive()) {
             NewOrderResponse orderResponse = sell();
             return createTradeRecord(orderResponse);

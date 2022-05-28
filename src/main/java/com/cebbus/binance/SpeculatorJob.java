@@ -5,6 +5,7 @@ import com.binance.api.client.domain.market.Candlestick;
 import com.binance.api.client.domain.market.CandlestickInterval;
 import com.cebbus.analysis.Symbol;
 import com.cebbus.binance.mapper.CandlestickMapper;
+import com.cebbus.dto.CsIntervalAdapter;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -20,10 +21,11 @@ public class SpeculatorJob implements Job {
 
         Symbol symbol = speculator.getSymbol();
         String name = symbol.getName();
-        CandlestickInterval interval = symbol.getInterval();
+        CsIntervalAdapter intervalAdapter = symbol.getInterval();
+        CandlestickInterval interval = CandlestickInterval.valueOf(intervalAdapter.name());
 
         List<Candlestick> bars = speculator.getRestClient().getCandlestickBars(name, interval, 2, null, null);
-        CandlestickEvent event = CandlestickMapper.valueOf(bars.get(0), name);
+        CandlestickEvent event = CandlestickMapper.stickToEvent(bars.get(0), name);
         speculator.triggerListener(event);
     }
 }

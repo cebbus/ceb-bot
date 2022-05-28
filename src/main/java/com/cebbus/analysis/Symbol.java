@@ -18,7 +18,7 @@ public class Symbol {
         return this.base + this.quote;
     }
 
-    public Symbol copy(String newStrategy) {
+    public Symbol changeStrategy(String newStrategy) {
         return new Symbol(this.id, this.weight, this.base, this.quote, newStrategy, this.interval, this.status);
     }
 }

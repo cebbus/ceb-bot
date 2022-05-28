@@ -1,6 +1,9 @@
 package com.cebbus.view.chart;
 
 import com.cebbus.analysis.TheOracle;
+import com.cebbus.dto.IndicatorValueDto;
+import com.cebbus.dto.TradePointDto;
+import com.cebbus.view.mapper.TimeSeriesItemMapper;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.XYPlot;
@@ -74,7 +77,9 @@ public class LineChart extends CryptoChart {
 
         this.indicatorMap.forEach((name, indicator) -> {
             TimeSeries timeSeries = this.timeSeriesMap.get(name);
-            TimeSeriesDataItem lastItem = this.theOracle.getLastSeriesItem(indicator);
+            IndicatorValueDto indicatorValue = this.theOracle.getLastIndicatorValue(indicator);
+
+            TimeSeriesDataItem lastItem = TimeSeriesItemMapper.dtoToItem(indicatorValue);
             timeSeries.addOrUpdate(lastItem);
         });
 
@@ -83,18 +88,20 @@ public class LineChart extends CryptoChart {
     }
 
     private TimeSeries createChartData(String name, CachedIndicator<Num> indicator) {
-        List<TimeSeriesDataItem> dataList = this.theOracle.getSeriesDataList(indicator);
+        List<IndicatorValueDto> dataList = this.theOracle.getIndicatorValueList(indicator);
+        List<TimeSeriesDataItem> itemList = TimeSeriesItemMapper.dtoToItem(dataList);
 
         TimeSeries timeSeries = new TimeSeries(name);
-        dataList.forEach(timeSeries::add);
+        itemList.forEach(timeSeries::add);
 
         return timeSeries;
     }
 
     private void addTradeMarker(boolean backtest) {
-        Optional<Object[]> tradePoint = this.theOracle.getLastTradePoint(backtest);
+        Optional<TradePointDto> tradePoint = this.theOracle.getLastTradePoint(backtest);
         tradePoint.ifPresent(point -> {
             XYPlot xyPlot = this.chart.getXYPlot();
+
             CryptoMarker marker = createMarker(point);
             xyPlot.removeDomainMarker(marker);
             xyPlot.addDomainMarker(marker);

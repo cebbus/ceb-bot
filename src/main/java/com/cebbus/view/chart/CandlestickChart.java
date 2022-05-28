@@ -1,6 +1,8 @@
 package com.cebbus.view.chart;
 
 import com.cebbus.analysis.TheOracle;
+import com.cebbus.dto.CandleDto;
+import com.cebbus.view.mapper.OhlcItemMapper;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -59,14 +61,18 @@ public class CandlestickChart extends CryptoChart {
             return;
         }
 
-        OHLCItem lastCandle = this.theOracle.getLastCandle();
-        removeIfExist(lastCandle);
-        this.ohlcSeries.add(lastCandle);
+        CandleDto lastCandle = this.theOracle.getLastCandle();
+        OHLCItem item = OhlcItemMapper.dtoToItem(lastCandle);
+
+        removeIfExist(item);
+        this.ohlcSeries.add(item);
     }
 
     private OHLCDataset createChartData() {
-        List<OHLCItem> dataList = this.theOracle.getCandleDataList();
-        dataList.forEach(this.ohlcSeries::add);
+        List<CandleDto> dataList = this.theOracle.getCandleDataList();
+        List<OHLCItem> itemList = OhlcItemMapper.dtoToItem(dataList);
+
+        itemList.forEach(this.ohlcSeries::add);
 
         OHLCSeriesCollection dataset = new OHLCSeriesCollection();
         dataset.addSeries(this.ohlcSeries);
