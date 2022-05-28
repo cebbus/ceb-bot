@@ -12,8 +12,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBarSeries;
-import org.ta4j.core.num.DecimalNum;
-import org.ta4j.core.num.Num;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +53,7 @@ public class WalkForwardTask implements Runnable {
         List<CandleDto> stickList = loader.loadBarHistory();
 
         CsIntervalAdapter interval = symbol.getInterval();
-        List<Bar> barList = BarMapper.valueOf(stickList, interval);
+        List<Bar> barList = BarMapper.dtoToBar(stickList, interval);
 
         int barSize = barList.size();
         int optBarSize = barSize * this.optimizationValue / 100;
@@ -101,7 +99,7 @@ public class WalkForwardTask implements Runnable {
     }
 
     private Speculator chooseBest(List<Bar> backtestBarList, List<Pair<String, Number[]>> bestStrategyList) {
-        Num bestResult = DecimalNum.valueOf(0);
+        Number bestResult = 0d;
 
         TheOracle theOracle = null;
         BarSeries backtestSeries = new BaseBarSeries(backtestBarList);
@@ -112,11 +110,11 @@ public class WalkForwardTask implements Runnable {
 
             CebStrategy cebStrategy = StrategyFactory.create(backtestSeries, strategy);
             TheOracle backtestOracle = new TheOracle(this.symbol, cebStrategy);
-            Num defaultResult = backtestOracle.backtestStrategyReturn();
-            Num buyAndHoldResult = backtestOracle.backtestBuyAndHold();
+            Number defaultResult = backtestOracle.backtestStrategyReturn();
+            Number buyAndHoldResult = backtestOracle.backtestBuyAndHold();
 
             backtestOracle.changeProphesyParameters(parameters);
-            Num result = backtestOracle.backtestStrategyReturn();
+            Number result = backtestOracle.backtestStrategyReturn();
 
             StepResult stepResult = new StepResult();
             stepResult.setStrategy(strategy);
@@ -128,7 +126,7 @@ public class WalkForwardTask implements Runnable {
             stepResult.setParameters(parameters);
             this.stepDoneListeners.forEach(l -> l.accept(stepResult));
 
-            if (result.isGreaterThan(bestResult)) {
+            if (result.doubleValue() > bestResult.doubleValue()) {
                 bestResult = result;
                 theOracle = backtestOracle;
             }
@@ -143,7 +141,7 @@ public class WalkForwardTask implements Runnable {
     private Pair<String, Number[]> chooseBestOnStep(List<Bar> trainBarList, List<Bar> testBarList) {
         String bestStrategy = null;
         Number[] bestParameters = null;
-        Num bestResult = DecimalNum.valueOf(0.0);
+        Number bestResult = 0d;
 
         BarSeries trainSeries = new BaseBarSeries(trainBarList);
         BarSeries testSeries = new BaseBarSeries(testBarList);
@@ -151,26 +149,26 @@ public class WalkForwardTask implements Runnable {
         for (String strategy : this.strategyList) {
             CebStrategy trainsStrategy = StrategyFactory.create(trainSeries, strategy);
             TheOracle trainOracle = new TheOracle(this.symbol, trainsStrategy);
-            Num trainBuyAndHold = trainOracle.backtestBuyAndHold();
-            Num trainDefaultResult = trainOracle.backtestStrategyReturn();
+            Number trainBuyAndHold = trainOracle.backtestBuyAndHold();
+            Number trainDefaultResult = trainOracle.backtestStrategyReturn();
 
             optimize(trainOracle);
-            Num trainResult = trainOracle.backtestStrategyReturn();
+            Number trainResult = trainOracle.backtestStrategyReturn();
 
             CebStrategy testStrategy = StrategyFactory.create(testSeries, strategy);
             TheOracle testOracle = new TheOracle(this.symbol, testStrategy);
             Number[] testDefaultParameters = testOracle.getProphesyParameters();
-            Num testBuyAndHold = testOracle.backtestBuyAndHold();
-            Num testDefaultResult = testOracle.backtestStrategyReturn();
+            Number testBuyAndHold = testOracle.backtestBuyAndHold();
+            Number testDefaultResult = testOracle.backtestStrategyReturn();
 
             Number[] testParameters = trainOracle.getProphesyParameters();
             testOracle.changeProphesyParameters(testParameters);
-            Num testResult = testOracle.backtestStrategyReturn();
+            Number testResult = testOracle.backtestStrategyReturn();
 
-            Num result = testResult.max(testDefaultResult);
+            Number result = Math.max(testResult.doubleValue(), testDefaultResult.doubleValue());
             Number[] parameters = result.equals(testResult) ? testParameters : testDefaultParameters;
 
-            if (result.isGreaterThan(bestResult)) {
+            if (result.doubleValue() > bestResult.doubleValue()) {
                 bestResult = result;
                 bestStrategy = strategy;
                 bestParameters = parameters;
@@ -236,12 +234,12 @@ public class WalkForwardTask implements Runnable {
         private Bar trainEndBar;
         private Bar testStartBar;
         private Bar testEndBar;
-        private Num trainDefaultResult;
-        private Num trainResult;
-        private Num trainBuyAndHoldResult;
-        private Num testDefaultResult;
-        private Num testResult;
-        private Num testBuyAndHoldResult;
+        private Number trainDefaultResult;
+        private Number trainResult;
+        private Number trainBuyAndHoldResult;
+        private Number testDefaultResult;
+        private Number testResult;
+        private Number testBuyAndHoldResult;
         private Number[] parameters;
     }
 }

@@ -1,10 +1,10 @@
 package com.cebbus.view.panel.forward;
 
-import com.binance.api.client.domain.market.CandlestickInterval;
 import com.cebbus.analysis.Symbol;
 import com.cebbus.analysis.WalkForwardTask;
 import com.cebbus.analysis.WalkForwardTask.StepResult;
 import com.cebbus.binance.Speculator;
+import com.cebbus.dto.CsIntervalAdapter;
 import com.cebbus.util.ReflectionUtil;
 import com.cebbus.view.panel.FormFieldSet;
 import com.cebbus.view.panel.WaitDialog;
@@ -89,7 +89,7 @@ public class WalkForwardFormPanel extends FormFieldSet {
             String baseVal = baseBox.getItemAt(baseBox.getSelectedIndex());
             String quoteVal = quoteBox.getItemAt(quoteBox.getSelectedIndex());
             String interval = intervalBox.getItemAt(intervalBox.getSelectedIndex());
-            CandlestickInterval csInterval = CandlestickInterval.valueOf(interval);
+            CsIntervalAdapter csInterval = CsIntervalAdapter.valueOf(interval);
             Symbol symbol = new Symbol(-1, 0, baseVal, quoteVal, null, csInterval, null);
 
             int limitValue = limitSlider.getValue();

@@ -3,7 +3,6 @@ package com.cebbus.view.panel.forward;
 import com.cebbus.analysis.WalkForwardTask.StepResult;
 import com.cebbus.binance.Speculator;
 import org.ta4j.core.Bar;
-import org.ta4j.core.num.Num;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -73,8 +72,8 @@ public class WalkForwardStepResultTable {
         return bar == null ? null : bar.getEndTime().toLocalDateTime().format(TIME_FORMATTER);
     }
 
-    private String numToFormattedResult(Num num) {
-        return num == null ? null : RESULT_FORMAT.format(num.doubleValue());
+    private String numToFormattedResult(Number num) {
+        return num == null ? null : RESULT_FORMAT.format(num);
     }
 
     private void clear() {

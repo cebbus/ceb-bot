@@ -11,6 +11,8 @@ import com.cebbus.binance.listener.CandlestickEventListener;
 import com.cebbus.binance.listener.operation.EventOperation;
 import com.cebbus.binance.listener.operation.TradeOperation;
 import com.cebbus.binance.listener.operation.UpdateSeriesOperation;
+import com.cebbus.binance.mapper.CandlestickMapper;
+import com.cebbus.binance.mapper.TradeMapper;
 import com.cebbus.binance.order.TradeStatus;
 import com.cebbus.dto.CandleDto;
 import com.cebbus.dto.CsIntervalAdapter;
@@ -84,11 +86,11 @@ public class Speculator {
     }
 
     public List<CandleDto> loadBarHistory() {
-        return CandleDto.valueOf(getCandleHistory());
+        return CandlestickMapper.candleToDto(getCandleHistory());
     }
 
     public List<TradeDto> loadTradeHistory() {
-        return TradeDto.valueOf(getTradeHistory());
+        return TradeMapper.tradeToDto(getTradeHistory());
     }
 
     public Date startSpec() {

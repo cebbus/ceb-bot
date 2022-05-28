@@ -1,6 +1,6 @@
 package com.cebbus.view.panel.forward;
 
-import com.cebbus.analysis.CriterionResult;
+import com.cebbus.dto.CriterionResultDto;
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.binance.Speculator;
 import com.cebbus.view.panel.FormFieldSet;
@@ -49,9 +49,9 @@ public class WalkForwardResultDetailTable extends FormFieldSet {
         model.setRowCount(0);
 
         TheOracle theOracle = speculator.getTheOracle();
-        List<CriterionResult> criterionResultList = theOracle.getCriterionResultList(true);
+        List<CriterionResultDto> criterionResultList = theOracle.getCriterionResultList(true);
 
-        for (CriterionResult result : criterionResultList) {
+        for (CriterionResultDto result : criterionResultList) {
             model.addRow(new Object[]{result.getLabel(), result.getFormattedValue()});
         }
     }

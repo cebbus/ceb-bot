@@ -1,16 +1,18 @@
 package com.cebbus.analysis;
 
-import com.cebbus.binance.mapper.TradeMapper;
+import com.cebbus.dto.TradePointDto;
+import com.cebbus.dto.TradeRowDto;
 import com.cebbus.util.DateTimeUtil;
 import org.apache.commons.lang3.tuple.Pair;
-import org.jfree.data.time.RegularTimePeriod;
 import org.ta4j.core.*;
 import org.ta4j.core.num.DecimalNum;
 import org.ta4j.core.num.Num;
 
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class TradeDataHelper {
@@ -30,32 +32,19 @@ public class TradeDataHelper {
             BarSeries series,
             TradingRecord tradingRecord,
             TradingRecord backtestRecord,
-            List<com.binance.api.client.domain.account.Trade> tradeList) {
+            List<Trade> tradeHistoryList) {
         this(series, tradingRecord, backtestRecord);
-
-        TradeMapper tradeMapper = new TradeMapper(series, tradeList);
-        Map<Integer, List<com.binance.api.client.domain.account.Trade>> tradeMap = tradeMapper.getTradeMap();
-
-        tradeMap.forEach((index, trades) -> {
-            for (com.binance.api.client.domain.account.Trade trade : trades) {
-                Num price = DecimalNum.valueOf(trade.getPrice());
-                Num amount = DecimalNum.valueOf(trade.getQty());
-
-                if (trade.isBuyer()) {
-                    tradingRecord.enter(index, price, amount);
-                } else {
-                    tradingRecord.exit(index, price, amount);
-                }
-            }
-        });
+        tradeHistoryList.forEach(t -> tradingRecord.operate(t.getIndex(), t.getNetPrice(), t.getAmount()));
     }
 
-    public Trade newTrade(boolean isSpecActive, Pair<Num, Num> priceAmount) {
+    public Trade newTrade(boolean isSpecActive, Pair<Number, Number> priceAmount) {
         TradingRecord tr = isSpecActive ? this.tradingRecord : this.backtestRecord;
         int endIndex = this.series.getEndIndex();
 
         if (isSpecActive) {
-            tr.operate(endIndex, priceAmount.getKey(), priceAmount.getValue());
+            tr.operate(endIndex,
+                    DecimalNum.valueOf(priceAmount.getKey()),
+                    DecimalNum.valueOf(priceAmount.getValue()));
         } else {
             Num closePrice = this.series.getLastBar().getClosePrice();
             tr.operate(endIndex, closePrice, DecimalNum.valueOf(1));
@@ -64,25 +53,25 @@ public class TradeDataHelper {
         return tr.getLastTrade();
     }
 
-    public List<Object[]> getTradePointList() {
-        List<Object[]> pointList = new ArrayList<>();
+    public List<TradePointDto> getTradePointList() {
+        List<TradePointDto> pointList = new ArrayList<>();
         pointList.addAll(prepareTradePointList(false));
         pointList.addAll(prepareTradePointList(true));
 
         return pointList;
     }
 
-    public Optional<Object[]> getLastTradePoint(boolean backtest) {
+    public Optional<TradePointDto> getLastTradePoint(boolean backtest) {
         Trade bufferTrade = !backtest ? this.tradingRecord.getLastTrade() : this.backtestRecord.getLastTrade();
         return bufferTrade == null ? Optional.empty() : Optional.of(createTradePoint(bufferTrade, backtest));
     }
 
-    public Optional<Object[]> getLastTradeRow(boolean backtest) {
+    public Optional<TradeRowDto> getLastTradeRow(boolean backtest) {
         Trade bufferTrade = !backtest ? this.tradingRecord.getLastTrade() : this.backtestRecord.getLastTrade();
         return bufferTrade == null ? Optional.empty() : Optional.of(createTradeRow(bufferTrade));
     }
 
-    public List<Object[]> getTradeRowList(boolean backtest) {
+    public List<TradeRowDto> getTradeRowList(boolean backtest) {
         List<Trade> tradeList = new ArrayList<>();
 
         TradingRecord tr = !backtest ? this.tradingRecord : this.backtestRecord;
@@ -101,8 +90,8 @@ public class TradeDataHelper {
                 .collect(Collectors.toList());
     }
 
-    private List<Object[]> prepareTradePointList(boolean backtest) {
-        List<Object[]> pointList = new ArrayList<>();
+    private List<TradePointDto> prepareTradePointList(boolean backtest) {
+        List<TradePointDto> pointList = new ArrayList<>();
 
         TradingRecord tr = !backtest ? this.tradingRecord : this.backtestRecord;
         Trade last = tr.getLastTrade();
@@ -120,38 +109,24 @@ public class TradeDataHelper {
         return pointList;
     }
 
-    private Object[] createTradePoint(Trade trade, boolean backtest) {
-        Object[] point = new Object[3];
-
+    private TradePointDto createTradePoint(Trade trade, boolean backtest) {
         Bar bar = this.series.getBar(trade.getIndex());
-        RegularTimePeriod period = DateTimeUtil.getBarPeriod(bar);
-        double barTime = period.getFirstMillisecond();
-
-        point[0] = barTime;
-        point[1] = trade.isBuy();
-        point[2] = backtest;
-
-        return point;
+        Long tradeTime = DateTimeUtil.zonedTimeToMillis(bar.getBeginTime());
+        return new TradePointDto(trade.isBuy(), backtest, tradeTime);
     }
 
     private List<Trade> positionToTradeList(Position position) {
         return List.of(position.getEntry(), position.getExit());
     }
 
-    private Object[] createTradeRow(Trade trade) {
+    private TradeRowDto createTradeRow(Trade trade) {
         int index = trade.getIndex();
+        Number price = trade.getNetPrice().getDelegate();
+        Number amount = trade.getAmount().getDelegate();
         ZonedDateTime dateTime = this.series.getBar(index).getEndTime();
-        String formattedTime = dateTime.toLocalDateTime().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss"));
+        Long tradeTime = DateTimeUtil.zonedTimeToMillis(dateTime);
 
-        Object[] row = new Object[6];
-        row[0] = index;
-        row[1] = formattedTime;
-        row[2] = trade.isBuy() ? "B" : "S";
-        row[3] = trade.getAmount();
-        row[4] = trade.getNetPrice();
-        row[5] = trade.getAmount().multipliedBy(trade.getNetPrice());
-
-        return row;
+        return new TradeRowDto(index, trade.isBuy(), amount, price, tradeTime);
     }
 
     void setTradingRecord(TradingRecord tradingRecord) {

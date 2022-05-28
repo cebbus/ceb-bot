@@ -1,6 +1,7 @@
 package com.cebbus.view.chart;
 
 import com.cebbus.analysis.TheOracle;
+import com.cebbus.dto.TradePointDto;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.XYPlot;
 
@@ -22,12 +23,12 @@ public abstract class CryptoChart {
     public abstract void refresh();
 
     void addSignals(XYPlot plot) {
-        List<Object[]> tradePointList = this.theOracle.getTradePointList();
+        List<TradePointDto> tradePointList = this.theOracle.getTradePointList();
         tradePointList.forEach(point -> plot.addDomainMarker(createMarker(point)));
     }
 
-    CryptoMarker createMarker(Object[] point) {
-        return new CryptoMarker((double) point[0], (boolean) point[1], (boolean) point[2]);
+    CryptoMarker createMarker(TradePointDto point) {
+        return new CryptoMarker((double) point.getTradeTime(), point.isBuy(), point.isBacktest());
     }
 
 }

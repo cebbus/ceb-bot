@@ -1,5 +1,6 @@
 package com.cebbus.analysis;
 
+import com.cebbus.dto.CriterionResultDto;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.TradingRecord;
 import org.ta4j.core.analysis.criteria.BuyAndHoldReturnCriterion;
@@ -115,26 +116,26 @@ public class AnalysisCriterionCalculator {
         return backtestVersus().doubleValue();
     }
 
-    public List<CriterionResult> getCriterionResultList(boolean backtest) {
-        List<CriterionResult> resultList = new ArrayList<>();
+    public List<CriterionResultDto> getCriterionResultList(boolean backtest) {
+        List<CriterionResultDto> resultList = new ArrayList<>();
 
         int positionCount = backtest ? backtestPosCount() : posCount();
-        resultList.add(new CriterionResult("Number of Pos", positionCount, Integer.toString(positionCount), DARK_GRAY));
+        resultList.add(new CriterionResultDto("Number of Pos", positionCount, Integer.toString(positionCount), DARK_GRAY));
 
         int numOfBars = backtest ? backtestBarCount() : barCount();
-        resultList.add(new CriterionResult("Number of Bars", numOfBars, Integer.toString(numOfBars), DARK_GRAY));
+        resultList.add(new CriterionResultDto("Number of Bars", numOfBars, Integer.toString(numOfBars), DARK_GRAY));
 
         double totalReturn = backtest ? backtestStrategyReturnAsDouble() : strategyReturnAsDouble();
-        resultList.add(new CriterionResult("Strategy Return", totalReturn, RESULT_FORMAT.format(totalReturn), totalReturn > 0 ? GREEN : RED));
+        resultList.add(new CriterionResultDto("Strategy Return", totalReturn, RESULT_FORMAT.format(totalReturn), totalReturn > 0 ? GREEN : RED));
 
         double buyAndHold = backtest ? backtestBuyAndHoldAsDouble() : buyAndHoldAsDouble();
-        resultList.add(new CriterionResult("Buy and Hold Return", buyAndHold, RESULT_FORMAT.format(buyAndHold), buyAndHold > 0 ? GREEN : RED));
+        resultList.add(new CriterionResultDto("Buy and Hold Return", buyAndHold, RESULT_FORMAT.format(buyAndHold), buyAndHold > 0 ? GREEN : RED));
 
         double versus = backtest ? backtestVersusAsDouble() : versusAsDouble();
-        resultList.add(new CriterionResult("Strategy vs Hold (%)", versus, RESULT_FORMAT.format(versus * 100), versus > 1 ? GREEN : RED));
+        resultList.add(new CriterionResultDto("Strategy vs Hold (%)", versus, RESULT_FORMAT.format(versus * 100), versus > 1 ? GREEN : RED));
 
         double winningRatio = backtest ? backtestWinnigRatioAsDouble() : winnigRatioAsDouble();
-        resultList.add(new CriterionResult("Strategy Winning Ratio (%)", winningRatio, RESULT_FORMAT.format(winningRatio * 100), winningRatio > 0.75 ? GREEN : RED));
+        resultList.add(new CriterionResultDto("Strategy Winning Ratio (%)", winningRatio, RESULT_FORMAT.format(winningRatio * 100), winningRatio > 0.75 ? GREEN : RED));
 
         return resultList;
     }

@@ -1,15 +1,15 @@
 package com.cebbus.analysis;
 
+import com.cebbus.analysis.mapper.BarMapper;
+import com.cebbus.analysis.mapper.TradeMapper;
 import com.cebbus.analysis.strategy.BaseCebStrategy;
 import com.cebbus.analysis.strategy.CebStrategy;
 import com.cebbus.analysis.strategy.StrategyFactory;
-import com.cebbus.dto.CandleDto;
-import com.cebbus.dto.TradeDto;
+import com.cebbus.dto.*;
+import com.cebbus.util.DateTimeUtil;
 import com.cebbus.util.ReflectionUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
-import org.jfree.data.time.TimeSeriesDataItem;
-import org.jfree.data.time.ohlc.OHLCItem;
 import org.jgap.Chromosome;
 import org.jgap.Configuration;
 import org.jgap.InvalidConfigurationException;
@@ -17,6 +17,7 @@ import org.ta4j.core.*;
 import org.ta4j.core.indicators.CachedIndicator;
 import org.ta4j.core.num.Num;
 
+import java.awt.*;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -41,7 +42,7 @@ public class TheOracle {
         this.backtestRecord = createBacktestRecord();
 
         BarSeries series = this.cebStrategy.getSeries();
-        this.seriesHelper = new SeriesHelper(symbol, series);
+        this.seriesHelper = new SeriesHelper(series);
         this.tradeDataHelper = new TradeDataHelper(series, this.tradingRecord, this.backtestRecord);
         this.criterionCalculator = new AnalysisCriterionCalculator(series, this.tradingRecord, this.backtestRecord);
     }
@@ -51,15 +52,28 @@ public class TheOracle {
             List<TradeDto> tradeList,
             List<CandleDto> candlestickList) {
         this.symbol = symbol;
-        this.seriesHelper = new SeriesHelper(symbol, candlestickList);
+
+        List<Bar> barList = BarMapper.dtoToBar(candlestickList, symbol.getInterval());
+        this.seriesHelper = new SeriesHelper(symbol, barList);
 
         BarSeries series = this.seriesHelper.getSeries();
         this.cebStrategy = StrategyFactory.create(series, symbol.getStrategy());
         this.tradingRecord = new BaseTradingRecord();
         this.backtestRecord = createBacktestRecord();
 
-        this.tradeDataHelper = new TradeDataHelper(series, this.tradingRecord, this.backtestRecord, tradeList);
+        TradeMapper tradeMapper = new TradeMapper(series, tradeList);
+        List<Trade> tradeHistoryList = tradeMapper.getTradeHistory();
+        this.tradeDataHelper = new TradeDataHelper(series, this.tradingRecord, this.backtestRecord, tradeHistoryList);
+
         this.criterionCalculator = new AnalysisCriterionCalculator(series, this.tradingRecord, this.backtestRecord);
+    }
+
+    public TheOracle changeStrategy(String strategy) {
+        BarSeries series = this.cebStrategy.getSeries();
+        CebStrategy newStrategy = StrategyFactory.create(series, strategy);
+
+        Symbol copy = this.symbol.changeStrategy(strategy);
+        return new TheOracle(copy, newStrategy);
     }
 
     public Map<String, Map<String, CachedIndicator<Num>>> getIndicators() {
@@ -76,14 +90,6 @@ public class TheOracle {
 
     public Chromosome getProphesyOmen(Configuration conf) throws InvalidConfigurationException {
         return new Chromosome(conf, this.cebStrategy.createGene(conf));
-    }
-
-    public TheOracle changeStrategy(String strategy) {
-        BarSeries series = this.cebStrategy.getSeries();
-        CebStrategy newStrategy = StrategyFactory.create(series, strategy);
-
-        Symbol copy = this.symbol.copy(strategy);
-        return new TheOracle(copy, newStrategy);
     }
 
     public void changeProphesyParameters(Number... parameters) {
@@ -126,63 +132,81 @@ public class TheOracle {
         return !Optional.ofNullable(tr).orElse(this.tradingRecord).getCurrentPosition().isOpened();
     }
 
-    public void addBar(CandleDto newBar) {
+    public void addBar(CandleDto dto) {
+        Bar newBar = BarMapper.dtoToBar(dto, this.symbol.getInterval());
         this.seriesHelper.addBar(newBar);
     }
 
-    public OHLCItem getLastCandle() {
-        return this.seriesHelper.getLastCandle();
+    public CandleDto getLastCandle() {
+        Bar bar = this.seriesHelper.getLastBar();
+        return BarMapper.barToDto(bar);
     }
 
-    public List<OHLCItem> getCandleDataList() {
-        return this.seriesHelper.getCandleDataList();
+    public List<CandleDto> getCandleDataList() {
+        List<Bar> barList = this.seriesHelper.getCandleDataList();
+        return BarMapper.barToDto(barList);
     }
 
-    public TimeSeriesDataItem getLastSeriesItem(CachedIndicator<Num> indicator) {
-        return this.seriesHelper.getLastSeriesItem(indicator);
+    public IndicatorValueDto getLastIndicatorValue(CachedIndicator<Num> indicator) {
+        int index = this.seriesHelper.getEndIndex();
+        return createIndicatorValueDto(index, indicator);
     }
 
-    public List<TimeSeriesDataItem> getSeriesDataList(CachedIndicator<Num> indicator) {
-        return this.seriesHelper.getSeriesDataList(indicator);
+    public List<IndicatorValueDto> getIndicatorValueList(CachedIndicator<Num> indicator) {
+        List<Integer> indexList = this.seriesHelper.getSeriesIndexList();
+        return indexList.stream().map(i -> createIndicatorValueDto(i, indicator)).collect(Collectors.toList());
     }
 
-    public Trade newTrade(boolean isSpecActive, Pair<Num, Num> priceAmount) {
-        return this.tradeDataHelper.newTrade(isSpecActive, priceAmount);
+    public TradeDto newTrade(boolean isSpecActive, Pair<Number, Number> priceAmount) {
+        Trade trade = this.tradeDataHelper.newTrade(isSpecActive, priceAmount);
+        return TradeMapper.tradeToDto(trade);
     }
 
-    public List<Object[]> getTradePointList() {
+    public List<TradePointDto> getTradePointList() {
         return this.tradeDataHelper.getTradePointList();
     }
 
-    public Optional<Object[]> getLastTradePoint(boolean backtest) {
+    public Optional<TradePointDto> getLastTradePoint(boolean backtest) {
         return this.tradeDataHelper.getLastTradePoint(backtest);
     }
 
-    public Optional<Object[]> getLastTradeRow(boolean backtest) {
+    public Optional<TradeRowDto> getLastTradeRow(boolean backtest) {
         return this.tradeDataHelper.getLastTradeRow(backtest);
     }
 
-    public List<Object[]> getTradeRowList(boolean backtest) {
+    public List<TradeRowDto> getTradeRowList(boolean backtest) {
         return this.tradeDataHelper.getTradeRowList(backtest);
     }
 
-    public Num backtestBuyAndHold() {
-        return this.criterionCalculator.backtestBuyAndHold();
+    public Number backtestBuyAndHold() {
+        return this.criterionCalculator.backtestBuyAndHold().getDelegate();
     }
 
-    public Num backtestStrategyReturn() {
-        return this.criterionCalculator.backtestStrategyReturn();
+    public Number backtestStrategyReturn() {
+        return this.criterionCalculator.backtestStrategyReturn().getDelegate();
     }
 
-    public List<CriterionResult> getCriterionResultList(boolean backtest) {
+    public List<CriterionResultDto> getCriterionResultList(boolean backtest) {
         return this.criterionCalculator.getCriterionResultList(backtest);
     }
 
     private TradingRecord createBacktestRecord() {
-        BarSeries series = this.cebStrategy.getSeries();
-        Strategy strategy = this.cebStrategy.getStrategy();
+        if (!GraphicsEnvironment.isHeadless()) {
+            BarSeries series = this.cebStrategy.getSeries();
+            Strategy strategy = this.cebStrategy.getStrategy();
 
-        BarSeriesManager manager = new BarSeriesManager(series);
-        return manager.run(strategy);
+            BarSeriesManager manager = new BarSeriesManager(series);
+            return manager.run(strategy);
+        } else {
+            return new BaseTradingRecord();
+        }
+    }
+
+    private IndicatorValueDto createIndicatorValueDto(int index, CachedIndicator<Num> indicator) {
+        double value = indicator.getValue(index).doubleValue();
+        Bar bar = this.seriesHelper.getBar(index);
+        Long beginTime = DateTimeUtil.zonedTimeToMillis(bar.getBeginTime());
+
+        return new IndicatorValueDto(index, value, beginTime);
     }
 }

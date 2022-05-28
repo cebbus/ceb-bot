@@ -1,5 +1,6 @@
 package com.cebbus.analysis;
 
+import com.cebbus.dto.CriterionResultDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.ta4j.core.BarSeries;
@@ -46,8 +47,8 @@ class AnalysisCriterionCalculatorTest {
         TradingRecord rec = createTradeRecord();
         this.calculator.setTradingRecord(rec);
 
-        List<CriterionResult> expected = createResultList();
-        List<CriterionResult> actual = this.calculator.getCriterionResultList(false);
+        List<CriterionResultDto> expected = createResultList();
+        List<CriterionResultDto> actual = this.calculator.getCriterionResultList(false);
         assertIterableEquals(expected, actual);
     }
 
@@ -56,8 +57,8 @@ class AnalysisCriterionCalculatorTest {
         TradingRecord rec = createTradeRecord();
         this.calculator.setBacktestRecord(rec);
 
-        List<CriterionResult> expected = createResultList();
-        List<CriterionResult> actual = this.calculator.getCriterionResultList(true);
+        List<CriterionResultDto> expected = createResultList();
+        List<CriterionResultDto> actual = this.calculator.getCriterionResultList(true);
         assertIterableEquals(expected, actual);
     }
 
@@ -75,14 +76,14 @@ class AnalysisCriterionCalculatorTest {
         return rec;
     }
 
-    private List<CriterionResult> createResultList() {
-        List<CriterionResult> resultList = new ArrayList<>();
-        resultList.add(new CriterionResult("Number of Pos", 2, "2", DARK_GRAY));
-        resultList.add(new CriterionResult("Number of Bars", 4, "4", DARK_GRAY));
-        resultList.add(new CriterionResult("Strategy Return", 5.0, "5.0000", GREEN));
-        resultList.add(new CriterionResult("Buy and Hold Return", 11.0, "11.0000", GREEN));
-        resultList.add(new CriterionResult("Strategy vs Hold (%)", 0.45454545454545453, "45.4545", RED));
-        resultList.add(new CriterionResult("Strategy Winning Ratio (%)", 0.5, "50.0000", RED));
+    private List<CriterionResultDto> createResultList() {
+        List<CriterionResultDto> resultList = new ArrayList<>();
+        resultList.add(new CriterionResultDto("Number of Pos", 2, "2", DARK_GRAY));
+        resultList.add(new CriterionResultDto("Number of Bars", 4, "4", DARK_GRAY));
+        resultList.add(new CriterionResultDto("Strategy Return", 5.0, "5.0000", GREEN));
+        resultList.add(new CriterionResultDto("Buy and Hold Return", 11.0, "11.0000", GREEN));
+        resultList.add(new CriterionResultDto("Strategy vs Hold (%)", 0.45454545454545453, "45.4545", RED));
+        resultList.add(new CriterionResultDto("Strategy Winning Ratio (%)", 0.5, "50.0000", RED));
 
         return resultList;
     }

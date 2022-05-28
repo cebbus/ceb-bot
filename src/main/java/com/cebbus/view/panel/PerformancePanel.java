@@ -1,6 +1,6 @@
 package com.cebbus.view.panel;
 
-import com.cebbus.analysis.CriterionResult;
+import com.cebbus.dto.CriterionResultDto;
 import com.cebbus.analysis.Symbol;
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.binance.Speculator;
@@ -45,10 +45,10 @@ public class PerformancePanel extends FormFieldSet {
     }
 
     public void refresh() {
-        List<CriterionResult> backtestList = this.theOracle.getCriterionResultList(true);
+        List<CriterionResultDto> backtestList = this.theOracle.getCriterionResultList(true);
         backtestList.forEach(r -> updateValueLabel(this.backtestLabelMap.get(r.getLabel()), r));
 
-        List<CriterionResult> resultList = this.theOracle.getCriterionResultList(false);
+        List<CriterionResultDto> resultList = this.theOracle.getCriterionResultList(false);
         resultList.forEach(r -> updateValueLabel(this.tradingLabelMap.get(r.getLabel()), r));
     }
 
@@ -78,7 +78,7 @@ public class PerformancePanel extends FormFieldSet {
         panel.add(createTitleLabel("Backtest Results"), createConst(rowNum, 0));
         panel.add(new JLabel(""), createConst(rowNum, 1));
 
-        List<CriterionResult> backtestResultList = this.theOracle.getCriterionResultList(true);
+        List<CriterionResultDto> backtestResultList = this.theOracle.getCriterionResultList(true);
         backtestResultList.forEach(r -> this.backtestLabelMap.put(r.getLabel(), createValueLabel(r)));
 
         this.backtestLabelMap.forEach((s, l) -> {
@@ -91,7 +91,7 @@ public class PerformancePanel extends FormFieldSet {
         panel.add(createTitleLabel("Trade Results"), createConst(rowNum, 0));
         panel.add(new JLabel(""), createConst(rowNum, 1));
 
-        List<CriterionResult> currentResultList = this.theOracle.getCriterionResultList(false);
+        List<CriterionResultDto> currentResultList = this.theOracle.getCriterionResultList(false);
         currentResultList.forEach(r -> this.tradingLabelMap.put(r.getLabel(), createValueLabel(r)));
 
         this.tradingLabelMap.forEach((s, l) -> {
@@ -110,13 +110,13 @@ public class PerformancePanel extends FormFieldSet {
         return c;
     }
 
-    private JLabel createValueLabel(CriterionResult result) {
+    private JLabel createValueLabel(CriterionResultDto result) {
         JLabel label = createThinLabel();
         updateValueLabel(label, result);
         return label;
     }
 
-    private void updateValueLabel(JLabel label, CriterionResult result) {
+    private void updateValueLabel(JLabel label, CriterionResultDto result) {
         label.setText(result.getFormattedValue());
         label.setForeground(result.getColor());
     }

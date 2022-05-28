@@ -5,7 +5,6 @@ import com.cebbus.exception.OptimizationException;
 import lombok.extern.slf4j.Slf4j;
 import org.jgap.*;
 import org.jgap.impl.DefaultConfiguration;
-import org.ta4j.core.num.Num;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,7 +78,7 @@ public class OptimizeTask implements Runnable {
                 Number[] parameters = chromosomeToParameters(chromosome);
                 theOracle.changeProphesyParameters(parameters);
 
-                Num result = theOracle.backtestStrategyReturn();
+                Number result = theOracle.backtestStrategyReturn();
                 chromosome.setFitnessValue(result.doubleValue());
 
                 return result.doubleValue();

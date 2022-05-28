@@ -1,10 +1,9 @@
 package com.cebbus.util;
 
-import com.binance.api.client.domain.market.CandlestickInterval;
 import com.cebbus.analysis.Symbol;
-import com.cebbus.dto.CsIntervalAdapter;
 import com.cebbus.binance.Speculator;
 import com.cebbus.binance.SpeculatorJob;
+import com.cebbus.dto.CsIntervalAdapter;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
@@ -35,7 +34,7 @@ public class ScheduleUtil {
         Symbol symbol = speculator.getSymbol();
         String symbolName = symbol.getName();
         String symbolBase = symbol.getBase();
-        CandlestickInterval interval = symbol.getInterval();
+        CsIntervalAdapter interval = symbol.getInterval();
 
         JobDataMap dataMap = new JobDataMap();
         dataMap.put("speculator", speculator);
@@ -46,7 +45,7 @@ public class ScheduleUtil {
                 .build();
 
         CronScheduleBuilder cronBuilder = CronScheduleBuilder
-                .cronSchedule(CsIntervalAdapter.getCron(interval))
+                .cronSchedule(interval.getCron())
                 .inTimeZone(TimeZone.getTimeZone(DateTimeUtil.ZONE));
 
         CronTrigger trigger = TriggerBuilder.newTrigger()

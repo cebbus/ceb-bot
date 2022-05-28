@@ -1,5 +1,6 @@
 package com.cebbus.analysis;
 
+import com.cebbus.dto.CriterionResultDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -9,11 +10,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class CriterionResultTest {
 
-    private CriterionResult result;
+    private CriterionResultDto result;
 
     @BeforeEach
     void setUp() {
-        this.result = new CriterionResult("label", 1, "1F", Color.BLUE);
+        this.result = new CriterionResultDto("label", 1, "1F", Color.BLUE);
     }
 
     @Test

@@ -4,10 +4,10 @@ import com.binance.api.client.domain.account.NewOrder;
 import com.binance.api.client.domain.account.NewOrderResponse;
 import com.binance.api.client.domain.general.SymbolInfo;
 import com.cebbus.binance.Speculator;
+import com.cebbus.dto.TradeDto;
 import com.cebbus.exception.ZeroWeightException;
 import com.cebbus.util.SpeculatorHolder;
 import lombok.extern.slf4j.Slf4j;
-import org.ta4j.core.Trade;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -19,7 +19,7 @@ public class BuyerAction extends TraderAction {
         super(speculator);
     }
 
-    public Trade enter() {
+    public TradeDto enter() {
         if (this.speculator.isActive()) {
             SpeculatorHolder specHolder = SpeculatorHolder.getInstance();
 

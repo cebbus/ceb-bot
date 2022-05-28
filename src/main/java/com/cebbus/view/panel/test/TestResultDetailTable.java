@@ -1,6 +1,6 @@
 package com.cebbus.view.panel.test;
 
-import com.cebbus.analysis.CriterionResult;
+import com.cebbus.dto.CriterionResultDto;
 import com.cebbus.analysis.OptimizeTask;
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.binance.Speculator;
@@ -113,8 +113,8 @@ public class TestResultDetailTable extends FormFieldSet {
         model.setRowCount(0);
 
         TheOracle theOracle = speculator.getTheOracle();
-        List<CriterionResult> criterionResultList = theOracle.getCriterionResultList(true);
-        for (CriterionResult result : criterionResultList) {
+        List<CriterionResultDto> criterionResultList = theOracle.getCriterionResultList(true);
+        for (CriterionResultDto result : criterionResultList) {
             model.addRow(new Object[]{result.getLabel(), result.getFormattedValue()});
         }
     }
@@ -132,10 +132,10 @@ public class TestResultDetailTable extends FormFieldSet {
         }
 
         TheOracle theOracle = speculator.getTheOracle();
-        List<CriterionResult> criterionResultList = theOracle.getCriterionResultList(true);
+        List<CriterionResultDto> criterionResultList = theOracle.getCriterionResultList(true);
 
         for (int i = 0; i < criterionResultList.size(); i++) {
-            CriterionResult result = criterionResultList.get(i);
+            CriterionResultDto result = criterionResultList.get(i);
             model.setValueAt(result.getFormattedValue(), i, 2);
         }
     }

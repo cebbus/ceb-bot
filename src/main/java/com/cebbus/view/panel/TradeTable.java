@@ -1,16 +1,24 @@
 package com.cebbus.view.panel;
 
 import com.cebbus.analysis.TheOracle;
+import com.cebbus.dto.TradeRowDto;
+import com.cebbus.util.DateTimeUtil;
 import com.cebbus.view.chart.ColorPalette;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.text.DecimalFormat;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
 public class TradeTable {
+
+    private static final DecimalFormat NUMBER_FORMATTER = new DecimalFormat("#,###.0000");
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
 
     private final TheOracle theOracle;
     private final DefaultTableModel tradeModel = new DefaultTableModel();
@@ -42,8 +50,8 @@ public class TradeTable {
         model.addColumn("Price");
         model.addColumn("Total");
 
-        List<Object[]> rowList = this.theOracle.getTradeRowList(backtest);
-        rowList.forEach(model::addRow);
+        List<TradeRowDto> rowList = this.theOracle.getTradeRowList(backtest);
+        rowList.forEach(rowDto -> model.addRow(convertDtoToRow(rowDto)));
 
         JTable table = new JTable(model);
         table.setDefaultRenderer(Object.class, new BuySellRenderer());
@@ -53,8 +61,10 @@ public class TradeTable {
     }
 
     private void addTradeRow(DefaultTableModel model, boolean backtest) {
-        Optional<Object[]> tradeRow = this.theOracle.getLastTradeRow(backtest);
-        tradeRow.ifPresent(row -> {
+        Optional<TradeRowDto> tradeRow = this.theOracle.getLastTradeRow(backtest);
+        tradeRow.ifPresent(rowDto -> {
+            Object[] row = convertDtoToRow(rowDto);
+
             if (!exists(model, row)) {
                 model.addRow(row);
             }
@@ -68,6 +78,22 @@ public class TradeTable {
 
         int rowIndex = model.getRowCount() - 1;
         return model.getValueAt(rowIndex, 1).equals(row[1]);
+    }
+
+    private Object[] convertDtoToRow(TradeRowDto rowDto) {
+        double price = rowDto.getPrice().doubleValue();
+        double amount = rowDto.getAmount().doubleValue();
+        ZonedDateTime tradeTime = DateTimeUtil.millisToSystemTime(rowDto.getTradeTime());
+
+        Object[] row = new Object[6];
+        row[0] = rowDto.getId();
+        row[1] = tradeTime.format(DATE_TIME_FORMATTER);
+        row[2] = rowDto.isBuy() ? "B" : "S";
+        row[3] = NUMBER_FORMATTER.format(amount);
+        row[4] = NUMBER_FORMATTER.format(price);
+        row[5] = NUMBER_FORMATTER.format(amount * price);
+
+        return row;
     }
 
     private static class BuySellRenderer extends DefaultTableCellRenderer {
