@@ -1,8 +1,8 @@
 package com.cebbus.util;
 
-import com.cebbus.analysis.Symbol;
 import com.cebbus.binance.Speculator;
 import com.cebbus.exception.SpeculatorBlockedException;
+import com.cebbus.properties.Symbol;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -43,7 +43,7 @@ public class SpeculatorHolder {
         String quote = symbol.getQuote();
         double weight = symbol.getWeight();
         double totalWeight = SPECULATORS.stream()
-                .filter(s -> s.getTheOracle().notInPosition(null))
+                .filter(s -> !s.getTheOracle().isInPosition(true))
                 .filter(s -> s.getSymbol().getQuote().equals(quote))
                 .mapToDouble(s -> s.getSymbol().getWeight())
                 .sum();

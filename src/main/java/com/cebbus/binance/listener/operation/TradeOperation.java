@@ -1,7 +1,7 @@
 package com.cebbus.binance.listener.operation;
 
 import com.binance.api.client.domain.event.CandlestickEvent;
-import com.cebbus.analysis.Symbol;
+import com.cebbus.properties.Symbol;
 import com.cebbus.binance.Speculator;
 import com.cebbus.binance.order.BuyerAction;
 import com.cebbus.binance.order.SellerAction;

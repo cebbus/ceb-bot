@@ -1,7 +1,7 @@
 package com.cebbus.view.panel;
 
 import com.cebbus.dto.CriterionResultDto;
-import com.cebbus.analysis.Symbol;
+import com.cebbus.properties.Symbol;
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.binance.Speculator;
 import org.apache.commons.lang3.StringUtils;

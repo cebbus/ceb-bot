@@ -1,9 +1,10 @@
 package com.cebbus.util;
 
 import com.cebbus.CebBot;
-import com.cebbus.analysis.Symbol;
 import com.cebbus.binance.order.TradeStatus;
 import com.cebbus.dto.CsIntervalAdapter;
+import com.cebbus.properties.Radar;
+import com.cebbus.properties.Symbol;
 import lombok.extern.slf4j.Slf4j;
 import org.jasypt.properties.EncryptableProperties;
 
@@ -13,6 +14,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -23,13 +25,20 @@ import static com.cebbus.util.PropertyEncryptor.getEncryptor;
 public class PropertyReader {
 
     private static final Properties PROPERTIES;
+    private static final List<Radar> RADAR_LIST;
+    private static final List<Symbol> SYMBOL_LIST;
 
     static {
+        RADAR_LIST = new ArrayList<>();
+        SYMBOL_LIST = new ArrayList<>();
         PROPERTIES = new EncryptableProperties(getEncryptor());
 
         try (InputStream is = findPropertyUrl().openStream()) {
             PROPERTIES.load(is);
             checkSecretsEncryption(PROPERTIES.entrySet());
+
+            RADAR_LIST.add(readRadar());
+            SYMBOL_LIST.addAll(readSymbols());
         } catch (IOException e) {
             log.error(e.getMessage(), e);
             System.exit(-1);
@@ -67,7 +76,15 @@ public class PropertyReader {
         return getProfile().equals("production");
     }
 
-    public static List<Symbol> getSymbols() {
+    private static Radar readRadar() {
+        boolean active = Boolean.parseBoolean(getProperty("radar.active").trim());
+        String quote = getProperty("radar.quote").trim();
+        CsIntervalAdapter interval = CsIntervalAdapter.valueOf(getProperty("radar.interval").trim());
+
+        return new Radar(active, quote, interval);
+    }
+
+    private static List<Symbol> readSymbols() {
         String[] baseArr = getProperty("symbol.base").split(",");
         String[] quoteArr = getProperty("symbol.quote").split(",");
         String[] intervalArr = getProperty("symbol.interval").split(",");
@@ -124,4 +141,11 @@ public class PropertyReader {
         return getProperty("api.profile");
     }
 
+    public static Radar getRadar() {
+        return RADAR_LIST.get(0);
+    }
+
+    public static List<Symbol> getSymbolList() {
+        return Collections.unmodifiableList(SYMBOL_LIST);
+    }
 }

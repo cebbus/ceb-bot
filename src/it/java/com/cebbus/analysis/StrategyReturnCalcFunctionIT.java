@@ -5,6 +5,7 @@ import com.cebbus.analysis.strategy.MacdStrategy;
 import com.cebbus.binance.Speculator;
 import com.cebbus.dto.CandleDto;
 import com.cebbus.dto.CsIntervalAdapter;
+import com.cebbus.properties.Symbol;
 import com.cebbus.util.PropertyReader;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,7 +25,7 @@ class StrategyReturnCalcFunctionIT {
 
     @BeforeEach
     void setUp() {
-        Symbol symbol = PropertyReader.getSymbols().get(0);
+        Symbol symbol = PropertyReader.getSymbolList().get(0);
         Speculator speculator = new Speculator(symbol);
         List<CandleDto> stickList = speculator.loadBarHistory();
 

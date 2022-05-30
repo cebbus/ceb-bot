@@ -1,6 +1,6 @@
 package com.cebbus.view.panel.forward;
 
-import com.cebbus.analysis.Symbol;
+import com.cebbus.properties.Symbol;
 import com.cebbus.analysis.WalkForwardTask;
 import com.cebbus.analysis.WalkForwardTask.StepResult;
 import com.cebbus.binance.Speculator;

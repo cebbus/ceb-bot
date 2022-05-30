@@ -116,6 +116,7 @@ public class AnalysisCriterionCalculator {
         return backtestVersus().doubleValue();
     }
 
+    //FIXME move to enum and return only value
     public List<CriterionResultDto> getCriterionResultList(boolean backtest) {
         List<CriterionResultDto> resultList = new ArrayList<>();
 
@@ -126,10 +127,10 @@ public class AnalysisCriterionCalculator {
         resultList.add(new CriterionResultDto("Number of Bars", numOfBars, Integer.toString(numOfBars), DARK_GRAY));
 
         double totalReturn = backtest ? backtestStrategyReturnAsDouble() : strategyReturnAsDouble();
-        resultList.add(new CriterionResultDto("Strategy Return", totalReturn, RESULT_FORMAT.format(totalReturn), totalReturn > 0 ? GREEN : RED));
+        resultList.add(new CriterionResultDto("Strategy Return", totalReturn, RESULT_FORMAT.format(totalReturn), totalReturn >= 1 ? GREEN : RED));
 
         double buyAndHold = backtest ? backtestBuyAndHoldAsDouble() : buyAndHoldAsDouble();
-        resultList.add(new CriterionResultDto("Buy and Hold Return", buyAndHold, RESULT_FORMAT.format(buyAndHold), buyAndHold > 0 ? GREEN : RED));
+        resultList.add(new CriterionResultDto("Buy and Hold Return", buyAndHold, RESULT_FORMAT.format(buyAndHold), buyAndHold >= 1 ? GREEN : RED));
 
         double versus = backtest ? backtestVersusAsDouble() : versusAsDouble();
         resultList.add(new CriterionResultDto("Strategy vs Hold (%)", versus, RESULT_FORMAT.format(versus * 100), versus > 1 ? GREEN : RED));

@@ -1,8 +1,8 @@
 package com.cebbus.util;
 
-import com.cebbus.analysis.Symbol;
 import com.cebbus.binance.order.TradeStatus;
 import com.cebbus.dto.CsIntervalAdapter;
+import com.cebbus.properties.Symbol;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -57,7 +57,7 @@ class PropertyReaderIT {
         expected.add(new Symbol(1, 0.1, "ETH", "USDT", "MacdStrategy", CsIntervalAdapter.ONE_MINUTE, TradeStatus.ACTIVE));
         expected.add(new Symbol(2, 0.0, "XRP", "USDT", "MacdStrategy", CsIntervalAdapter.ONE_MINUTE, TradeStatus.INACTIVE));
 
-        List<Symbol> actual = PropertyReader.getSymbols();
+        List<Symbol> actual = PropertyReader.getSymbolList();
         assertIterableEquals(expected, actual);
     }
 }

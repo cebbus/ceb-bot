@@ -6,6 +6,7 @@ import com.cebbus.analysis.strategy.BaseCebStrategy;
 import com.cebbus.analysis.strategy.CebStrategy;
 import com.cebbus.analysis.strategy.StrategyFactory;
 import com.cebbus.dto.*;
+import com.cebbus.properties.Symbol;
 import com.cebbus.util.DateTimeUtil;
 import com.cebbus.util.ReflectionUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +18,6 @@ import org.ta4j.core.*;
 import org.ta4j.core.indicators.CachedIndicator;
 import org.ta4j.core.num.Num;
 
-import java.awt.*;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -120,7 +120,7 @@ public class TheOracle {
 
     public boolean shouldExit(boolean isSpecActive, boolean isManual) {
         TradingRecord tr = isSpecActive ? this.tradingRecord : this.backtestRecord;
-        if (notInPosition(tr)) {
+        if (!isInPosition(isSpecActive)) {
             log.info("{} - you have no position!", this.seriesHelper.getName());
             return false;
         }
@@ -128,8 +128,9 @@ public class TheOracle {
         return isManual || this.cebStrategy.shouldExit(tr);
     }
 
-    public boolean notInPosition(TradingRecord tr) {
-        return !Optional.ofNullable(tr).orElse(this.tradingRecord).getCurrentPosition().isOpened();
+    public boolean isInPosition(boolean isSpecActive) {
+        TradingRecord tr = isSpecActive ? this.tradingRecord : this.backtestRecord;
+        return tr.getCurrentPosition().isOpened();
     }
 
     public void addBar(CandleDto dto) {
@@ -191,15 +192,11 @@ public class TheOracle {
     }
 
     private TradingRecord createBacktestRecord() {
-        if (!GraphicsEnvironment.isHeadless()) {
-            BarSeries series = this.cebStrategy.getSeries();
-            Strategy strategy = this.cebStrategy.getStrategy();
+        BarSeries series = this.cebStrategy.getSeries();
+        Strategy strategy = this.cebStrategy.getStrategy();
 
-            BarSeriesManager manager = new BarSeriesManager(series);
-            return manager.run(strategy);
-        } else {
-            return new BaseTradingRecord();
-        }
+        BarSeriesManager manager = new BarSeriesManager(series);
+        return manager.run(strategy);
     }
 
     private IndicatorValueDto createIndicatorValueDto(int index, CachedIndicator<Num> indicator) {

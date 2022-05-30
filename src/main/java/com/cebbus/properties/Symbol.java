@@ -1,4 +1,4 @@
-package com.cebbus.analysis;
+package com.cebbus.properties;
 
 import com.cebbus.binance.order.TradeStatus;
 import com.cebbus.dto.CsIntervalAdapter;

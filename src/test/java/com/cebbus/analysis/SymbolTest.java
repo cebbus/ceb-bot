@@ -2,6 +2,7 @@ package com.cebbus.analysis;
 
 import com.cebbus.binance.order.TradeStatus;
 import com.cebbus.dto.CsIntervalAdapter;
+import com.cebbus.properties.Symbol;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

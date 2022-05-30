@@ -1,5 +1,6 @@
 package com.cebbus.analysis;
 
+import com.cebbus.properties.Symbol;
 import com.cebbus.util.PropertyReader;
 import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;

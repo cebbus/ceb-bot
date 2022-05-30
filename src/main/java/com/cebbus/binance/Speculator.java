@@ -5,7 +5,6 @@ import com.binance.api.client.domain.account.Trade;
 import com.binance.api.client.domain.event.CandlestickEvent;
 import com.binance.api.client.domain.market.Candlestick;
 import com.binance.api.client.domain.market.CandlestickInterval;
-import com.cebbus.analysis.Symbol;
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.binance.listener.CandlestickEventListener;
 import com.cebbus.binance.listener.operation.EventOperation;
@@ -17,8 +16,8 @@ import com.cebbus.binance.order.TradeStatus;
 import com.cebbus.dto.CandleDto;
 import com.cebbus.dto.CsIntervalAdapter;
 import com.cebbus.dto.TradeDto;
+import com.cebbus.properties.Symbol;
 import com.cebbus.util.PropertyReader;
-import com.cebbus.util.ScheduleUtil;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
@@ -28,7 +27,6 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.text.DecimalFormat;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -82,28 +80,14 @@ public class Speculator {
 
         if (initOracle) {
             this.theOracle = new TheOracle(symbol, loadTradeHistory(), loadBarHistory());
+
+            this.listener.addOperation(new UpdateSeriesOperation(this));
+            this.listener.addOperation(new TradeOperation(this));
         }
     }
 
     public List<CandleDto> loadBarHistory() {
         return CandlestickMapper.candleToDto(getCandleHistory());
-    }
-
-    public List<TradeDto> loadTradeHistory() {
-        return TradeMapper.tradeToDto(getTradeHistory());
-    }
-
-    public Date startSpec() {
-        Objects.requireNonNull(this.theOracle);
-
-        this.listener.addOperation(new UpdateSeriesOperation(this));
-        this.listener.addOperation(new TradeOperation(this));
-
-        return ScheduleUtil.schedule(this);
-    }
-
-    public void triggerListener(CandlestickEvent event) {
-        this.listener.onResponse(event);
     }
 
     public int addCandlestickEventOperation(EventOperation operation) {
@@ -181,6 +165,19 @@ public class Speculator {
         this.theOracle = this.theOracle.changeStrategy(strategy);
     }
 
+    Candlestick getLastCandle() {
+        String symName = this.symbol.getName();
+        CsIntervalAdapter interval = this.symbol.getInterval();
+        CandlestickInterval csInterval = CandlestickInterval.valueOf(interval.name());
+
+        List<Candlestick> bars = this.restClient.getCandlestickBars(symName, csInterval, 2, null, null);
+        return bars.get(0);
+    }
+
+    void triggerListener(CandlestickEvent event) {
+        this.listener.onResponse(event);
+    }
+
     private boolean trade(boolean isBuy) {
         TradeOperation trader = new TradeOperation(this);
         boolean success = isBuy ? trader.manualEnter() : trader.manualExit();
@@ -198,6 +195,10 @@ public class Speculator {
         bars.remove(bars.size() - 1);
 
         return bars;
+    }
+
+    private List<TradeDto> loadTradeHistory() {
+        return TradeMapper.tradeToDto(getTradeHistory());
     }
 
     private List<Trade> getTradeHistory() {
