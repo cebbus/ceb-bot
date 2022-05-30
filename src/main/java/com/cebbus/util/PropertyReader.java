@@ -3,6 +3,8 @@ package com.cebbus.util;
 import com.cebbus.CebBot;
 import com.cebbus.binance.order.TradeStatus;
 import com.cebbus.dto.CsIntervalAdapter;
+import com.cebbus.notification.NotifierType;
+import com.cebbus.properties.Mail;
 import com.cebbus.properties.Radar;
 import com.cebbus.properties.Symbol;
 import lombok.extern.slf4j.Slf4j;
@@ -13,10 +15,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.cebbus.util.PropertyEncryptor.checkSecretsEncryption;
 import static com.cebbus.util.PropertyEncryptor.getEncryptor;
@@ -25,10 +25,12 @@ import static com.cebbus.util.PropertyEncryptor.getEncryptor;
 public class PropertyReader {
 
     private static final Properties PROPERTIES;
+    private static final List<Mail> MAIL_LIST;
     private static final List<Radar> RADAR_LIST;
     private static final List<Symbol> SYMBOL_LIST;
 
     static {
+        MAIL_LIST = new ArrayList<>();
         RADAR_LIST = new ArrayList<>();
         SYMBOL_LIST = new ArrayList<>();
         PROPERTIES = new EncryptableProperties(getEncryptor());
@@ -37,6 +39,7 @@ public class PropertyReader {
             PROPERTIES.load(is);
             checkSecretsEncryption(PROPERTIES.entrySet());
 
+            MAIL_LIST.add(readMail());
             RADAR_LIST.add(readRadar());
             SYMBOL_LIST.addAll(readSymbols());
         } catch (IOException e) {
@@ -76,10 +79,28 @@ public class PropertyReader {
         return getProfile().equals("production");
     }
 
+    public static List<NotifierType> getNotifierList() {
+        return Arrays.stream(getProperty("notifier").split(","))
+                .map(s -> NotifierType.valueOf(s.trim()))
+                .collect(Collectors.toList());
+    }
+
+    private static Mail readMail() {
+        boolean auth = Boolean.parseBoolean(getProperty("mail.auth"));
+        boolean startTls = Boolean.parseBoolean(getProperty("mail.starttls"));
+        Integer port = Integer.valueOf(getProperty("mail.port"));
+        String host = getProperty("mail.host");
+        String username = getProperty("mail.username");
+        String password = getProperty("mail.password");
+        String to = getProperty("mail.to");
+
+        return new Mail(auth, startTls, port, host, username, password, to);
+    }
+
     private static Radar readRadar() {
-        boolean active = Boolean.parseBoolean(getProperty("radar.active").trim());
-        String quote = getProperty("radar.quote").trim();
-        CsIntervalAdapter interval = CsIntervalAdapter.valueOf(getProperty("radar.interval").trim());
+        boolean active = Boolean.parseBoolean(getProperty("radar.active"));
+        String quote = getProperty("radar.quote");
+        CsIntervalAdapter interval = CsIntervalAdapter.valueOf(getProperty("radar.interval"));
 
         return new Radar(active, quote, interval);
     }
@@ -119,7 +140,7 @@ public class PropertyReader {
     }
 
     private static String getProperty(String key) {
-        return PROPERTIES.getProperty(key);
+        return PROPERTIES.getProperty(key).trim();
     }
 
     private static URL findPropertyUrl() throws MalformedURLException {
@@ -139,6 +160,10 @@ public class PropertyReader {
 
     private static String getProfile() {
         return getProperty("api.profile");
+    }
+
+    public static Mail getMail() {
+        return MAIL_LIST.get(0);
     }
 
     public static Radar getRadar() {

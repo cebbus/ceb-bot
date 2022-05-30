@@ -2,6 +2,7 @@ package com.cebbus.util;
 
 import com.cebbus.analysis.strategy.*;
 import com.cebbus.exception.StrategyNotFoundException;
+import com.cebbus.notification.Notifier;
 import lombok.extern.slf4j.Slf4j;
 import org.ta4j.core.BarSeries;
 
@@ -30,6 +31,18 @@ public class ReflectionUtil {
 
         try {
             return (CebStrategy) strategyClazz.getDeclaredConstructor(parameterTypes).newInstance(initArgs);
+        } catch (InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException e) {
+            log.error(e.getMessage(), e);
+            throw new StrategyNotFoundException();
+        }
+    }
+
+    public static Notifier initNotifier(Notifier notifier, Class<?> notifierClazz) {
+        Object[] initArgs = new Object[]{notifier};
+        Class<?>[] parameterTypes = new Class<?>[]{Notifier.class};
+
+        try {
+            return (Notifier) notifierClazz.getDeclaredConstructor(parameterTypes).newInstance(initArgs);
         } catch (InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException e) {
             log.error(e.getMessage(), e);
             throw new StrategyNotFoundException();

@@ -8,6 +8,7 @@ import com.cebbus.dto.CandleDto;
 import com.cebbus.dto.CriterionResultDto;
 import com.cebbus.dto.CsIntervalAdapter;
 import com.cebbus.dto.TradeRowDto;
+import com.cebbus.notification.NotificationManager;
 import com.cebbus.properties.Radar;
 import com.cebbus.properties.Symbol;
 import com.cebbus.util.ReflectionUtil;
@@ -16,9 +17,7 @@ import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Slf4j
 public class RadarJob implements Job {
@@ -27,6 +26,8 @@ public class RadarJob implements Job {
 
     @Override
     public void execute(JobExecutionContext context) {
+        Map<SymbolInfo, List<String>> symbolMap = new HashMap<>();
+
         JobDataMap dataMap = context.getJobDetail().getJobDataMap();
         Radar radar = (Radar) dataMap.get("radar");
         String quote = radar.getQuote();
@@ -40,9 +41,6 @@ public class RadarJob implements Job {
         log.info("radar detected {} symbols!", symbolList.size());
 
         for (SymbolInfo symbolInfo : symbolList) {
-            String baseAsset = symbolInfo.getBaseAsset();
-            String quoteAsset = symbolInfo.getQuoteAsset();
-
             Speculator speculator = createSpeculator(symbolInfo, interval);
 
             List<String> inPositionStrategyList = new ArrayList<>();
@@ -66,9 +64,11 @@ public class RadarJob implements Job {
             }
 
             if (inPositionStrategyList.size() >= 2) {
-                log.info("check this symbol {}{}, strategy list {}", baseAsset, quoteAsset, inPositionStrategyList);
+                symbolMap.put(symbolInfo, inPositionStrategyList);
             }
         }
+
+        sendNotification(symbolMap);
 
         log.info("radar finished!");
     }
@@ -80,5 +80,26 @@ public class RadarJob implements Job {
 
         Symbol symbol = new Symbol(-1, 0, base, quote, junkStrategy, interval, TradeStatus.INACTIVE);
         return new Speculator(symbol, RADAR_LIMIT, true);
+    }
+
+    private void sendNotification(Map<SymbolInfo, List<String>> symbolMap) {
+        NotificationManager notificationManager = NotificationManager.getInstance();
+
+        StringBuilder message = new StringBuilder();
+
+        symbolMap.forEach((symbolInfo, strategyList) -> message.append("check this symbol ")
+                .append(symbolInfo.getBaseAsset())
+                .append(symbolInfo.getQuoteAsset())
+                .append(" - ")
+                .append("strategy list ")
+                .append(strategyList)
+                .append(System.lineSeparator()));
+
+
+        if (message.length() == 0) {
+            notificationManager.send("market is fully with shit coins... nothing notable...");
+        } else {
+            notificationManager.send(message.toString());
+        }
     }
 }
