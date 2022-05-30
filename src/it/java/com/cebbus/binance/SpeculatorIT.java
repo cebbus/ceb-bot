@@ -1,6 +1,6 @@
 package com.cebbus.binance;
 
-import com.cebbus.analysis.Symbol;
+import com.cebbus.properties.Symbol;
 import com.cebbus.binance.order.TradeStatus;
 import com.cebbus.util.PropertyReader;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,7 +17,7 @@ class SpeculatorIT {
 
     @BeforeEach
     void setUp() {
-        Symbol symbol = PropertyReader.getSymbols().get(0);
+        Symbol symbol = PropertyReader.getSymbolList().get(0);
         this.speculator = new Speculator(symbol, LIMIT);
     }
 

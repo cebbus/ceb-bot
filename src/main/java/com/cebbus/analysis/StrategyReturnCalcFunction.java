@@ -3,6 +3,7 @@ package com.cebbus.analysis;
 import com.cebbus.analysis.strategy.BaseCebStrategy;
 import com.cebbus.analysis.strategy.CebStrategy;
 import com.cebbus.analysis.strategy.StrategyFactory;
+import com.cebbus.properties.Symbol;
 import org.apache.commons.lang3.tuple.Pair;
 import org.ta4j.core.BarSeries;
 

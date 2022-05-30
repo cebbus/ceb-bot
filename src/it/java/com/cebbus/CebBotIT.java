@@ -1,11 +1,12 @@
 package com.cebbus;
 
-import com.cebbus.analysis.Symbol;
 import com.cebbus.analysis.TheOracle;
 import com.cebbus.binance.Speculator;
 import com.cebbus.binance.order.TradeStatus;
+import com.cebbus.properties.Symbol;
 import com.cebbus.util.PropertyReader;
 import com.cebbus.util.SpeculatorHolder;
+import com.cebbus.util.TaskScheduler;
 import com.cebbus.view.panel.CryptoAppFrame;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.*;
@@ -24,7 +25,7 @@ class CebBotIT {
     void setUp() {
         CryptoAppFrame appFrame = new CryptoAppFrame();
 
-        Symbol symbol = PropertyReader.getSymbols().get(0);
+        Symbol symbol = PropertyReader.getSymbolList().get(0);
         SpeculatorHolder specHolder = SpeculatorHolder.getInstance();
         this.speculator = new Speculator(symbol, true);
 
@@ -75,8 +76,10 @@ class CebBotIT {
     @Test
     @Order(2)
     void startSpec() {
+        TaskScheduler scheduler = TaskScheduler.getInstance();
+
         assertDoesNotThrow(() -> {
-            Date fireDate = this.speculator.startSpec();
+            Date fireDate = scheduler.scheduleSpeculator(this.speculator);
             Date now = new Date();
 
             while (now.before(fireDate)) {

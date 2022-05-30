@@ -1,6 +1,6 @@
 package com.cebbus.view.panel.test;
 
-import com.cebbus.analysis.Symbol;
+import com.cebbus.properties.Symbol;
 import com.cebbus.binance.Speculator;
 import com.cebbus.dto.CsIntervalAdapter;
 import com.cebbus.view.panel.FormFieldSet;

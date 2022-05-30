@@ -6,6 +6,7 @@ import com.cebbus.analysis.strategy.StrategyFactory;
 import com.cebbus.binance.Speculator;
 import com.cebbus.dto.CandleDto;
 import com.cebbus.dto.CsIntervalAdapter;
+import com.cebbus.properties.Symbol;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
