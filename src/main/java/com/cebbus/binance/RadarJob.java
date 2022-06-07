@@ -26,7 +26,7 @@ public class RadarJob implements Job {
 
     @Override
     public void execute(JobExecutionContext context) {
-        Map<SymbolInfo, List<String>> symbolMap = new HashMap<>();
+        Map<String, List<String>> symbolMap = new TreeMap<>();
 
         JobDataMap dataMap = context.getJobDetail().getJobDataMap();
         Radar radar = (Radar) dataMap.get("radar");
@@ -64,7 +64,7 @@ public class RadarJob implements Job {
             }
 
             if (inPositionStrategyList.size() >= 2) {
-                symbolMap.put(symbolInfo, inPositionStrategyList);
+                symbolMap.put(speculator.getSymbol().getName(), inPositionStrategyList);
             }
         }
 
@@ -82,14 +82,13 @@ public class RadarJob implements Job {
         return new Speculator(symbol, RADAR_LIMIT, true);
     }
 
-    private void sendNotification(Map<SymbolInfo, List<String>> symbolMap) {
+    private void sendNotification(Map<String, List<String>> symbolMap) {
         NotificationManager notificationManager = NotificationManager.getInstance();
 
         StringBuilder message = new StringBuilder();
 
-        symbolMap.forEach((symbolInfo, strategyList) -> message.append("check this symbol ")
-                .append(symbolInfo.getBaseAsset())
-                .append(symbolInfo.getQuoteAsset())
+        symbolMap.forEach((symbol, strategyList) -> message.append("check this symbol ")
+                .append(symbol)
                 .append(" - ")
                 .append("strategy list ")
                 .append(strategyList)
